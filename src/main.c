@@ -357,12 +357,11 @@ static gint mh_hooker(void)
         newvalue = mpd_status_get_consume(status);
         oldvalue = mpd_status_get_consume(mhinfo.status);
         if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
+            argv = g_malloc0(3 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.consume);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
+            argv[1] = g_strdup_printf("%d", newvalue);
             mh_run_hook("consume", argv);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
                 g_free(argv[i]);
             g_free(argv);
         }
@@ -426,12 +425,11 @@ static gint mh_hooker(void)
         newvalue = mpd_status_get_random(status);
         oldvalue = mpd_status_get_random(mhinfo.status);
         if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
+            argv = g_malloc0(3 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.random);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
+            argv[1] = g_strdup_printf("%d", newvalue);
             mh_run_hook("random", argv);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
                 g_free(argv[i]);
             g_free(argv);
         }
@@ -439,12 +437,11 @@ static gint mh_hooker(void)
         newvalue = mpd_status_get_repeat(status);
         oldvalue = mpd_status_get_repeat(mhinfo.status);
         if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
+            argv = g_malloc0(3 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.repeat);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
+            argv[1] = g_strdup_printf("%d", newvalue);
             mh_run_hook("repeat", argv);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
                 g_free(argv[i]);
             g_free(argv);
         }
@@ -465,12 +462,11 @@ static gint mh_hooker(void)
         newvalue = mpd_status_get_single(status);
         oldvalue = mpd_status_get_single(mhinfo.status);
         if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
+            argv = g_malloc0(3 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.single);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
+            argv[1] = g_strdup_printf("%d", newvalue);
             mh_run_hook("single", argv);
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 2; i++)
                 g_free(argv[i]);
             g_free(argv);
         }

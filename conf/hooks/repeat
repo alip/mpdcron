@@ -4,7 +4,8 @@
 # ~/.mpdhooker by default and make it executable.
 
 # Example repeat change hook
-old="$1"
-new="$2"
-
-echo ">>> Repeat change from $old to $new"
+if [[ $1 == 1 ]]; then
+    echo ">>> Repeat mode on"
+else
+    echo ">>> Repeat mode off"
+fi

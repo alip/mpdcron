@@ -4,7 +4,8 @@
 # ~/.mpdhooker by default and make it executable.
 
 # Example random change hook
-old="$1"
-new="$2"
-
-echo ">>> Random change from $old to $new"
+if [[ $1 == 1 ]]; then
+    echo ">>> Random mode on"
+else
+    echo ">>> Random mode off"
+fi

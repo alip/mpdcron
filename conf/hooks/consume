@@ -1,0 +1,11 @@
+#!/bin/sh
+# vim: set sw=4 et sts=4 tw=80 :
+# Copy this file to MPD_HOOKER_DIR/hooks/consume where MPD_HOOKER_DIR is
+# ~/.mpdhooker by default and make it executable.
+
+# Example consume change hook
+if [[ $1 == 1 ]]; then
+    echo ">>> Consume mode on"
+else
+    echo ">>> Consume mode off"
+fi

@@ -4,7 +4,8 @@
 # ~/.mpdhooker by default and make it executable.
 
 # Example single change hook
-old="$1"
-new="$2"
-
-echo ">>> Single change from $old to $new"
+if [[ $1 == 1 ]]; then
+    echo ">>> Single mode on"
+else
+    echo ">>> Single mode off"
+fi

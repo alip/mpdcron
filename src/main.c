@@ -66,6 +66,7 @@ static struct globalconf {
     gchar **envp;
     const gchar *hostname;
     const gchar *port;
+    const gchar *password;
     gint poll;
     gint reconnect;
     struct mpd_connection *conn;
@@ -270,16 +271,18 @@ static void mh_signal(void)
 static void mh_connect_block(void)
 {
     gint try = 1;
-    if (NULL == mhconf.hostname) {
+    if (mhconf.hostname == NULL) {
         mhconf.hostname = g_getenv("MPD_HOST");
-        if (NULL == mhconf.hostname)
+        if (mhconf.hostname == NULL)
             mhconf.hostname = "localhost";
     }
-    if (NULL == mhconf.port) {
+    if (mhconf.port == NULL) {
         mhconf.port = g_getenv("MPD_PORT");
-        if (NULL == mhconf.port)
+        if (mhconf.port == NULL)
             mhconf.port = "6600";
     }
+    if (mhconf.password == NULL)
+        mhconf.password = g_getenv("MPD_PASSWORD");
 
     for (;;) {
         daemon_log(LOG_INFO, "Connecting to mpd server `%s' on port %s (try: %d)", mhconf.hostname, mhconf.port, try++);
@@ -292,6 +295,11 @@ static void mh_connect_block(void)
             continue;
         }
         daemon_log(LOG_INFO, "Successfully connected to mpd server `%s' on port %s", mhconf.hostname, mhconf.port);
+        if (mhconf.password != NULL) {
+            daemon_log(LOG_INFO, "Sending password to mpd server `%s' on port %s", mhconf.hostname, mhconf.port);
+            mpd_send_password(mhconf.conn, mhconf.password);
+            mpd_response_finish(mhconf.conn);
+        }
         break;
     }
 }

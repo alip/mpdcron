@@ -722,7 +722,7 @@ G_GNUC_NORETURN static void mh_loop(void)
     for (;;) {
         mh_signal();
         if (0 > mh_hooker()) {
-            if (NULL != mhconf.conn)
+            if (mhconf.conn != NULL)
                 mpd_connection_free(mhconf.conn);
             mh_connect_block();
             continue;

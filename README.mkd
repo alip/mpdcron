@@ -1,7 +1,6 @@
 ## What is mpdhooker? ##
 [mpdhooker](http://github.com/alip/mpdhooker/) is a hooker daemon for [mpd](http://mpd.wikia.com/).  
-It polls [Mpd](http://mpd.wikia.com/) for information and runs hooks passing arguments on their  
-command line.
+It polls [Mpd](http://mpd.wikia.com/) for information and runs hooks passing arguments on their command line.
 
 ## Configuration ##
 See the conf/ directory for information about how to configure mpdhooker and its hooks.

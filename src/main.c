@@ -55,6 +55,7 @@ struct homedir {
     gchar *single;
     gchar *song;
     gchar *state;
+    gchar *updatingdb;
     gchar *volume;
 };
 
@@ -134,6 +135,7 @@ static void mh_cleanup(void)
         daemon_pid_file_remove();
     }
     g_free(mhconf.dir.volume);
+    g_free(mhconf.dir.updatingdb);
     g_free(mhconf.dir.state);
     g_free(mhconf.dir.song);
     g_free(mhconf.dir.single);
@@ -488,6 +490,18 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
+        newvalue = mpd_status_get_updatingdb(status);
+        oldvalue = mpd_status_get_updatingdb(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(3 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.updatingdb);
+            argv[1] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("updatingdb", argv);
+            for (int i = 0; i < 2; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
         newvalue = mpd_status_get_volume(status);
         oldvalue = mpd_status_get_volume(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -650,6 +664,7 @@ int main(int argc, char **argv, char **environ)
     mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);
     mhconf.dir.song = g_build_filename(mhconf.dir.home, "hooks", "song", NULL);
     mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);
+    mhconf.dir.updatingdb = g_build_filename(mhconf.dir.home, "hooks", "updatingdb", NULL);
     mhconf.dir.volume = g_build_filename(mhconf.dir.home, "hooks", "volume", NULL);
 
     mh_config_load(mhconf.dir.config);

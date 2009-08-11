@@ -344,7 +344,7 @@ static gint mh_run_hook(const char *name, gchar **argv)
     return 0;
 }
 
-static void mh_set_env(struct mpd_status *status, struct mpd_entity *entity)
+static void mh_setenv(struct mpd_status *status, struct mpd_entity *entity)
 {
     gchar *oldvalue, *newvalue;
     struct mpd_song *oldsong, *newsong;
@@ -503,7 +503,7 @@ static void mh_run_hooks(struct mpd_status *status, struct mpd_entity *entity)
 {
     gchar **argv;
 
-    mh_set_env(status, entity);
+    mh_setenv(status, entity);
     argv = g_malloc0(2 * sizeof(gchar *));
     if (mhdiff.bitrate) {
         argv[0] = g_strdup(mhconf.dir.bitrate);
@@ -721,7 +721,7 @@ G_GNUC_NORETURN static void mh_loop(void)
     mh_connect_block();
     for (;;) {
         mh_signal();
-        if (0 > mh_hooker()) {
+        if (mh_hooker() < 0) {
             if (mhconf.conn != NULL)
                 mpd_connection_free(mhconf.conn);
             mh_connect_block();

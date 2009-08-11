@@ -47,6 +47,7 @@ struct homedir {
     gchar *repeat;
     gchar *single;
     gchar *consume;
+    gchar *crossfade;
     gchar *random;
     gchar *state;
     gchar *elapsed;
@@ -132,6 +133,7 @@ static void mh_cleanup(void)
     g_free(mhconf.dir.elapsed);
     g_free(mhconf.dir.state);
     g_free(mhconf.dir.random);
+    g_free(mhconf.dir.crossfade);
     g_free(mhconf.dir.consume);
     g_free(mhconf.dir.single);
     g_free(mhconf.dir.repeat);
@@ -380,6 +382,19 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
+        newvalue = mpd_status_get_crossfade(status);
+        oldvalue = mpd_status_get_crossfade(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.crossfade);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("crossfade", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
         newvalue = mpd_status_get_random(status);
         oldvalue = mpd_status_get_random(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -566,6 +581,7 @@ int main(int argc, char **argv, char **environ)
     mhconf.dir.repeat = g_build_filename(mhconf.dir.home, "hooks", "repeat", NULL);
     mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);
     mhconf.dir.consume = g_build_filename(mhconf.dir.home, "hooks", "consume", NULL);
+    mhconf.dir.crossfade = g_build_filename(mhconf.dir.home, "hooks", "crossfade", NULL);
     mhconf.dir.random = g_build_filename(mhconf.dir.home, "hooks", "random", NULL);
     mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);
     mhconf.dir.elapsed = g_build_filename(mhconf.dir.home, "hooks", "elapsed", NULL);

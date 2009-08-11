@@ -1,0 +1,10 @@
+#!/bin/sh
+# vim: set sw=4 et sts=4 tw=80 :
+# Copy this file to MPD_HOOKER_DIR/hooks/song where MPD_HOOKER_DIR is
+# ~/.mpdhooker by default and make it executable.
+
+# Example song change hook
+oldfile="$1"
+newfile="$2"
+
+echo ">>> Song changed from $oldfile to $newfile"

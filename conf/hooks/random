@@ -1,0 +1,10 @@
+#!/bin/sh
+# vim: set sw=4 et sts=4 tw=80 :
+# Copy this file to MPD_HOOKER_DIR/hooks/random where MPD_HOOKER_DIR is
+# ~/.mpdhooker by default and make it executable.
+
+# Example random change hook
+old="$1"
+new="$2"
+
+echo ">>> Random change from $old to $new"

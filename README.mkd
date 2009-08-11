@@ -6,12 +6,13 @@ It polls [Mpd](http://mpd.wikia.com/) for information and runs hooks passing arg
 See the conf/ directory for information about how to configure mpdhooker and its hooks.
 
 ## Requirements ##
-mpdhooker requires:  
-- [libmpdclient](http://mpd.wikia.com/wiki/ClientLib:libmpdclient)-2.0~git.
-- [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer.
-- [glib](http://library.gnome.org/devel/glib/)-2.18 or newer.
+mpdhooker requires:
+
+ - [libmpdclient](http://mpd.wikia.com/wiki/ClientLib:libmpdclient)-2.0~git.
+ - [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer.
+ - [glib](http://library.gnome.org/devel/glib/)-2.18 or newer.
 
 ## Contribute ##
 Clone git://github.com/alip/mpdhooker.git.  
-Format patches are preferred. Either mail me or poke us on irc. (alip on freenode and oftc)  
+Format patches are preferred. Either mail me or poke me on irc. (alip on freenode and oftc)  
 

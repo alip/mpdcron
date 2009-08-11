@@ -328,7 +328,7 @@ static gint mh_run_hook(const char *name, gchar **argv)
     if (!g_spawn_async(mhconf.dir.home, argv, NULL,
             G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
             NULL, NULL, &pid, &hook_error)) {
-        if (hook_error->code != G_SPAWN_ERROR_NOENT)
+        if (hook_error->code != G_SPAWN_ERROR_NOENT && hook_error->code != G_SPAWN_ERROR_NOEXEC)
             daemon_log(LOG_WARNING, "Failed to execute hook `%s': %s", name, hook_error->message);
         g_error_free(hook_error);
         return -1;

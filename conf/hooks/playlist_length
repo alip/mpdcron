@@ -1,0 +1,10 @@
+#!/bin/sh
+# vim: set sw=4 et sts=4 tw=80 :
+# Copy this file to MPD_HOOKER_DIR/hooks/playlist_length where MPD_HOOKER_DIR is
+# ~/.mpdhooker by default and make it executable.
+
+# Example playlist_length change hook
+old="$1"
+new="$2"
+
+echo ">>> Playlist length changed from $old to $new"

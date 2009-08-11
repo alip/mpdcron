@@ -51,6 +51,7 @@ struct homedir {
     gchar *playlist_length;
     gchar *random;
     gchar *repeat;
+    gchar *samplerate;
     gchar *single;
     gchar *song;
     gchar *state;
@@ -136,6 +137,7 @@ static void mh_cleanup(void)
     g_free(mhconf.dir.state);
     g_free(mhconf.dir.song);
     g_free(mhconf.dir.single);
+    g_free(mhconf.dir.samplerate);
     g_free(mhconf.dir.repeat);
     g_free(mhconf.dir.random);
     g_free(mhconf.dir.playlist_length);
@@ -445,6 +447,19 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
+        newvalue = mpd_status_get_sample_rate(status);
+        oldvalue = mpd_status_get_sample_rate(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.samplerate);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("samplerate", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
         newvalue = mpd_status_get_single(status);
         oldvalue = mpd_status_get_single(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -631,6 +646,7 @@ int main(int argc, char **argv, char **environ)
     mhconf.dir.playlist_length = g_build_filename(mhconf.dir.home, "hooks", "playlist_length", NULL);
     mhconf.dir.random = g_build_filename(mhconf.dir.home, "hooks", "random", NULL);
     mhconf.dir.repeat = g_build_filename(mhconf.dir.home, "hooks", "repeat", NULL);
+    mhconf.dir.samplerate = g_build_filename(mhconf.dir.home, "hooks", "samplerate", NULL);
     mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);
     mhconf.dir.song = g_build_filename(mhconf.dir.home, "hooks", "song", NULL);
     mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);

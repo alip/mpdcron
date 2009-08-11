@@ -39,23 +39,6 @@
 #include "config.h"
 #endif // HAVE_CONFIG_H
 
-struct diff {
-    bool bitrate;
-    bool consume;
-    bool crossfade;
-    bool elapsed;
-    bool playlist;
-    bool playlist_length;
-    bool random;
-    bool repeat;
-    bool samplerate;
-    bool single;
-    bool song;
-    bool state;
-    bool updatingdb;
-    bool volume;
-} mhdiff;
-
 struct homedir {
     gchar *home;
     gchar *pid;
@@ -88,6 +71,23 @@ static struct globalconf {
     struct mpd_connection *conn;
     struct homedir dir;
 } mhconf;
+
+struct globaldiff {
+    bool bitrate;
+    bool consume;
+    bool crossfade;
+    bool elapsed;
+    bool playlist;
+    bool playlist_length;
+    bool random;
+    bool repeat;
+    bool samplerate;
+    bool single;
+    bool song;
+    bool state;
+    bool updatingdb;
+    bool volume;
+} mhdiff;
 
 static struct globalinfo {
     bool initial;
@@ -167,10 +167,18 @@ static void mh_cleanup(void)
     g_free(mhconf.dir.bitrate);
     g_free(mhconf.dir.home);
     g_free(mhconf.dir.pid);
-    if (NULL != mhconf.conn)
+    if (mhconf.conn != NULL) {
         mpd_connection_free(mhconf.conn);
-    if (NULL != mhinfo.status)
+        mhconf.conn = NULL;
+    }
+    if (mhinfo.status != NULL) {
         mpd_status_free(mhinfo.status);
+        mhinfo.status = NULL;
+    }
+    if (mhinfo.entity != NULL) {
+        mpd_entity_free(mhinfo.entity);
+        mhinfo.entity = NULL;
+    }
 }
 
 static bool mh_config_load(const gchar *config_file)
@@ -580,7 +588,7 @@ static gint mh_hooker(void)
     struct mpd_song *song, *oldsong;
     struct mpd_entity *entity;
 
-    memset(&mhdiff, 0, sizeof(struct diff));
+    memset(&mhdiff, 0, sizeof(struct globaldiff));
     mpd_send_status(mhconf.conn);
     if (mpd_get_error(mhconf.conn) != MPD_ERROR_SUCCESS) {
         daemon_log(LOG_ERR, "Connection error: %s", mpd_get_error_message(mhconf.conn));

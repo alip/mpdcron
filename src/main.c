@@ -43,6 +43,7 @@ struct homedir {
     gchar *home;
     gchar *pid;
     gchar *config;
+    gchar *bitrate;
     gchar *volume;
     gchar *repeat;
     gchar *single;
@@ -142,6 +143,7 @@ static void mh_cleanup(void)
     g_free(mhconf.dir.single);
     g_free(mhconf.dir.repeat);
     g_free(mhconf.dir.volume);
+    g_free(mhconf.dir.bitrate);
     g_free(mhconf.dir.home);
     g_free(mhconf.dir.pid);
     if (NULL != mhconf.conn)
@@ -335,6 +337,19 @@ static gint mh_hooker(void)
     if (mhinfo.initial || !mhinfo.status)
         daemon_log(LOG_DEBUG, "Status information not available, not comparing data");
     else {
+        newvalue = mpd_status_get_bit_rate(status);
+        oldvalue = mpd_status_get_bit_rate(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.bitrate);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("bitrate", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
         newvalue = mpd_status_get_volume(status);
         oldvalue = mpd_status_get_volume(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -608,6 +623,7 @@ int main(int argc, char **argv, char **environ)
 
     /* Build script paths */
     mhconf.dir.config = g_build_filename(mhconf.dir.home, "mpdhooker.conf", NULL);
+    mhconf.dir.bitrate = g_build_filename(mhconf.dir.home, "hooks", "bitrate", NULL);
     mhconf.dir.volume = g_build_filename(mhconf.dir.home, "hooks", "volume", NULL);
     mhconf.dir.repeat = g_build_filename(mhconf.dir.home, "hooks", "repeat", NULL);
     mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);

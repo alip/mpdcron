@@ -397,7 +397,7 @@ static gint mh_hooker(void)
 
         newvalue_long = mpd_status_get_playlist(status);
         oldvalue_long = mpd_status_get_playlist(mhinfo.status);
-        if (newvalue != oldvalue) {
+        if (newvalue_long != oldvalue_long) {
             argv = g_malloc0(4 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.playlist);
             argv[1] = g_strdup_printf("%lld", oldvalue_long);

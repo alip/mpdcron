@@ -95,7 +95,7 @@ static void mh_about(void)
     fputc('\n', stdout);
 }
 
-static const char *mh_strstate(int state)
+static const char *mh_strstate(enum mpd_state state)
 {
     const char *strstate;
 

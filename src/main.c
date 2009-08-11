@@ -569,7 +569,7 @@ int main(int argc, char **argv, char **environ)
     mhconf.dir.random = g_build_filename(mhconf.dir.home, "hooks", "random", NULL);
     mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);
     mhconf.dir.elapsed = g_build_filename(mhconf.dir.home, "hooks", "elapsed", NULL);
-    mhconf.dir.song = g_build_filename(mhconf.dir.song, "hooks", "song", NULL);
+    mhconf.dir.song = g_build_filename(mhconf.dir.home, "hooks", "song", NULL);
 
     mh_config_load(mhconf.dir.config);
 

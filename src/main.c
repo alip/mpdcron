@@ -254,7 +254,6 @@ static void mh_signal(void)
             case SIGQUIT:
             case SIGTERM:
                 daemon_log(LOG_WARNING, "Got SIGINT, SIGQUIT or SIGTERM");
-                mh_cleanup();
                 exit(EXIT_FAILURE);
                 break;
             case SIGHUP:
@@ -672,8 +671,8 @@ int main(int argc, char **argv, char **environ)
     }
 
     if (mhconf.opt_no_daemonize) {
-        mh_loop();
         g_atexit(mh_cleanup);
+        mh_loop();
         return EXIT_SUCCESS;
     }
 

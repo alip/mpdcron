@@ -308,6 +308,7 @@ static gint mh_hooker(void)
 {
     gchar **argv;
     gint oldvalue, newvalue;
+    long long oldvalue_long, newvalue_long;
     const gchar *oldfile, *newfile;
     struct mpd_status *status;
     struct mpd_song *song, *oldsong;
@@ -397,13 +398,13 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
-        newvalue = mpd_status_get_playlist(status);
-        oldvalue = mpd_status_get_playlist(mhinfo.status);
+        newvalue_long = mpd_status_get_playlist(status);
+        oldvalue_long = mpd_status_get_playlist(mhinfo.status);
         if (newvalue != oldvalue) {
             argv = g_malloc0(4 * sizeof(gchar *));
             argv[0] = g_strdup(mhconf.dir.playlist);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
+            argv[1] = g_strdup_printf("%lld", oldvalue_long);
+            argv[2] = g_strdup_printf("%lld", newvalue_long);
             mh_run_hook("playlist", argv);
             for (int i = 0; i < 3; i++)
                 g_free(argv[i]);

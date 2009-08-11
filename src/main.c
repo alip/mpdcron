@@ -44,17 +44,17 @@ struct homedir {
     gchar *pid;
     gchar *config;
     gchar *bitrate;
-    gchar *volume;
-    gchar *repeat;
-    gchar *single;
     gchar *consume;
     gchar *crossfade;
+    gchar *elapsed;
     gchar *playlist;
     gchar *playlist_length;
     gchar *random;
-    gchar *state;
-    gchar *elapsed;
+    gchar *repeat;
+    gchar *single;
     gchar *song;
+    gchar *state;
+    gchar *volume;
 };
 
 static struct globalconf {
@@ -132,17 +132,17 @@ static void mh_cleanup(void)
         daemon_signal_done();
         daemon_pid_file_remove();
     }
-    g_free(mhconf.dir.song);
-    g_free(mhconf.dir.elapsed);
+    g_free(mhconf.dir.volume);
     g_free(mhconf.dir.state);
+    g_free(mhconf.dir.song);
+    g_free(mhconf.dir.single);
+    g_free(mhconf.dir.repeat);
     g_free(mhconf.dir.random);
     g_free(mhconf.dir.playlist_length);
     g_free(mhconf.dir.playlist);
+    g_free(mhconf.dir.elapsed);
     g_free(mhconf.dir.crossfade);
     g_free(mhconf.dir.consume);
-    g_free(mhconf.dir.single);
-    g_free(mhconf.dir.repeat);
-    g_free(mhconf.dir.volume);
     g_free(mhconf.dir.bitrate);
     g_free(mhconf.dir.home);
     g_free(mhconf.dir.pid);
@@ -350,45 +350,6 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
-        newvalue = mpd_status_get_volume(status);
-        oldvalue = mpd_status_get_volume(mhinfo.status);
-        if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
-            argv[0] = g_strdup(mhconf.dir.volume);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
-            mh_run_hook("volume", argv);
-            for (int i = 0; i < 3; i++)
-                g_free(argv[i]);
-            g_free(argv);
-        }
-
-        newvalue = mpd_status_get_repeat(status);
-        oldvalue = mpd_status_get_repeat(mhinfo.status);
-        if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
-            argv[0] = g_strdup(mhconf.dir.repeat);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
-            mh_run_hook("repeat", argv);
-            for (int i = 0; i < 3; i++)
-                g_free(argv[i]);
-            g_free(argv);
-        }
-
-        newvalue = mpd_status_get_single(status);
-        oldvalue = mpd_status_get_single(mhinfo.status);
-        if (newvalue != oldvalue) {
-            argv = g_malloc0(4 * sizeof(gchar *));
-            argv[0] = g_strdup(mhconf.dir.single);
-            argv[1] = g_strdup_printf("%d", oldvalue);
-            argv[2] = g_strdup_printf("%d", newvalue);
-            mh_run_hook("single", argv);
-            for (int i = 0; i < 3; i++)
-                g_free(argv[i]);
-            g_free(argv);
-        }
-
         newvalue = mpd_status_get_consume(status);
         oldvalue = mpd_status_get_consume(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -413,6 +374,23 @@ static gint mh_hooker(void)
             for (int i = 0; i < 3; i++)
                 g_free(argv[i]);
             g_free(argv);
+        }
+
+        if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
+                mpd_status_get_state(status) == MPD_STATE_PAUSE) {
+            newvalue = mpd_status_get_elapsed_time(status);
+            oldvalue = mpd_status_get_elapsed_time(mhinfo.status);
+            if (newvalue != oldvalue) {
+                argv = g_malloc0(5 * sizeof(gchar *));
+                argv[0] = g_strdup(mhconf.dir.elapsed);
+                argv[1] = g_strdup_printf("%d", oldvalue);
+                argv[2] = g_strdup_printf("%d", newvalue);
+                argv[3] = g_strdup_printf("%d", mpd_status_get_total_time(status));
+                mh_run_hook("elapsed", argv);
+                for (int i = 0; i < 4; i++)
+                    g_free(argv[i]);
+                g_free(argv);
+            }
         }
 
         newvalue_long = mpd_status_get_playlist(status);
@@ -454,6 +432,32 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
+        newvalue = mpd_status_get_repeat(status);
+        oldvalue = mpd_status_get_repeat(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.repeat);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("repeat", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
+        newvalue = mpd_status_get_single(status);
+        oldvalue = mpd_status_get_single(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.single);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("single", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
+        }
+
         newvalue = mpd_status_get_state(status);
         oldvalue = mpd_status_get_state(mhinfo.status);
         if (newvalue != oldvalue) {
@@ -469,21 +473,17 @@ static gint mh_hooker(void)
             g_free(argv);
         }
 
-        if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
-                mpd_status_get_state(status) == MPD_STATE_PAUSE) {
-            newvalue = mpd_status_get_elapsed_time(status);
-            oldvalue = mpd_status_get_elapsed_time(mhinfo.status);
-            if (newvalue != oldvalue) {
-                argv = g_malloc0(5 * sizeof(gchar *));
-                argv[0] = g_strdup(mhconf.dir.elapsed);
-                argv[1] = g_strdup_printf("%d", oldvalue);
-                argv[2] = g_strdup_printf("%d", newvalue);
-                argv[3] = g_strdup_printf("%d", mpd_status_get_total_time(status));
-                mh_run_hook("elapsed", argv);
-                for (int i = 0; i < 4; i++)
-                    g_free(argv[i]);
-                g_free(argv);
-            }
+        newvalue = mpd_status_get_volume(status);
+        oldvalue = mpd_status_get_volume(mhinfo.status);
+        if (newvalue != oldvalue) {
+            argv = g_malloc0(4 * sizeof(gchar *));
+            argv[0] = g_strdup(mhconf.dir.volume);
+            argv[1] = g_strdup_printf("%d", oldvalue);
+            argv[2] = g_strdup_printf("%d", newvalue);
+            mh_run_hook("volume", argv);
+            for (int i = 0; i < 3; i++)
+                g_free(argv[i]);
+            g_free(argv);
         }
     }
     mpd_response_finish(mhconf.conn);
@@ -624,17 +624,17 @@ int main(int argc, char **argv, char **environ)
     /* Build script paths */
     mhconf.dir.config = g_build_filename(mhconf.dir.home, "mpdhooker.conf", NULL);
     mhconf.dir.bitrate = g_build_filename(mhconf.dir.home, "hooks", "bitrate", NULL);
-    mhconf.dir.volume = g_build_filename(mhconf.dir.home, "hooks", "volume", NULL);
-    mhconf.dir.repeat = g_build_filename(mhconf.dir.home, "hooks", "repeat", NULL);
-    mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);
     mhconf.dir.consume = g_build_filename(mhconf.dir.home, "hooks", "consume", NULL);
     mhconf.dir.crossfade = g_build_filename(mhconf.dir.home, "hooks", "crossfade", NULL);
+    mhconf.dir.elapsed = g_build_filename(mhconf.dir.home, "hooks", "elapsed", NULL);
     mhconf.dir.playlist = g_build_filename(mhconf.dir.home, "hooks", "playlist", NULL);
     mhconf.dir.playlist_length = g_build_filename(mhconf.dir.home, "hooks", "playlist_length", NULL);
     mhconf.dir.random = g_build_filename(mhconf.dir.home, "hooks", "random", NULL);
-    mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);
-    mhconf.dir.elapsed = g_build_filename(mhconf.dir.home, "hooks", "elapsed", NULL);
+    mhconf.dir.repeat = g_build_filename(mhconf.dir.home, "hooks", "repeat", NULL);
+    mhconf.dir.single = g_build_filename(mhconf.dir.home, "hooks", "single", NULL);
     mhconf.dir.song = g_build_filename(mhconf.dir.home, "hooks", "song", NULL);
+    mhconf.dir.state = g_build_filename(mhconf.dir.home, "hooks", "state", NULL);
+    mhconf.dir.volume = g_build_filename(mhconf.dir.home, "hooks", "volume", NULL);
 
     mh_config_load(mhconf.dir.config);
 

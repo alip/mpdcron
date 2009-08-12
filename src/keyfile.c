@@ -121,7 +121,7 @@ bool mhkeyfile_load(void)
         }
     }
     if (mhconf.timeout <= 0) {
-        mh_log(LOG_WARNING, "Invalid value for mpd.timeout %lf, setting to default.", mhconf.timeout);
+        mh_log(LOG_WARNING, "Invalid value for mpd.timeout %.2lf, setting to default.", mhconf.timeout);
         mhconf.timeout = 10.0;
     }
     else

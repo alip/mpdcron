@@ -21,27 +21,26 @@
 
 #include <libdaemon/dlog.h>
 
-#include <mpd/client.h>
-
 #include "conf.h"
 #include "diff.h"
 #include "hooker.h"
+#include "libmpdclient.h"
 
-static const char *mhhooker_strstate(enum mpd_state state)
+static const char *mhhooker_strstate(int state)
 {
     const char *strstate;
 
     switch (state) {
-        case MPD_STATE_PLAY:
+        case MPD_STATUS_STATE_PLAY:
             strstate = "play";
             break;
-        case MPD_STATE_PAUSE:
+        case MPD_STATUS_STATE_PAUSE:
             strstate = "pause";
             break;
-        case MPD_STATE_STOP:
+        case MPD_STATUS_STATE_STOP:
             strstate = "stop";
             break;
-        case MPD_STATE_UNKNOWN:
+        case MPD_STATUS_STATE_UNKNOWN:
             strstate = "unknown";
             break;
         default:
@@ -69,7 +68,7 @@ static gint mhhooker_run_hook(const gchar *name, gchar **argv)
     return 0;
 }
 
-void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
+void mhhooker_setenv(mpd_Status *status, mpd_InfoEntity *entity)
 {
     gchar *oldvalue, *newvalue;
     struct mpd_song *oldsong, *newsong;
@@ -79,98 +78,98 @@ void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
         return;
 
     /* Bitrate */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_bit_rate(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_bit_rate(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->bitRate);
+    newvalue = g_strdup_printf("%d", status->bitRate);
     g_setenv("MPD_BITRATE_OLD", oldvalue, 1);
     g_setenv("MPD_BITRATE", newvalue, 1);
     g_free(oldvalue) ; g_free(newvalue);
 
     /* Consume (boolean) */
-    newvalue = g_strdup_printf("%d", mpd_status_get_consume(status));
+    newvalue = g_strdup_printf("%d", status->consume);
     g_setenv("MPD_CONSUME", newvalue, 1);
     g_free(newvalue);
 
     /* Crossfade */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_crossfade(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_crossfade(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->crossfade);
+    newvalue = g_strdup_printf("%d", status->crossfade);
     g_setenv("MPD_CROSSFADE_OLD", oldvalue, 1);
     g_setenv("MPD_CROSSFADE", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Elapsed time */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_elapsed_time(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_elapsed_time(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->elapsedTime);
+    newvalue = g_strdup_printf("%d", status->elapsedTime);
     g_setenv("MPD_ELAPSED_OLD", oldvalue, 1);
     g_setenv("MPD_ELAPSED", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Playlist */
-    oldvalue = g_strdup_printf("%lld", mpd_status_get_playlist(mhconf.status));
-    newvalue = g_strdup_printf("%lld", mpd_status_get_playlist(status));
+    oldvalue = g_strdup_printf("%lld", mhconf.status->playlist);
+    newvalue = g_strdup_printf("%lld", status->playlist);
     g_setenv("MPD_PLAYLIST_OLD", oldvalue, 1);
     g_setenv("MPD_PLAYLIST", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Playlist length */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_playlist_length(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_playlist_length(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->playlistLength);
+    newvalue = g_strdup_printf("%d", status->playlistLength);
     g_setenv("MPD_PLAYLIST_LENGTH_OLD", oldvalue, 1);
     g_setenv("MPD_PLAYLIST_LENGTH", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Random (boolean) */
-    newvalue = g_strdup_printf("%d", mpd_status_get_random(status));
+    newvalue = g_strdup_printf("%d", status->random);
     g_setenv("MPD_RANDOM", newvalue, 1);
     g_free(newvalue);
 
     /* Repeat (boolean) */
-    newvalue = g_strdup_printf("%d", mpd_status_get_repeat(status));
+    newvalue = g_strdup_printf("%d", status->repeat);
     g_setenv("MPD_REPEAT", newvalue, 1);
     g_free(newvalue);
 
     /* Sample Rate */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_sample_rate(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_sample_rate(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->sampleRate);
+    newvalue = g_strdup_printf("%d", status->sampleRate);
     g_setenv("MPD_SAMPLE_RATE_OLD", oldvalue, 1);
     g_setenv("MPD_SAMPLE_RATE", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Single (boolean) */
-    newvalue = g_strdup_printf("%d", mpd_status_get_single(status));
+    newvalue = g_strdup_printf("%d", status->single);
     g_setenv("MPD_SINGLE", newvalue, 1);
     g_free(newvalue);
 
     /* State */
-    oldvalue = g_strdup(mhhooker_strstate(mpd_status_get_state(mhconf.status)));
-    newvalue = g_strdup(mhhooker_strstate(mpd_status_get_state(status)));
+    oldvalue = g_strdup(mhhooker_strstate(mhconf.status->state));
+    newvalue = g_strdup(mhhooker_strstate(status->state));
     g_setenv("MPD_STATE_OLD", oldvalue, 1);
     g_setenv("MPD_STATE", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Total time */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_total_time(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_total_time(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->totalTime);
+    newvalue = g_strdup_printf("%d", status->totalTime);
     g_setenv("MPD_TOTAL_TIME_OLD", oldvalue, 1);
     g_setenv("MPD_TOTAL_TIME", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Updating DB */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_updatingdb(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_updatingdb(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->updatingDb);
+    newvalue = g_strdup_printf("%d", status->updatingDb);
     g_setenv("MPD_UPDATING_DB_OLD", oldvalue, 1);
     g_setenv("MPD_UPDATING_DB", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Volume */
-    oldvalue = g_strdup_printf("%d", mpd_status_get_volume(mhconf.status));
-    newvalue = g_strdup_printf("%d", mpd_status_get_volume(status));
+    oldvalue = g_strdup_printf("%d", mhconf.status->volume);
+    newvalue = g_strdup_printf("%d", status->volume);
     g_setenv("MPD_VOLUME_OLD", oldvalue, 1);
     g_setenv("MPD_VOLUME", newvalue, 1);
     g_free(oldvalue); g_free(newvalue);
 
-    if (!entity || entity->type != MPD_ENTITY_TYPE_SONG)
+    if (!entity || entity->type != MPD_INFO_ENTITY_TYPE_SONG)
         return;
-    if (!mhconf.entity || mhconf.entity->type != MPD_ENTITY_TYPE_SONG)
+    if (!mhconf.entity || mhconf.entity->type != MPD_INFO_ENTITY_TYPE_SONG)
         return;
 
     oldsong = mhconf.entity->info.song;
@@ -180,50 +179,50 @@ void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
         return;
 
     /* Filename */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_FILENAME, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_FILENAME, 0));
+    oldvalue = g_strdup(oldsong->file);
+    newvalue = g_strdup(newsong->file);
     g_setenv("MPD_SONG_FILENAME_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_FILENAME", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Artist */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_ARTIST, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_ARTIST, 0));
+    oldvalue = g_strdup(oldsong->artist);
+    newvalue = g_strdup(newsong->artist);
     g_setenv("MPD_SONG_ARTIST_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_ARTIST", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Album */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_ALBUM, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_ALBUM, 0));
+    oldvalue = g_strdup(oldsong->album);
+    newvalue = g_strdup(newsong->album);
     g_setenv("MPD_SONG_ALBUM_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_ALBUM", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Album */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_TITLE, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_TITLE, 0));
+    oldvalue = g_strdup(oldsong->title);
+    newvalue = g_strdup(newsong->title);
     g_setenv("MPD_SONG_TITLE_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_TITLE", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Track */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_TRACK, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_TRACK, 0));
+    oldvalue = g_strdup(oldsong->title);
+    newvalue = g_strdup(newsong->title);
     g_setenv("MPD_SONG_TRACK_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_TRACK", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Name */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_NAME, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_NAME, 0));
+    oldvalue = g_strdup(oldsong->name);
+    newvalue = g_strdup(newsong->name);
     g_setenv("MPD_SONG_NAME_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_NAME", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);
 
     /* Date */
-    oldvalue = g_strdup(mpd_song_get_tag(oldsong, MPD_TAG_DATE, 0));
-    newvalue = g_strdup(mpd_song_get_tag(newsong, MPD_TAG_DATE, 0));
+    oldvalue = g_strdup(oldsong->date);
+    newvalue = g_strdup(newsong->date);
     g_setenv("MPD_SONG_DATE_OLD", oldvalue ? oldvalue : "", 1);
     g_setenv("MPD_SONG_DATE", newvalue ? newvalue : "", 1);
     g_free(oldvalue); g_free(newvalue);

@@ -99,15 +99,15 @@ void mhconf_free(void)
     g_free(mhconf.dir.home);            mhconf.dir.home = NULL;
 
     if (mhconf.entity != NULL) {
-        mpd_entity_free(mhconf.entity);
+        mpd_freeInfoEntity(mhconf.entity);
         mhconf.entity = NULL;
     }
     if (mhconf.status != NULL) {
-        mpd_status_free(mhconf.status);
+        mpd_freeStatus(mhconf.status);
         mhconf.status = NULL;
     }
     if (mhconf.conn != NULL) {
-        mpd_connection_free(mhconf.conn);
+        mpd_closeConnection(mhconf.conn);
         mhconf.conn = NULL;
     }
 }

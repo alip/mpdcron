@@ -17,6 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,44 +29,37 @@
 #include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
-#include <mpd/client.h>
-
 #include "conf.h"
 #include "diff.h"
 #include "hooker.h"
+#include "libmpdclient.h"
 #include "loop.h"
 #include "mpd.h"
 
-static gint mhloop_main_loop(void)
+G_GNUC_NORETURN static gint mhloop_main_loop(void)
 {
-    int mpderr;
-    struct mpd_status *status;
-    struct mpd_entity *entity;
+    mpd_Status *status;
+    mpd_InfoEntity *entity;
     struct mhdiff diff;
     bool status_changed, song_changed;
 
     mhmpd_connect();
     for (;;) {
-        mpderr = mhmpd_status(&status);
-        if (mpderr != MPD_ERROR_SUCCESS) {
-            if (mpderr > 0) {
-                /* Connection failed, reconnect */
-                mpd_connection_free(mhconf.conn);
-                mhmpd_connect();
-                mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
-                sleep(mhconf.poll);
-                continue;
-            }
+        status = NULL;
+        entity = NULL;
+        if (mhmpd_status(&status) < 0) {
+            mpd_closeConnection(mhconf.conn);
+            mhmpd_connect();
             mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
             sleep(mhconf.poll);
             continue;
         }
-        mpderr = mhmpd_currentsong(&entity);
-        if (mpderr != MPD_ERROR_SUCCESS) {
-            if (mpderr > 0) {
-                /* Connection failed, reconnect */
-                mpd_connection_free(mhconf.conn);
+        if (status->state == MPD_STATUS_STATE_PLAY || status->state == MPD_STATUS_STATE_PAUSE) {
+            if (mhmpd_currentsong(&entity) < 0) {
+                mpd_closeConnection(mhconf.conn);
                 mhmpd_connect();
+                mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
+                sleep(mhconf.poll);
                 continue;
             }
         }
@@ -86,9 +80,9 @@ static gint mhloop_main_loop(void)
         }
 
         if (mhconf.status != NULL)
-            mpd_status_free(mhconf.status);
+            mpd_freeStatus(mhconf.status);
         if (mhconf.entity != NULL)
-            mpd_entity_free(mhconf.entity);
+            mpd_freeInfoEntity(mhconf.entity);
 
         mhconf.status = status;
         mhconf.entity = entity;
@@ -96,7 +90,8 @@ static gint mhloop_main_loop(void)
         mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
         sleep(mhconf.poll);
     }
-    return 0;
+    /* not reached */
+    assert(false);
 }
 
 static gint mhloop_main_foreground(void)

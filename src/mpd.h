@@ -22,11 +22,11 @@
 
 #include <glib.h>
 
-#include <mpd/client.h>
+#include "libmpdclient.h"
 
+gint mhmpd_status(mpd_Status **status);
+gint mhmpd_currentsong(struct mpd_InfoEntity **entity);
 gint mhmpd_connect(void);
-gint mhmpd_status(struct mpd_status **status);
-gint mhmpd_currentsong(struct mpd_entity **entity);
 
 #endif // MPDHOOKER_GUARD_MPD_H
 

@@ -22,7 +22,7 @@
 
 #include <stdbool.h>
 
-#include <mpd/client.h>
+#include "libmpdclient.h"
 
 struct mhdiff {
     bool bitrate;
@@ -40,8 +40,8 @@ struct mhdiff {
     bool volume;
 };
 
-bool mhdiff_status(struct mpd_status *status, struct mhdiff *diff);
-bool mhdiff_song(struct mpd_entity *entity);
+bool mhdiff_status(mpd_Status *status, struct mhdiff *diff);
+bool mhdiff_song(mpd_InfoEntity *entity);
 
 #endif // MPDHOOKER_GUARD_DIFF_H
 

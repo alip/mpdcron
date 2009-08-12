@@ -49,8 +49,6 @@ dnl }}}
 dnl {{{ Check for libraries
 PKG_CHECK_MODULES([libdaemon], [libdaemon >= 0.13],,
 				  [AC_MSG_ERROR([mpdhooker requires libdaemon-0.13 or newer])])
-PKG_CHECK_MODULES([libmpdclient], [libmpdclient >= 2.0],,
-				  [AC_MSG_ERROR([mpdhooker requires libmpdclient-2.0 or newer])])
 PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.18],,
 				  [AC_MSG_ERROR([mpdhooker requires glib-2.18 or newer])])
 dnl }}}

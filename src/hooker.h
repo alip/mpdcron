@@ -22,11 +22,10 @@
 
 #include <stdbool.h>
 
-#include <mpd/client.h>
-
 #include "diff.h"
+#include "libmpdclient.h"
 
-void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity);
+void mhhooker_setenv(mpd_Status *status, mpd_InfoEntity *entity);
 void mhhooker_run(struct mhdiff diff, bool songchanged);
 
 #endif // MPD_HOOKER_GUARD_HOOKER_H

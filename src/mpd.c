@@ -22,59 +22,57 @@
 
 #include <glib.h>
 
-#include <mpd/client.h>
-
 #include "conf.h"
+#include "libmpdclient.h"
 #include "mpd.h"
 
-gint mhmpd_status(struct mpd_status **status)
+gint mhmpd_status(mpd_Status **status)
 {
     mh_logv(LOG_DEBUG, "Sending command `status' to mpd...");
-    mpd_send_status(mhconf.conn);
-    if (mpd_get_error(mhconf.conn) != MPD_ERROR_SUCCESS) {
-        mh_log(LOG_ERR, "Connection error: %s!", mpd_get_error_message(mhconf.conn));
-        return mpd_get_error(mhconf.conn);
+    mpd_sendStatusCommand(mhconf.conn);
+    if (mhconf.conn->error) {
+        mh_log(LOG_ERR, "Failed to get status information: %s!", mhconf.conn->errorStr);
+        return -1;
     }
-    *status = mpd_get_status(mhconf.conn);
-    mpd_response_finish(mhconf.conn);
-
-    if (!(*status)) {
-        mh_log(LOG_ERR, "Failed to get status information: %s!", mpd_get_error_message(mhconf.conn));
-        return mpd_get_error(mhconf.conn);
-    }
-    else if (mpd_status_get_error(*status)) {
-        mh_log(LOG_ERR, "Status error: %s!", mpd_status_get_error(*status));
+    *status = mpd_getStatus(mhconf.conn);
+    mpd_finishCommand(mhconf.conn);
+    if (mhconf.conn->error) {
+        mh_log(LOG_ERR, "Finish command failed after status: %s", mhconf.conn->errorStr);
         return -1;
     }
     mh_logv(LOG_DEBUG, "Command successful.");
-    return MPD_ERROR_SUCCESS;
+    return 0;
 }
 
-gint mhmpd_currentsong(struct mpd_entity **entity)
+gint mhmpd_currentsong(mpd_InfoEntity **entity)
 {
-    struct mpd_song *song;
-
     mh_logv(LOG_DEBUG, "Sending command `currentsong'");
-    mpd_send_currentsong(mhconf.conn);
-    if (mpd_get_error(mhconf.conn) != MPD_ERROR_SUCCESS) {
-        mh_log(LOG_ERR, "Connection error: %s", mpd_get_error_message(mhconf.conn));
-        return mpd_get_error(mhconf.conn);
+    mpd_sendCurrentSongCommand(mhconf.conn);
+    if (mhconf.conn->error) {
+        mh_log(LOG_ERR, "Failed to get current song information: %s!", mhconf.conn->errorStr);
+        return -1;
     }
-    *entity = mpd_get_next_entity(mhconf.conn);
-    mpd_response_finish(mhconf.conn);
 
-    if (*entity) {
-        song = (*entity)->info.song;
-        if ((*entity)->type != MPD_ENTITY_TYPE_SONG || !song) {
-            mh_log(LOG_ERR, "Entity doesn't have the expected type `song': %d", (*entity)->type);
-            mpd_entity_free(*entity);
-            return -1;
-        }
-        mh_logv(LOG_DEBUG, "Command successful");
-        return MPD_ERROR_SUCCESS;
+    *entity = mpd_getNextInfoEntity(mhconf.conn);
+    while (*entity) {
+        if ((*entity)->type == MPD_INFO_ENTITY_TYPE_SONG)
+            break;
+        mpd_freeInfoEntity(*entity);
+        *entity = mpd_getNextInfoEntity(mhconf.conn);
     }
-    mh_logv(LOG_DEBUG, "Command failed");
-    return -1;
+
+    if (!(*entity)) {
+        mh_log(LOG_ERR, "Failed to find any song entity");
+        return -1;
+    }
+
+    mpd_finishCommand(mhconf.conn);
+    if (mhconf.conn->error) {
+        mh_log(LOG_ERR, "Finish command failed after currentsong: %s", mhconf.conn->errorStr);
+        mpd_freeInfoEntity(*entity);
+        return -1;
+    }
+    return 0;
 }
 
 gint mhmpd_connect(void)
@@ -82,39 +80,34 @@ gint mhmpd_connect(void)
     for (unsigned int try = 1 ; ; try++) {
         mh_log(LOG_INFO, "Connecting to `%s' on port %s with timeout: %.2lf (try: %d)",
                 mhconf.hostname, mhconf.port, mhconf.timeout, try);
-        mhconf.conn = mpd_connection_new(mhconf.hostname, atoi(mhconf.port), mhconf.timeout);
-        if (!mhconf.conn) {
+        mhconf.conn = mpd_newConnection(mhconf.hostname, atoi(mhconf.port), mhconf.timeout);
+        if (!mhconf.conn || mhconf.conn->error) {
             if (mhconf.reconnect > 0) {
-                mh_log(LOG_ERR, "Failed to connect, retrying in %d seconds!", mhconf.reconnect);
+                mh_log(LOG_ERR, "Failed to connect: %s", mhconf.conn ? mhconf.conn->errorStr : "unknown");
+                mh_log(LOG_ERR, "Retrying in %d seconds!", mhconf.reconnect);
+                if (mhconf.conn)
+                    mpd_closeConnection(mhconf.conn);
                 sleep(mhconf.reconnect);
                 continue;
             }
             else {
-                mh_log(LOG_ERR, "Failed to connect, exiting!");
-                exit(EXIT_FAILURE);
-            }
-        }
-        else if (mpd_get_error(mhconf.conn) != MPD_ERROR_SUCCESS) {
-            if (mhconf.reconnect > 0) {
-                mh_log(LOG_ERR, "Failed to connect: %s, retrying in %d seconds!",
-                        mpd_get_error_message(mhconf.conn), mhconf.reconnect);
-                mpd_connection_free(mhconf.conn);
-                sleep(mhconf.reconnect);
-                continue;
-            }
-            else {
-                mh_log(LOG_ERR, "Failed to connect, exiting!");
+                mh_log(LOG_ERR, "Failed to connect: %s", mhconf.conn ? mhconf.conn->errorStr : "unknown");
                 exit(EXIT_FAILURE);
             }
         }
         mh_log(LOG_INFO, "Connected to `%s' on port %s.", mhconf.hostname, mhconf.port);
         if (mhconf.password != NULL) {
             mh_log(LOG_INFO, "Sending password...");
-            if (!mpd_send_password(mhconf.conn, mhconf.password)) {
-                mh_log(LOG_ERR, "Authentication failed: %s!", mpd_get_error_message(mhconf.conn));
+            mpd_sendPasswordCommand(mhconf.conn, mhconf.password);
+            if (mhconf.conn->error) {
+                mh_log(LOG_ERR, "Authentication failed: %s!", mhconf.conn->errorStr);
                 exit(EXIT_FAILURE);
             }
-            mpd_response_finish(mhconf.conn);
+            mpd_finishCommand(mhconf.conn);
+            if (mhconf.conn->error) {
+                mh_log(LOG_ERR, "Finish command failed: %s!", mhconf.conn->errorStr);
+                exit(EXIT_FAILURE);
+            }
         }
         return 0;
     }

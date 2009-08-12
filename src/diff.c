@@ -21,136 +21,101 @@
 
 #include <glib.h>
 
-#include <mpd/client.h>
-
 #include "conf.h"
 #include "diff.h"
+#include "libmpdclient.h"
 
-bool mhdiff_status(struct mpd_status *status, struct mhdiff *diff)
+bool mhdiff_status(mpd_Status *status, struct mhdiff *diff)
 {
     bool changed;
-    gint oldvalue, newvalue;
-    long long oldvalue_long, newvalue_long;
 
     changed = false;
     memset(diff, 0, sizeof(struct mhdiff));
-    if (status == NULL)
+    if (status == NULL || mhconf.status == NULL)
         return false;
 
-    newvalue = mpd_status_get_bit_rate(status);
-    oldvalue = mpd_status_get_bit_rate(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->bitRate != mhconf.status->bitRate) {
         changed = true;
         diff->bitrate = true;
     }
 
-    newvalue = mpd_status_get_consume(status);
-    oldvalue = mpd_status_get_consume(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->consume != mhconf.status->consume) {
         changed = true;
         diff->consume = true;
     }
 
-    newvalue = mpd_status_get_crossfade(status);
-    oldvalue = mpd_status_get_crossfade(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->crossfade != mhconf.status->crossfade) {
         changed = true;
         diff->crossfade = true;
     }
 
-    if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
-            mpd_status_get_state(status) == MPD_STATE_PAUSE) {
-        newvalue = mpd_status_get_elapsed_time(status);
-        oldvalue = mpd_status_get_elapsed_time(mhconf.status);
-        if (newvalue != oldvalue) {
+    if (status->state == MPD_STATUS_STATE_PLAY || status->state == MPD_STATUS_STATE_PAUSE) {
+        if (status->elapsedTime != mhconf.status->elapsedTime) {
             changed = true;
             diff->elapsed = true;
         }
     }
 
-    newvalue_long = mpd_status_get_playlist(status);
-    oldvalue_long = mpd_status_get_playlist(mhconf.status);
-    if (newvalue_long != oldvalue_long) {
+    if (status->playlist != mhconf.status->playlist) {
         changed = true;
         diff->playlist = true;
     }
 
-    newvalue = mpd_status_get_playlist_length(status);
-    oldvalue = mpd_status_get_playlist_length(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->playlistLength != mhconf.status->playlistLength) {
         changed = true;
         diff->playlist_length = true;
     }
 
-    newvalue = mpd_status_get_random(status);
-    oldvalue = mpd_status_get_random(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->random != mhconf.status->random) {
         changed = true;
         diff->random = true;
     }
 
-    newvalue = mpd_status_get_repeat(status);
-    oldvalue = mpd_status_get_repeat(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->repeat != mhconf.status->repeat) {
         changed = true;
         diff->repeat = true;
     }
 
-    newvalue = mpd_status_get_sample_rate(status);
-    oldvalue = mpd_status_get_sample_rate(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->sampleRate != mhconf.status->sampleRate) {
         changed = true;
         diff->samplerate = true;
     }
 
-    newvalue = mpd_status_get_single(status);
-    oldvalue = mpd_status_get_single(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->single != mhconf.status->single) {
         changed = true;
         diff->single = true;
     }
 
-    newvalue = mpd_status_get_state(status);
-    oldvalue = mpd_status_get_state(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->state != mhconf.status->state) {
         changed = true;
         diff->state = true;
     }
 
-    newvalue = mpd_status_get_updatingdb(status);
-    oldvalue = mpd_status_get_updatingdb(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->updatingDb != status->updatingDb) {
         changed = true;
         diff->updatingdb = true;
     }
 
-    newvalue = mpd_status_get_volume(status);
-    oldvalue = mpd_status_get_volume(mhconf.status);
-    if (newvalue != oldvalue) {
+    if (status->volume != status->volume) {
         changed = true;
         diff->volume = true;
     }
     return changed;
 }
 
-bool mhdiff_song(struct mpd_entity *entity)
+bool mhdiff_song(mpd_InfoEntity *entity)
 {
-    const char *oldfile, *newfile;
     struct mpd_song *song, *oldsong;
 
     if (!entity || !mhconf.entity)
         return false;
 
     song = entity->info.song;
-    if (!song)
-        return false;
     oldsong = mhconf.entity->info.song;
-    if (!oldsong)
+    if (!song || !oldsong)
         return false;
 
-    oldfile = mpd_song_get_tag(oldsong, MPD_TAG_FILENAME, 0);
-    newfile = mpd_song_get_tag(song, MPD_TAG_FILENAME, 0);
-    if (strcmp(oldfile, newfile) != 0)
+    if (strcmp(song->file, oldsong->file) != 0)
         return true;
 
     return false;

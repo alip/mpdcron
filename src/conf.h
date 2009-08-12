@@ -26,7 +26,7 @@
 
 #include <libdaemon/dlog.h>
 
-#include <mpd/client.h>
+#include "libmpdclient.h"
 
 struct homedir {
     gchar *home;
@@ -65,9 +65,9 @@ struct globalconf {
     const gchar *password;
     struct homedir dir;
 
-    struct mpd_connection *conn;
-    struct mpd_status *status;
-    struct mpd_entity *entity;
+    mpd_Connection *conn;
+    mpd_Status *status;
+    mpd_InfoEntity *entity;
 } mhconf;
 
 #define ENV_HOME_DIR        "MPD_HOOKER_DIR"

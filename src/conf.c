@@ -80,6 +80,7 @@ void mhconf_init(void)
 
 void mhconf_free(void)
 {
+    daemon_log(LOG_DEBUG, "Freeing allocated data...");
     g_free(mhconf.dir.volume);          mhconf.dir.volume = NULL;
     g_free(mhconf.dir.updatingdb);      mhconf.dir.updatingdb = NULL;
     g_free(mhconf.dir.state);           mhconf.dir.state = NULL;

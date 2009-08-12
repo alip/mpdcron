@@ -24,7 +24,6 @@
 
 #include <glib.h>
 
-#include <libdaemon/dsignal.h>
 #include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
@@ -99,12 +98,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    /* Initialize signal handling */
-    if (daemon_signal_init(SIGINT, SIGTERM, SIGQUIT, SIGHUP, 0) < 0) {
-        daemon_log(LOG_ERR, "Failed to register signal handlers: %s", strerror(errno));
-        return EXIT_FAILURE;
-    }
-
+    g_atexit(mhconf_free);
     return mhloop_main();
 }
 

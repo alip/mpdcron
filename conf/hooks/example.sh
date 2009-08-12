@@ -35,11 +35,7 @@ else
 fi
 echo ">>> State> old: $MPD_STATE_OLD new: $MPD_STATE"
 echo ">>> Total time> old: $MPD_TOTAL_TIME_OLD new: $MPD_TOTAL_TIME"
-if [ $MPD_UPDATING_DB -eq 1 ]; then
-    echo ">>> Updating DB> on"
-else
-    echo ">>> Updating DB> off"
-fi
+echo ">>> Updating DB> old: $MPD_UPDATING_DB_OLD new: $MPD_UPDATING_DB"
 echo ">>> Volume> old: $MPD_VOLUME_OLD new: $MPD_VOLUME"
 echo
 echo "<<< Song Information >>>"

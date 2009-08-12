@@ -87,7 +87,6 @@ gint mhmpd_connect(void)
             }
             else {
                 daemon_log(LOG_ERR, "Failed to connect, exiting!");
-                mhconf_free();
                 exit(EXIT_FAILURE);
             }
         }
@@ -101,7 +100,6 @@ gint mhmpd_connect(void)
             }
             else {
                 daemon_log(LOG_ERR, "Failed to connect, exiting!");
-                mhconf_free();
                 exit(EXIT_FAILURE);
             }
         }
@@ -110,7 +108,6 @@ gint mhmpd_connect(void)
             daemon_log(LOG_INFO, "Sending password...");
             if (!mpd_send_password(mhconf.conn, mhconf.password)) {
                 daemon_log(LOG_ERR, "Authentication failed: %s!", mpd_get_error_message(mhconf.conn));
-                mhconf_free();
                 exit(EXIT_FAILURE);
             }
             mpd_response_finish(mhconf.conn);

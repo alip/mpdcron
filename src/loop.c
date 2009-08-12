@@ -103,31 +103,31 @@ static gint mhloop_main_background(void)
 
     pid = daemon_pid_file_is_running();
     if (pid >= 0) {
-         daemon_log(LOG_ERR, "Daemon already running on PID %u", pid);
+         mh_log(LOG_ERR, "Daemon already running on PID %u", pid);
          return EXIT_FAILURE;
     }
 
     daemon_retval_init();
     pid = daemon_fork();
     if (pid < 0) {
-        daemon_log(LOG_ERR, "Failed to fork: %s", strerror(errno));
+        mh_log(LOG_ERR, "Failed to fork: %s", strerror(errno));
         daemon_retval_done();
         return EXIT_FAILURE;
     }
     else if (pid != 0) { /* Parent */
         ret = daemon_retval_wait(2);
         if (ret < 0) {
-            daemon_log(LOG_ERR, "Could not recieve return value from daemon process: %s", strerror(errno));
+            mh_log(LOG_ERR, "Could not recieve return value from daemon process: %s", strerror(errno));
             return 255;
         }
 
-        daemon_log(ret != 0 ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value.", ret);
+        mh_log(ret != 0 ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value.", ret);
         return ret;
     }
     else { /* Daemon */
         /* Close FDs */
         if (daemon_close_all(-1) < 0) {
-            daemon_log(LOG_ERR, "Failed to close all file descriptors: %s", strerror(errno));
+            mh_log(LOG_ERR, "Failed to close all file descriptors: %s", strerror(errno));
 
             /* Send the error condition to the parent process */
             daemon_retval_send(1);
@@ -136,14 +136,14 @@ static gint mhloop_main_background(void)
 
         /* Create the PID file */
         if (daemon_pid_file_create() < 0) {
-            daemon_log(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
+            mh_log(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
             daemon_retval_send(2);
             return EXIT_FAILURE;
         }
 
         /* Send OK to parent process */
         daemon_retval_send(0);
-        daemon_log(LOG_INFO, "Successfully started");
+        mh_log(LOG_INFO, "Successfully started");
 
         return mhloop_main_loop();
     }

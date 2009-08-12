@@ -22,7 +22,6 @@
 
 #include <glib.h>
 
-#include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
 #include "conf.h"
@@ -39,7 +38,7 @@ void mhconf_init(void)
     else if (g_getenv("HOME"))
         mhconf.dir.home = g_build_filename(g_getenv("HOME"), ".mpdhooker", NULL);
     else {
-        daemon_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
+        mh_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
         exit(EXIT_FAILURE);
     }
 

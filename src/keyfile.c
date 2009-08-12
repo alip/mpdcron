@@ -31,16 +31,18 @@ bool mhkeyfile_load(void)
     GKeyFile *config_fd;
     GError *config_error;
 
+    mh_logv(LOG_DEBUG, "Loading configuration file `%s'...", mhconf.dir.config);
     config_fd = g_key_file_new();
     config_error = NULL;
     if (!g_key_file_load_from_file(config_fd, mhconf.dir.config, G_KEY_FILE_NONE, &config_error)) {
         if (config_error->code != G_KEY_FILE_ERROR_NOT_FOUND) {
-            daemon_log(LOG_ERR, "Failed to parse config file `%s': %s", mhconf.dir.config, config_error->message);
+            mh_log(LOG_ERR, "Failed to parse config file `%s': %s", mhconf.dir.config, config_error->message);
             g_error_free(config_error);
             g_key_file_free(config_fd);
             return false;
         }
         else {
+            mh_logv(LOG_DEBUG, "Configuration file `%s' not found, skipping...");
             g_error_free(config_error);
             g_key_file_free(config_fd);
             return true;
@@ -48,15 +50,17 @@ bool mhkeyfile_load(void)
     }
 
     // Get mpd.poll
+    mh_logv(LOG_DEBUG, "Reading mpd.poll from configuration file.");
     mhconf.poll = g_key_file_get_integer(config_fd, "mpd", "poll", &config_error);
     if (!mhconf.poll && config_error) {
         switch (config_error->code) {
             case G_KEY_FILE_ERROR_INVALID_VALUE:
-                daemon_log(LOG_WARNING, "mpd.poll not an integer: %s", config_error->message);
+                mh_log(LOG_WARNING, "mpd.poll not an integer: %s", config_error->message);
                 g_error_free(config_error);
                 g_key_file_free(config_fd);
                 return false;
             case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+                mh_logv(LOG_DEBUG, "mpd.poll not found.");
                 g_error_free(config_error);
                 config_error = NULL;
                 break;
@@ -66,20 +70,22 @@ bool mhkeyfile_load(void)
         }
     }
     if (mhconf.poll <= 0) {
-        daemon_log(LOG_WARNING, "Invalid value for mpd.poll %d, setting to default", mhconf.poll);
+        mh_log(LOG_WARNING, "Invalid value for mpd.poll %d, setting to default.", mhconf.poll);
         mhconf.poll = 1;
     }
 
     // Get mpd.reconnect
+    mh_logv(LOG_DEBUG, "Reading mpd.reconnect from configuration file.");
     mhconf.reconnect = g_key_file_get_integer(config_fd, "mpd", "reconnect", &config_error);
     if (!mhconf.reconnect && config_error) {
         switch (config_error->code) {
             case G_KEY_FILE_ERROR_INVALID_VALUE:
-                daemon_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_error->message);
+                mh_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_error->message);
                 g_error_free(config_error);
                 g_key_file_free(config_fd);
                 return false;
             case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+                mh_logv(LOG_DEBUG, "mpd.reconnect not found.");
                 g_error_free(config_error);
                 config_error = NULL;
                 break;

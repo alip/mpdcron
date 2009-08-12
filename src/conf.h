@@ -24,6 +24,8 @@
 
 #include <glib.h>
 
+#include <libdaemon/dlog.h>
+
 #include <mpd/client.h>
 
 struct homedir {
@@ -71,6 +73,13 @@ struct globalconf {
 #define ENV_MPD_HOST        "MPD_HOST"
 #define ENV_MPD_PORT        "MPD_PORT"
 #define ENV_MPD_PASSWORD    "MPD_PASSWORD"
+
+#define mh_log(level, ...) daemon_log(level, __VA_ARGS__)
+#define mh_logv(level, ...)                 \
+    do {                                    \
+        if (mhconf.opt_no_daemonize)        \
+            daemon_log(level, __VA_ARGS__); \
+    } while(0)
 
 void mhconf_init(void);
 void mhconf_free(void);

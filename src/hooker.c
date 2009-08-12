@@ -56,14 +56,13 @@ static gint mhhooker_run_hook(const gchar *name, gchar **argv)
     gint pid;
     GError *hook_error;
 
-    if (mhconf.opt_no_daemonize)
-        daemon_log(LOG_DEBUG, "Running hook `%s'", name);
+    mh_logv(LOG_DEBUG, "Running hook `%s'", name);
     hook_error = NULL;
     if (!g_spawn_async(mhconf.dir.home, argv, NULL,
             G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
             NULL, NULL, &pid, &hook_error)) {
         if (hook_error->code != G_SPAWN_ERROR_NOENT && hook_error->code != G_SPAWN_ERROR_NOEXEC)
-            daemon_log(LOG_WARNING, "Failed to execute hook `%s': %s", name, hook_error->message);
+            mh_log(LOG_WARNING, "Failed to execute hook `%s': %s", name, hook_error->message);
         g_error_free(hook_error);
         return -1;
     }

@@ -83,7 +83,7 @@ int main(int argc, char **argv)
     if (mhconf.opt_kill) {
         ret = daemon_pid_file_kill_wait(SIGINT, 1);
         if (ret < 0) {
-            daemon_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
+            mh_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
             mhconf_free();
             return EXIT_FAILURE;
         }

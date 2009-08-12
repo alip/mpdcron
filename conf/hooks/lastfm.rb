@@ -10,7 +10,6 @@ Copy this file to MPD_HOOKER_DIR/hooks/song where MPD_HOOKER_DIR is ~/.mpdhooker
 Make sure to make it executable.
 Configuration file is MPD_HOOKER_DIR/lastfm.yaml which is a yaml file that looks like:
 ### Lastfm configuration file
-verbose: false
 lastfm:
   user: USERNAME
   password: PASSWORD
@@ -49,7 +48,7 @@ raise RuntimeError, "lastfm.user not defined in `#{$confpath}'" unless $user
 raise RuntimeError, "lastfm.password not defined in `#{$confpath}'" unless $password
 
 def log(format, *args)
-  return unless $config['verbose']
+  return if ENV['MHOPT_DAEMONIZE']
   $stderr.print "lastfm@" << Time.now.to_i.to_s << ": "
   $stderr.puts(sprintf(format, *args))
   $stderr.flush

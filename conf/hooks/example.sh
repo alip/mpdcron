@@ -34,7 +34,7 @@ else
     echo ">>> Single> off"
 fi
 echo ">>> State> old: $MPD_STATE_OLD new: $MPD_STATE"
-echo ">>> Total time> $MPD_TOTAL_TIME"
+echo ">>> Total time> old: $MPD_TOTAL_TIME_OLD new: $MPD_TOTAL_TIME"
 if [ $MPD_UPDATING_DB -eq 1 ]; then
     echo ">>> Updating DB> on"
 else

@@ -138,13 +138,15 @@ bool mhdiff_song(struct mpd_entity *entity)
     const char *oldfile, *newfile;
     struct mpd_song *song, *oldsong;
 
-    if (!entity)
+    if (!entity || !mhconf.entity)
         return false;
 
     song = entity->info.song;
     if (!song)
         return false;
     oldsong = mhconf.entity->info.song;
+    if (!oldsong)
+        return false;
 
     oldfile = mpd_song_get_tag(oldsong, MPD_TAG_FILENAME, 0);
     newfile = mpd_song_get_tag(song, MPD_TAG_FILENAME, 0);

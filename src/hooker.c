@@ -56,7 +56,6 @@ static gint mhhooker_run_hook(const gchar *name, gchar **argv)
     gint pid;
     GError *hook_error;
 
-    daemon_log(LOG_DEBUG, "Calling hook `%s'", name);
     hook_error = NULL;
     if (!g_spawn_async(mhconf.dir.home, argv, NULL,
             G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,

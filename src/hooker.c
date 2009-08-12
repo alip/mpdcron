@@ -56,6 +56,8 @@ static gint mhhooker_run_hook(const gchar *name, gchar **argv)
     gint pid;
     GError *hook_error;
 
+    if (mhconf.opt_no_daemonize)
+        daemon_log(LOG_DEBUG, "Running hook `%s'", name);
     hook_error = NULL;
     if (!g_spawn_async(mhconf.dir.home, argv, NULL,
             G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
@@ -146,7 +148,9 @@ void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
     g_free(oldvalue); g_free(newvalue);
 
     /* Total time */
+    oldvalue = g_strdup_printf("%d", mpd_status_get_total_time(mhconf.status));
     newvalue = g_strdup_printf("%d", mpd_status_get_total_time(status));
+    g_setenv("MPD_TOTAL_TIME_OLD", oldvalue, 1);
     g_setenv("MPD_TOTAL_TIME", newvalue, 1);
     g_free(newvalue);
 

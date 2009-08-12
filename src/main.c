@@ -54,6 +54,7 @@ static void about(void)
 int main(int argc, char **argv)
 {
     int ret;
+    char *opt;
     GOptionContext *context;
     GError *parse_error;
 
@@ -97,6 +98,25 @@ int main(int argc, char **argv)
         mhconf_free();
         exit(EXIT_FAILURE);
     }
+
+    /* Command line options to environment variables */
+    if (mhconf.opt_no_daemonize)
+        g_unsetenv("MHOPT_DAEMONIZE");
+    else
+        g_setenv("MHOPT_DAEMONIZE", "1", 1);
+
+    /* Configuration file options to environment variables */
+    opt = g_strdup_printf("%d", mhconf.poll);
+    g_setenv("MHOPT_POLL", opt, 1);
+    g_free(opt);
+
+    opt = g_strdup_printf("%d", mhconf.reconnect);
+    g_setenv("MHOPT_RECONNECT", opt, 1);
+    g_free(opt);
+
+    opt = g_strdup_printf("%f", mhconf.timeout);
+    g_setenv("MHOPT_TIMEOUT", opt, 1);
+    g_free(opt);
 
     g_atexit(mhconf_free);
     return mhloop_main();

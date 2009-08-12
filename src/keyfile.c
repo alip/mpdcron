@@ -31,7 +31,6 @@ bool mhkeyfile_load(void)
     GKeyFile *config_fd;
     GError *config_error;
 
-    mh_logv(LOG_DEBUG, "Loading configuration file `%s'...", mhconf.dir.config);
     config_fd = g_key_file_new();
     config_error = NULL;
     if (!g_key_file_load_from_file(config_fd, mhconf.dir.config, G_KEY_FILE_NONE, &config_error)) {
@@ -48,6 +47,8 @@ bool mhkeyfile_load(void)
             return true;
         }
     }
+    else
+        mh_logv(LOG_DEBUG, "Set mpd.poll to %d.", mhconf.poll);
 
     // Get mpd.poll
     mh_logv(LOG_DEBUG, "Reading mpd.poll from configuration file.");
@@ -73,6 +74,8 @@ bool mhkeyfile_load(void)
         mh_log(LOG_WARNING, "Invalid value for mpd.poll %d, setting to default.", mhconf.poll);
         mhconf.poll = 1;
     }
+    else
+        mh_logv(LOG_DEBUG, "set mpd.poll=%d", mhconf.poll);
 
     // Get mpd.reconnect
     mh_logv(LOG_DEBUG, "Reading mpd.reconnect from configuration file.");
@@ -94,6 +97,8 @@ bool mhkeyfile_load(void)
                 break;
         }
     }
+    else
+        mh_logv(LOG_DEBUG, "set mpd.reconnect=%d", mhconf.reconnect);
 
     // Get mpd.reconnect
     mh_logv(LOG_DEBUG, "Reading mpd.timeout from configuration file.");
@@ -119,6 +124,8 @@ bool mhkeyfile_load(void)
         mh_log(LOG_WARNING, "Invalid value for mpd.timeout %lf, setting to default.", mhconf.timeout);
         mhconf.timeout = 10.0;
     }
+    else
+        mh_logv(LOG_DEBUG, "set mpd.timeout=%lf", mhconf.timeout);
 
     return true;
 }

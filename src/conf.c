@@ -80,12 +80,23 @@ void mhconf_init(void)
 
 void mhconf_free(void)
 {
-    g_free(mhconf.dir.pid);
-    g_free(mhconf.dir.config);
-    g_free(mhconf.dir.home);
-    mhconf.dir.pid = NULL;
-    mhconf.dir.config = NULL;
-    mhconf.dir.home = NULL;
+    g_free(mhconf.dir.volume);          mhconf.dir.volume = NULL;
+    g_free(mhconf.dir.updatingdb);      mhconf.dir.updatingdb = NULL;
+    g_free(mhconf.dir.state);           mhconf.dir.state = NULL;
+    g_free(mhconf.dir.song);            mhconf.dir.song = NULL;
+    g_free(mhconf.dir.single);          mhconf.dir.single = NULL;
+    g_free(mhconf.dir.samplerate);      mhconf.dir.samplerate = NULL;
+    g_free(mhconf.dir.repeat);          mhconf.dir.repeat = NULL;
+    g_free(mhconf.dir.random);          mhconf.dir.random = NULL;
+    g_free(mhconf.dir.playlist_length); mhconf.dir.playlist_length = NULL;
+    g_free(mhconf.dir.playlist);        mhconf.dir.playlist = NULL;
+    g_free(mhconf.dir.elapsed);         mhconf.dir.elapsed = NULL;
+    g_free(mhconf.dir.crossfade);       mhconf.dir.crossfade = NULL;
+    g_free(mhconf.dir.consume);         mhconf.dir.consume = NULL;
+    g_free(mhconf.dir.bitrate);         mhconf.dir.bitrate = NULL;
+    g_free(mhconf.dir.pid);             mhconf.dir.pid = NULL;
+    g_free(mhconf.dir.config);          mhconf.dir.config = NULL;
+    g_free(mhconf.dir.home);            mhconf.dir.home = NULL;
 
     if (mhconf.entity != NULL) {
         mpd_entity_free(mhconf.entity);

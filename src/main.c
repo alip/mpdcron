@@ -24,7 +24,6 @@
 
 #include <glib.h>
 
-#include <libdaemon/dfork.h>
 #include <libdaemon/dsignal.h>
 #include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
@@ -108,3 +107,4 @@ int main(int argc, char **argv)
 
     return mhloop_main();
 }
+

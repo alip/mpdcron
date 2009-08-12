@@ -80,7 +80,8 @@ gint mhmpd_currentsong(struct mpd_entity **entity)
 gint mhmpd_connect(void)
 {
     for (unsigned int try = 1 ; ; try++) {
-        mh_log(LOG_INFO, "Connecting to `%s' on port %s... (try: %d)", mhconf.hostname, mhconf.port, try);
+        mh_log(LOG_INFO, "Connecting to `%s' on port %s with timeout: %.2lf (try: %d)",
+                mhconf.hostname, mhconf.port, mhconf.timeout, try);
         mhconf.conn = mpd_connection_new(mhconf.hostname, atoi(mhconf.port), mhconf.timeout);
         if (!mhconf.conn) {
             if (mhconf.reconnect > 0) {

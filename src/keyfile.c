@@ -42,7 +42,7 @@ bool mhkeyfile_load(void)
             return false;
         }
         else {
-            mh_logv(LOG_DEBUG, "Configuration file `%s' not found, skipping...");
+            mh_logv(LOG_DEBUG, "Configuration file `%s' not found, skipping...", mhconf.dir.config);
             g_error_free(config_error);
             g_key_file_free(config_fd);
             return true;
@@ -93,6 +93,31 @@ bool mhkeyfile_load(void)
                 g_assert_not_reached();
                 break;
         }
+    }
+
+    // Get mpd.reconnect
+    mh_logv(LOG_DEBUG, "Reading mpd.timeout from configuration file.");
+    mhconf.timeout = g_key_file_get_double(config_fd, "mpd", "timeout", &config_error);
+    if (config_error) {
+        switch (config_error->code) {
+            case G_KEY_FILE_ERROR_INVALID_VALUE:
+                mh_log(LOG_WARNING, "mpd.timeout not a double: %s", config_error->message);
+                g_error_free(config_error);
+                g_key_file_free(config_fd);
+                return false;
+            case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+                mh_logv(LOG_DEBUG, "mpd.timeout not found.");
+                g_error_free(config_error);
+                config_error = NULL;
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+        }
+    }
+    if (mhconf.timeout <= 0) {
+        mh_log(LOG_WARNING, "Invalid value for mpd.timeout %lf, setting to default.", mhconf.timeout);
+        mhconf.timeout = 10.0;
     }
 
     return true;

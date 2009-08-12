@@ -57,6 +57,7 @@ struct globalconf {
     /* Configuration options */
     int poll;
     int reconnect;
+    double timeout;
 
     /* Other variables */
     const gchar *hostname;

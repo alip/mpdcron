@@ -74,6 +74,7 @@ void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
     gchar *oldvalue, *newvalue;
     struct mpd_song *oldsong, *newsong;
 
+    mh_logv(LOG_DEBUG, "Setting environment");
     if (!mhconf.status || !status)
         return;
 

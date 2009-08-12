@@ -81,7 +81,7 @@ gint mhmpd_connect(void)
 {
     for (unsigned int try = 1 ; ; try++) {
         mh_log(LOG_INFO, "Connecting to `%s' on port %s... (try: %d)", mhconf.hostname, mhconf.port, try);
-        mhconf.conn = mpd_connection_new(mhconf.hostname, atoi(mhconf.port), 10);
+        mhconf.conn = mpd_connection_new(mhconf.hostname, atoi(mhconf.port), mhconf.timeout);
         if (!mhconf.conn) {
             if (mhconf.reconnect > 0) {
                 mh_log(LOG_ERR, "Failed to connect, retrying in %d seconds!", mhconf.reconnect);

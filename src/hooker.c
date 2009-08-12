@@ -152,12 +152,14 @@ void mhhooker_setenv(struct mpd_status *status, struct mpd_entity *entity)
     newvalue = g_strdup_printf("%d", mpd_status_get_total_time(status));
     g_setenv("MPD_TOTAL_TIME_OLD", oldvalue, 1);
     g_setenv("MPD_TOTAL_TIME", newvalue, 1);
-    g_free(newvalue);
+    g_free(oldvalue); g_free(newvalue);
 
-    /* Updating DB (boolean) */
+    /* Updating DB */
+    oldvalue = g_strdup_printf("%d", mpd_status_get_updatingdb(mhconf.status));
     newvalue = g_strdup_printf("%d", mpd_status_get_updatingdb(status));
+    g_setenv("MPD_UPDATING_DB_OLD", oldvalue, 1);
     g_setenv("MPD_UPDATING_DB", newvalue, 1);
-    g_free(newvalue);
+    g_free(oldvalue); g_free(newvalue);
 
     /* Volume */
     oldvalue = g_strdup_printf("%d", mpd_status_get_volume(mhconf.status));

@@ -20,5 +20,4 @@ I'm available on IRC as <tt>alip</tt> on [Freenode](http://www.freenode.net/) an
 
 ## Known Bugs ##
 
- - **MPD_UPDATING_DB** environment variable isn't set correctly.
  - When mpd is killed when sending a command, mpdhooker hangs. (libmpdclient bug?)

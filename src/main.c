@@ -100,5 +100,11 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    /* Initialize signal handling */
+    if (daemon_signal_init(SIGINT, SIGTERM, SIGQUIT, SIGHUP, 0) < 0) {
+        daemon_log(LOG_ERR, "Failed to register signal handlers: %s", strerror(errno));
+        return EXIT_FAILURE;
+    }
+
     return mhloop_main();
 }

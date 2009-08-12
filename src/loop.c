@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <glib.h>
 
@@ -51,8 +52,12 @@ static gint mhloop_main_loop(void)
                 /* Connection failed, reconnect */
                 mpd_connection_free(mhconf.conn);
                 mhmpd_connect();
+                mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
+                sleep(mhconf.poll);
                 continue;
             }
+            mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
+            sleep(mhconf.poll);
             continue;
         }
         mpderr = mhmpd_currentsong(&entity);
@@ -88,6 +93,8 @@ static gint mhloop_main_loop(void)
             mpd_entity_free(mhconf.entity);
             mhconf.entity = entity;
         }
+        mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
+        sleep(mhconf.poll);
     }
     return 0;
 }

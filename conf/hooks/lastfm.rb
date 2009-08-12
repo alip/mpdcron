@@ -60,7 +60,7 @@ def authenticate(user, password)
   auth = SimpleAuth.new(:user => $user, :password => $password)
   begin
     auth.handshake!
-  rescue BadAuthError => e
+  rescue SocketError, BadAuthError => e
     log("Authentication failed: %s", e.message)
     return nil
   end

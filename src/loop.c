@@ -85,14 +85,14 @@ static gint mhloop_main_loop(void)
             mhhooker_run(diff, song_changed);
         }
 
-        if (mhconf.status != NULL) {
+        if (mhconf.status != NULL)
             mpd_status_free(mhconf.status);
-            mhconf.status = status;
-        }
-        if (mhconf.entity != NULL) {
+        if (mhconf.entity != NULL)
             mpd_entity_free(mhconf.entity);
-            mhconf.entity = entity;
-        }
+
+        mhconf.status = status;
+        mhconf.entity = entity;
+
         mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
         sleep(mhconf.poll);
     }

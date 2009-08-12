@@ -14,6 +14,7 @@ AC_SUBST([VERSION_MINOR])
 AC_SUBST([VERSION_FULL])
 
 AM_INIT_AUTOMAKE(mpdhooker, [$VERSION_FULL])
+m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 dnl {{{ git revision
 AC_MSG_CHECKING([for git head])

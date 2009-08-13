@@ -24,8 +24,7 @@
 
 #include "libmpdclient.h"
 
-gint mhmpd_status(mpd_Status **status);
-gint mhmpd_currentsong(struct mpd_InfoEntity **entity);
+gint mhmpd_status_song(mpd_Status **status, mpd_InfoEntity **entity);
 gint mhmpd_connect(void);
 
 #endif // MPDHOOKER_GUARD_MPD_H

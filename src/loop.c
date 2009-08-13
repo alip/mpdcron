@@ -47,21 +47,12 @@ G_GNUC_NORETURN static gint mhloop_main_loop(void)
     for (;;) {
         status = NULL;
         entity = NULL;
-        if (mhmpd_status(&status) < 0) {
+        if (mhmpd_status_song(&status, &entity) < 0) {
             mpd_closeConnection(mhconf.conn);
             mhmpd_connect();
             mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
             sleep(mhconf.poll);
             continue;
-        }
-        if (status->state == MPD_STATUS_STATE_PLAY || status->state == MPD_STATUS_STATE_PAUSE) {
-            if (mhmpd_currentsong(&entity) < 0) {
-                mpd_closeConnection(mhconf.conn);
-                mhmpd_connect();
-                mh_logv(LOG_DEBUG, "Sleeping for %d seconds", mhconf.poll);
-                sleep(mhconf.poll);
-                continue;
-            }
         }
 
         if (mhconf.status == NULL) {

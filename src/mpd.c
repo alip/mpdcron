@@ -104,7 +104,8 @@ gint mhmpd_connect(void)
                 exit(EXIT_FAILURE);
             }
         }
-        mh_log(LOG_INFO, "Connected to `%s' on port %s.", mhconf.hostname, mhconf.port);
+        mh_log(LOG_INFO, "Connected to Mpd server, running version %d.%d.%d.",
+                mhconf.conn->version[0], mhconf.conn->version[1], mhconf.conn->version[2]);
         if (mhconf.password != NULL) {
             mh_log(LOG_INFO, "Sending password...");
             mpd_sendPasswordCommand(mhconf.conn, mhconf.password);

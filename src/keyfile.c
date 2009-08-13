@@ -72,7 +72,7 @@ bool mhkeyfile_load(void)
     }
     if (mhconf.poll <= 0) {
         mh_log(LOG_WARNING, "Invalid value for mpd.poll %d, setting to default.", mhconf.poll);
-        mhconf.poll = 1;
+        mhconf.poll = DEFAULT_MPD_POLL;
     }
     else
         mh_logv(LOG_DEBUG, "set mpd.poll=%d", mhconf.poll);
@@ -122,7 +122,7 @@ bool mhkeyfile_load(void)
     }
     if (mhconf.timeout <= 0) {
         mh_log(LOG_WARNING, "Invalid value for mpd.timeout %.2lf, setting to default.", mhconf.timeout);
-        mhconf.timeout = 10.0;
+        mhconf.timeout = DEFAULT_MPD_TIMEOUT;
     }
     else
         mh_logv(LOG_DEBUG, "set mpd.timeout=%lf", mhconf.timeout);

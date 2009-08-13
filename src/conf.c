@@ -25,6 +25,7 @@
 #include <libdaemon/dpid.h>
 
 #include "conf.h"
+#include "keyfile.h"
 
 void mhconf_init(void)
 {
@@ -73,9 +74,9 @@ void mhconf_init(void)
 
     mhconf.password = g_getenv(ENV_MPD_PASSWORD);
 
-    mhconf.timeout = 10;
-    mhconf.reconnect = 30;
-    mhconf.poll = 1;
+    mhconf.timeout = DEFAULT_MPD_TIMEOUT;
+    mhconf.reconnect = DEFAULT_MPD_RECONNECT;
+    mhconf.poll = DEFAULT_MPD_POLL;
 }
 
 void mhconf_free(void)

@@ -22,6 +22,11 @@
 
 #include <stdbool.h>
 
+/* Defaults */
+#define DEFAULT_MPD_POLL        1
+#define DEFAULT_MPD_RECONNECT   10
+#define DEFAULT_MPD_TIMEOUT     10.0
+
 bool mhkeyfile_load(void);
 
 #endif // MPDHOOKER_GUARD_KEYFILE_H

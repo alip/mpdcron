@@ -50,6 +50,26 @@ bool mhkeyfile_load(void)
     else
         mh_logv(LOG_DEBUG, "Set mpd.poll to %d.", mhconf.poll);
 
+    // Get main.pidfile
+    mhconf.dir.pid = g_key_file_get_string(config_fd, "main", "pidfile", &config_error);
+    if (!mhconf.dir.pid && config_error) {
+        switch (config_error->code) {
+            case G_KEY_FILE_ERROR_INVALID_VALUE:
+                mh_log(LOG_WARNING, "main.pidfile not a string: %s", config_error->message);
+                g_error_free(config_error);
+                g_key_file_free(config_fd);
+                return false;
+            case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+                mh_logv(LOG_DEBUG, "main.pidfile not found.");
+                g_error_free(config_error);
+                config_error = NULL;
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+        }
+    }
+
     // Get mpd.poll
     mh_logv(LOG_DEBUG, "Reading mpd.poll from configuration file.");
     mhconf.poll = g_key_file_get_integer(config_fd, "mpd", "poll", &config_error);

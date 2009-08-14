@@ -115,7 +115,11 @@ void mhconf_free(void)
 
 const gchar *mhconf_pid_file_proc(void)
 {
-    gchar *name = g_strdup_printf("%s.pid", daemon_pid_file_ident);
+    gchar *name;
+
+    if (mhconf.dir.pid)
+        return mhconf.dir.pid;
+    name = g_strdup_printf("%s.pid", daemon_pid_file_ident);
     mhconf.dir.pid = g_build_filename(mhconf.dir.home, name, NULL);
     g_free(name);
     return mhconf.dir.pid;

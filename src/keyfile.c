@@ -125,7 +125,7 @@ bool mhkeyfile_load(void)
         mhconf.timeout = DEFAULT_MPD_TIMEOUT;
     }
     else
-        mh_logv(LOG_DEBUG, "set mpd.timeout=%lf", mhconf.timeout);
+        mh_logv(LOG_DEBUG, "set mpd.timeout=%.2lf", mhconf.timeout);
 
     return true;
 }

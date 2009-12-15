@@ -66,7 +66,13 @@ int main(int argc, char **argv)
     parse_error = NULL;
     context = g_option_context_new("");
     g_option_context_add_main_entries(context, options, PACKAGE);
-    g_option_context_set_summary(context, PACKAGE"-"VERSION GITHEAD " - mpd hooker");
+#if defined(GITHEAD)
+    g_option_context_set_summary(context,
+            (strlen(GITHEAD) > 0) ? PACKAGE"-"VERSION"-"GITHEAD" - mpd hooker"
+                                  : PACKAGE"-"VERSION" - mpd hooker");
+#else
+    g_option_context_set_summary(context, PACKAGE"-"VERSION" - mpd hooker");
+#endif // defined(GITHEAD)
 
     if (! g_option_context_parse(context, &argc, &argv, &parse_error)) {
         g_printerr("option parsing failed: %s\n", parse_error->message);

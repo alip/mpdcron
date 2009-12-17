@@ -74,7 +74,6 @@ int mhkeyfile_load(void)
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
 			default:
 				g_error_free(config_err);
 				config_err = NULL;
@@ -99,7 +98,6 @@ int mhkeyfile_load(void)
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
 			default:
 				g_error_free(config_err);
 				config_err = NULL;

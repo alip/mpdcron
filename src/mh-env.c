@@ -383,8 +383,12 @@ void mhenv_clearenv(void)
 	g_unsetenv("MPD_DATABASE_DB_PLAY_TIME");
 
 	/* outputs */
-	for (i = 1; i < DEFAULT_MPD_MAX_OUTPUTS; i++) {
+	for (i = 1 ;; i++) {
 		envname = g_strdup_printf("MPD_OUTPUT_ID_%d", i);
+		if (!g_getenv(envname)) {
+			g_free(envname);
+			break;
+		}
 		g_unsetenv(envname);
 		g_free(envname);
 

@@ -19,58 +19,16 @@
 
 #include "mh-defs.h"
 
-#include <time.h>
-
+#include <glib.h>
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
 static int mhevent_database(struct mpd_connection *conn)
 {
-	char *envstr;
-	time_t t;
-	struct mpd_stats *stats;
-
 	/* Song database has been updated.
-	 * Send stats command and add the variables to environment.
+	 * Send stats command and add the variables to the environment.
 	 */
-	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending stats command to Mpd server");
-	if ((stats = mpd_run_stats(conn)) == NULL)
-		return -1;
-
-	t = mpd_stats_get_db_update_time(stats);
-
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_artists(stats));
-	g_setenv("MPD_DATABASE_ARTISTS", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_albums(stats));
-	g_setenv("MPD_DATABASE_ALBUMS", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_songs(stats));
-	g_setenv("MPD_DATABASE_SONGS", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%lu", mpd_stats_get_play_time(stats));
-	g_setenv("MPD_DATABASE_PLAY_TIME", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%lu", mpd_stats_get_uptime(stats));
-	g_setenv("MPD_DATABASE_UPTIME", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%s", ctime(&t));
-	g_setenv("MPD_DATABASE_UPDATE_TIME", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%lu", mpd_stats_get_db_play_time(stats));
-	g_setenv("MPD_DATABASE_DB_PLAY_TIME", envstr, 1);
-	g_free(envstr);
-
-	envstr = NULL;
-	mpd_stats_free(stats);
-	return 0;
+	return mhenv_stats(conn);
 }
 
 static int mhevent_stored_playlist(struct mpd_connection *conn G_GNUC_UNUSED)
@@ -88,9 +46,12 @@ static int mhevent_player(struct mpd_connection *conn G_GNUC_UNUSED)
 	return 0;
 }
 
-static int mhevent_mixer(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_mixer(struct mpd_connection *conn)
 {
-	return 0;
+	/* The volume has been modified.
+	 * Send status command and add the variables to the environment.
+	 */
+	return mhenv_status(conn);
 }
 
 static int mhevent_output(struct mpd_connection *conn G_GNUC_UNUSED)
@@ -98,14 +59,20 @@ static int mhevent_output(struct mpd_connection *conn G_GNUC_UNUSED)
 	return 0;
 }
 
-static int mhevent_options(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_options(struct mpd_connection *conn)
 {
-	return 0;
+	/* One of the options has been modified.
+	 * Send status command and add the variables to the environment.
+	 */
+	return mhenv_status(conn);
 }
 
-static int mhevent_update(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_update(struct mpd_connection *conn)
 {
-	return 0;
+	/* A database update has started or finished.
+	 * Send status command and add the variables to the environment.
+	 */
+	return mhenv_status(conn);
 }
 
 int mhevent_run(struct mpd_connection *conn, enum mpd_idle event)

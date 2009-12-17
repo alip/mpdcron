@@ -66,14 +66,12 @@ extern GMainLoop *loop;
 extern const char *mhconf_pid_file_proc(void);
 extern int mhconf_init(void);
 extern void mhconf_free(void);
-
+extern int mhenv_stats(struct mpd_connection *conn);
+extern int mhenv_status(struct mpd_connection *conn);
 extern int mhevent_run(struct mpd_connection *conn, enum mpd_idle event);
-
+extern int mhhooker_run_hook(const char *name);
 extern int mhkeyfile_load(void);
-
 extern void mhloop_connect(void);
 extern void mhloop_disconnect(void);
-
-extern int mhhooker_run_hook(const char *name);
 
 #endif /* !MPDHOOKER_GUARD_MH_DEFS_H */

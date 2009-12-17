@@ -41,9 +41,9 @@ static int mhevent_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 	return 0;
 }
 
-static int mhevent_player(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_player(struct mpd_connection *conn)
 {
-	return 0;
+	return mhenv_status_currentsong(conn);
 }
 
 static int mhevent_mixer(struct mpd_connection *conn)

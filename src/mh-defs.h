@@ -68,6 +68,7 @@ extern int mhconf_init(void);
 extern void mhconf_free(void);
 extern int mhenv_stats(struct mpd_connection *conn);
 extern int mhenv_status(struct mpd_connection *conn);
+extern int mhenv_status_currentsong(struct mpd_connection *conn);
 extern int mhenv_outputs(struct mpd_connection *conn);
 extern int mhevent_run(struct mpd_connection *conn, enum mpd_idle event);
 extern int mhhooker_run_hook(const char *name);

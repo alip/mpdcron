@@ -41,6 +41,9 @@
 #define DEFAULT_MPD_RECONNECT	10
 #define DEFAULT_MPD_TIMEOUT	10.0
 
+#define DEFAULT_DATE_FORMAT		"%Y-%m-%d %H-%M-%S %Z"
+#define DEFAULT_DATE_FORMAT_SIZE	64
+
 extern char *home_path;
 extern char *conf_path;
 extern char *pid_path;

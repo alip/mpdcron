@@ -139,6 +139,7 @@ static void mhenv_export_song(struct mpd_song *song)
 	const char *tag;
 	char *envstr;
 	time_t t;
+	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 
 	g_setenv("MPD_SONG_URI", mpd_song_get_uri(song), 1);
 
@@ -179,7 +180,8 @@ static void mhenv_export_song(struct mpd_song *song)
 		g_setenv("MPD_SONG_TAG_MUSICBRAINZ_TRACKID", tag, 1);
 
 	t = mpd_song_get_last_modified(song);
-	g_setenv("MPD_SONG_LAST_MODIFIED", ctime(&t), 1);
+	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
+	g_setenv("MPD_SONG_LAST_MODIFIED", date, 1);
 
 	envstr = g_strdup_printf("%u", mpd_song_get_duration(song));
 	g_setenv("MPD_SONG_DURATION", envstr, 1);
@@ -198,6 +200,7 @@ int mhenv_stats(struct mpd_connection *conn)
 {
 	char *envstr;
 	time_t t;
+	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 	struct mpd_stats *stats;
 
 	g_assert(conn != NULL);
@@ -206,6 +209,8 @@ int mhenv_stats(struct mpd_connection *conn)
 		return -1;
 
 	t = mpd_stats_get_db_update_time(stats);
+	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
+	g_setenv("MPD_DATABASE_UPDATE_TIME", date, 1);
 
 	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_artists(stats));
 	g_setenv("MPD_DATABASE_ARTISTS", envstr, 1);
@@ -225,10 +230,6 @@ int mhenv_stats(struct mpd_connection *conn)
 
 	envstr = g_strdup_printf("%lu", mpd_stats_get_uptime(stats));
 	g_setenv("MPD_DATABASE_UPTIME", envstr, 1);
-	g_free(envstr);
-
-	envstr = g_strdup_printf("%s", ctime(&t));
-	g_setenv("MPD_DATABASE_UPDATE_TIME", envstr, 1);
 	g_free(envstr);
 
 	envstr = g_strdup_printf("%lu", mpd_stats_get_db_play_time(stats));

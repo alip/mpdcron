@@ -70,6 +70,7 @@ extern const char *mhconf_pid_file_proc(void);
 extern int mhconf_init(void);
 extern void mhconf_free(void);
 extern void mhenv_clearenv(void);
+extern int mhenv_list_all_meta(struct mpd_connection *conn);
 extern int mhenv_stats(struct mpd_connection *conn);
 extern int mhenv_status(struct mpd_connection *conn);
 extern int mhenv_status_currentsong(struct mpd_connection *conn);

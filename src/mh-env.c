@@ -196,6 +196,41 @@ static void mhenv_export_song(struct mpd_song *song)
 	g_free(envstr);
 }
 
+int mhenv_list_all_meta(struct mpd_connection *conn)
+{
+	int i;
+	char *envname;
+	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
+	time_t t;
+	const struct mpd_playlist *pl;
+	struct mpd_entity *entity;
+
+	g_assert(conn != NULL);
+	mh_log(LOG_DEBUG, "Sending list_all_meta command to Mpd server");
+	if (!mpd_send_list_meta(conn, NULL))
+		return -1;
+
+	i = 0;
+	while ((entity = mpd_recv_entity(conn)) != NULL) {
+		if (mpd_entity_get_type(entity) == MPD_ENTITY_TYPE_PLAYLIST) {
+			pl = mpd_entity_get_playlist(entity);
+
+			envname = g_strdup_printf("MPD_PLAYLIST_%d_PATH", i++);
+			g_setenv(envname, mpd_playlist_get_path(pl), 1);
+			g_free(envname);
+
+			t = mpd_playlist_get_last_modified(pl);
+			strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
+			envname = g_strdup_printf("MPD_PLAYLIST_%d_LAST_MODIFIED", i);
+			g_setenv(envname, date, 1);
+			g_free(envname);
+		}
+		mpd_entity_free(entity);
+	}
+
+	return mpd_response_finish(conn) ? 0 : -1;
+}
+
 int mhenv_stats(struct mpd_connection *conn)
 {
 	char *envstr;

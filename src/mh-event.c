@@ -31,9 +31,12 @@ static int mhevent_database(struct mpd_connection *conn)
 	return mhenv_stats(conn);
 }
 
-static int mhevent_stored_playlist(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_stored_playlist(struct mpd_connection *conn)
 {
-	return 0;
+	/* A playlist has been updated, modified or deleted.
+	 * Send list_all_meta command and add the variables to the environment.
+	 */
+	return mhenv_list_all_meta(conn);
 }
 
 static int mhevent_queue(struct mpd_connection *conn G_GNUC_UNUSED)

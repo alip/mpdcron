@@ -132,7 +132,7 @@ int mhkeyfile_load(void)
 		}
 	}
 
-	if (timeout <= 0) {
+	if (timeout < 0) {
 		mh_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}

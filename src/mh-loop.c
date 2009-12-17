@@ -112,7 +112,7 @@ static gboolean mhloop_idle(G_GNUC_UNUSED GIOChannel *source,
 			break;
 		if (myidle & i) {
 			/* Run the appropriate event */
-			if (mhevent_run(i) < 0) {
+			if (mhevent_run(conn, i) < 0) {
 				mhloop_failure();
 				mhloop_schedule_reconnect();
 				return FALSE;

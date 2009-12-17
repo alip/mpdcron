@@ -111,6 +111,8 @@ static gboolean mhloop_idle(G_GNUC_UNUSED GIOChannel *source,
 		if ((name = mpd_idle_name(i)) == NULL)
 			break;
 		if (myidle & i) {
+			/* Clear the environment */
+			mhenv_clearenv();
 			/* Run the appropriate event */
 			if (mhevent_run(conn, i) < 0) {
 				mhloop_failure();

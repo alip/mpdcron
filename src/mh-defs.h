@@ -44,6 +44,8 @@
 #define DEFAULT_DATE_FORMAT		"%Y-%m-%d %H-%M-%S %Z"
 #define DEFAULT_DATE_FORMAT_SIZE	64
 
+#define DEFAULT_MPD_MAX_OUTPUTS		16
+
 extern char *home_path;
 extern char *conf_path;
 extern char *pid_path;
@@ -69,6 +71,7 @@ extern GMainLoop *loop;
 extern const char *mhconf_pid_file_proc(void);
 extern int mhconf_init(void);
 extern void mhconf_free(void);
+extern void mhenv_clearenv(void);
 extern int mhenv_stats(struct mpd_connection *conn);
 extern int mhenv_status(struct mpd_connection *conn);
 extern int mhenv_status_currentsong(struct mpd_connection *conn);

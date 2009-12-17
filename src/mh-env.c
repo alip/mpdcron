@@ -167,7 +167,7 @@ static void mhenv_export_song(struct mpd_song *song)
 	if ((tag = mpd_song_get_tag(song, MPD_TAG_PERFORMER, 0)) != NULL)
 		g_setenv("MPD_SONG_TAG_PERFORMER", tag, 1);
 	if ((tag = mpd_song_get_tag(song, MPD_TAG_COMMENT, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_PERFORMER", tag, 1);
+		g_setenv("MPD_SONG_TAG_COMMENT", tag, 1);
 	if ((tag = mpd_song_get_tag(song, MPD_TAG_DISC, 0)) != NULL)
 		g_setenv("MPD_SONG_TAG_DISC", tag, 1);
 	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ARTISTID, 0)) != NULL)
@@ -322,4 +322,74 @@ int mhenv_status_currentsong(struct mpd_connection *conn)
 	}
 
 	return mpd_response_finish(conn) ? 0 : -1;
+}
+
+void mhenv_clearenv(void)
+{
+	int i;
+	char *envname;
+
+	/* status */
+	g_unsetenv("MPD_STATUS_VOLUME");
+	g_unsetenv("MPD_STATUS_REPEAT");
+	g_unsetenv("MPD_STATUS_RENDOM");
+	g_unsetenv("MPD_STATUS_SINGLE");
+	g_unsetenv("MPD_STATUS_CONSUME");
+	g_unsetenv("MPD_STATUS_QUEUE_LENGTH");
+	g_unsetenv("MPD_STATUS_QUEUE_VERSION");
+	g_unsetenv("MPD_STATUS_CROSSFADE");
+	g_unsetenv("MPD_STATUS_SONG_POS");
+	g_unsetenv("MPD_STATUS_SONG_ID");
+	g_unsetenv("MPD_STATUS_ELAPSED_TIME");
+	g_unsetenv("MPD_STATUS_ELAPSED_MS");
+	g_unsetenv("MPD_STATUS_TOTAL_TIME");
+	g_unsetenv("MPD_STATUS_KBIT_RATE");
+	g_unsetenv("MPD_STATUS_UPDATE_ID");
+	g_unsetenv("MPD_STATUS_STATE");
+	g_unsetenv("MPD_STATUS_AUDIO_FORMAT");
+	g_unsetenv("MPD_STATUS_AUDIO_FORMAT_SAMPLE_RATE");
+	g_unsetenv("MPD_STATUS_AUDIO_FORMAT_BITS");
+	g_unsetenv("MPD_STATUS_AUDIO_FORMAT_CHANNELS");
+
+	/* song */
+	g_unsetenv("MPD_SONG_URI");
+	g_unsetenv("MPD_SONG_TAG_ARTIST");
+	g_unsetenv("MPD_SONG_TAG_ALBUM");
+	g_unsetenv("MPD_SONG_TAG_ALBUM_ARTIST");
+	g_unsetenv("MPD_SONG_TAG_TITLE");
+	g_unsetenv("MPD_SONG_TAG_TRACK");
+	g_unsetenv("MPD_SONG_TAG_NAME");
+	g_unsetenv("MPD_SONG_TAG_GENRE");
+	g_unsetenv("MPD_SONG_TAG_DATE");
+	g_unsetenv("MPD_SONG_TAG_COMPOSER");
+	g_unsetenv("MPD_SONG_TAG_PERFORMER");
+	g_unsetenv("MPD_SONG_TAG_COMMENT");
+	g_unsetenv("MPD_SONG_TAG_DISC");
+	g_unsetenv("MPD_SONG_TAG_MUSICBRAINZ_ARTISTID");
+	g_unsetenv("MPD_SONG_TAG_MUSICBRAINZ_ALBUMID");
+	g_unsetenv("MPD_SONG_TAG_MUSICBRAINZ_ALBUMARTISTID");
+	g_unsetenv("MPD_SONG_TAG_MUSICBRAINZ_TRACKID");
+	g_unsetenv("MPD_SONG_LAST_MODIFIED");
+	g_unsetenv("MPD_SONG_POS");
+	g_unsetenv("MPD_SONG_ID");
+
+	/* stats */
+	g_unsetenv("MPD_DATABASE_UPDATE_TIME");
+	g_unsetenv("MPD_DATABASE_ARTISTS");
+	g_unsetenv("MPD_DATABASE_ALBUMS");
+	g_unsetenv("MPD_DATABASE_SONGS");
+	g_unsetenv("MPD_DATABASE_PLAY_TIME");
+	g_unsetenv("MPD_DATABASE_UPTIME");
+	g_unsetenv("MPD_DATABASE_DB_PLAY_TIME");
+
+	/* outputs */
+	for (i = 1; i < DEFAULT_MPD_MAX_OUTPUTS; i++) {
+		envname = g_strdup_printf("MPD_OUTPUT_ID_%d", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_OUTPUT_ID_%d_ENABLED", i);
+		g_unsetenv(envname);
+		g_free(envname);
+	}
 }

@@ -67,6 +67,8 @@ extern const char *mhconf_pid_file_proc(void);
 extern int mhconf_init(void);
 extern void mhconf_free(void);
 
+extern int mhevent_run(enum mpd_idle event);
+
 extern int mhkeyfile_load(void);
 
 extern void mhmpd_connect(void);

@@ -110,8 +110,16 @@ static gboolean mhmpd_idle(G_GNUC_UNUSED GIOChannel *source,
 		i = 1 << j;
 		if ((name = mpd_idle_name(i)) == NULL)
 			break;
-		if (myidle & i)
+		if (myidle & i) {
+			/* Run the appropriate event */
+			if (mhevent_run(i) < 0) {
+				mhmpd_failure();
+				mhmpd_schedule_reconnect();
+				return FALSE;
+			}
+			/* Run the hook */
 			mhhooker_run_hook(name);
+		}
 	}
 
 	mhmpd_schedule_idle();

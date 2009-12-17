@@ -66,6 +66,7 @@ int mhkeyfile_load(void)
 	}
 
 	/* Get mpd.reconnect */
+	config_err = NULL;
 	reconnect = g_key_file_get_integer(config_fd, "mpd", "reconnect", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {
@@ -90,6 +91,7 @@ int mhkeyfile_load(void)
 	}
 
 	/* Get mpd.timeout */
+	config_err = NULL;
 	timeout = g_key_file_get_double(config_fd, "mpd", "timeout", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {

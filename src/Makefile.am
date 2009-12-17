@@ -4,7 +4,6 @@ AM_CFLAGS= -DGITHEAD=\"$(GITHEAD)\" \
 
 bin_PROGRAMS= mpdhooker
 noinst_HEADERS= mh-defs.h
-mpdhooker_SOURCES= mh-conf.c mh-hooker.c mh-keyfile.c mh-mpd.c \
+mpdhooker_SOURCES= mh-conf.c mh-hooker.c mh-keyfile.c mh-loop.c \
 		   mh-main.c
 mpdhooker_LDADD= $(glib_LIBS) $(libdaemon_LIBS) $(libmpdclient_LIBS)
-

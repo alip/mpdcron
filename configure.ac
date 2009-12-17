@@ -26,6 +26,9 @@ if test -d "${GIT_DIR:-${ac_top_srcdir:-./}/.git}" ; then
 	if test -n "`git diff-index -m --name-only HEAD`" ; then
 		GITHEAD=${GITHEAD}-dirty
 	fi
+	if test -n "${GITHEAD}" ; then
+		GITHEAD="-${GITHEAD}"
+	fi
 fi
 AC_MSG_RESULT([$GITHEAD])
 AC_SUBST([GITHEAD])

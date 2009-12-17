@@ -193,3 +193,33 @@ int mhenv_status(struct mpd_connection *conn)
 	mpd_status_free(status);
 	return 0;
 }
+
+int mhenv_outputs(struct mpd_connection *conn)
+{
+	int id;
+	const char *name;
+	char *envname;
+	struct mpd_output *output;
+
+	g_assert(conn != NULL);
+	mh_log(LOG_DEBUG, "Sending outputs command to Mpd server");
+	if (!mpd_send_outputs(conn))
+		return -1;
+
+	while ((output = mpd_recv_output(conn)) != NULL) {
+		id = mpd_output_get_id(output) + 1;
+		name = mpd_output_get_name(output);
+
+		envname = g_strdup_printf("MPD_OUTPUT_ID_%d", id);
+		g_setenv(envname, name, 1);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_OUTPUT_ID_%d_ENABLED", id);
+		g_setenv(envname, mpd_output_get_enabled(output) ? "1" : "0", 1);
+		g_free(envname);
+
+		mpd_output_free(output);
+	}
+
+	return mpd_response_finish(conn) ? 0 : -1;
+}

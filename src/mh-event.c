@@ -54,9 +54,12 @@ static int mhevent_mixer(struct mpd_connection *conn)
 	return mhenv_status(conn);
 }
 
-static int mhevent_output(struct mpd_connection *conn G_GNUC_UNUSED)
+static int mhevent_output(struct mpd_connection *conn)
 {
-	return 0;
+	/* Outputs have been modified.
+	 * Send outputs command and add the variables to the environment.
+	 */
+	return mhenv_outputs(conn);
 }
 
 static int mhevent_options(struct mpd_connection *conn)

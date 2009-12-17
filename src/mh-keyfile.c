@@ -25,6 +25,7 @@
 
 int timeout = DEFAULT_MPD_TIMEOUT;
 int reconnect = DEFAULT_MPD_RECONNECT;
+int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
 int mhkeyfile_load(void)
@@ -53,6 +54,29 @@ int mhkeyfile_load(void)
 	/* Get main.pidfile */
 	if (pid_path == NULL)
 		pid_path = g_key_file_get_string(config_fd, "main", "pidfile", &config_err);
+
+	/* Get main.killwait */
+	config_err = NULL;
+	killwait = g_key_file_get_integer(config_fd, "main", "killwait", &config_err);
+	if (config_err != NULL) {
+		switch (config_err->code) {
+			case G_KEY_FILE_ERROR_INVALID_VALUE:
+				mh_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
+				g_error_free(config_err);
+				g_key_file_free(config_fd);
+				return -1;
+			default:
+				g_error_free(config_err);
+				config_err = NULL;
+				killwait = DEFAULT_PID_KILL_WAIT;
+				break;
+		}
+	}
+
+	if (killwait <= 0) {
+		mh_log(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
+		timeout = DEFAULT_MPD_TIMEOUT;
+	}
 
 	/* Get mpd.events */
 	if ((events = g_key_file_get_string_list(config_fd, "mpd", "events", NULL, NULL)) != NULL) {

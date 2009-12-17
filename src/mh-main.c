@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Important! Parse configuration file before killing the daemon
-	 * because the configuration file has a pidfile option.
+	 * because the configuration file has a pidfile and killwait option.
 	 */
 	if (mhkeyfile_load() < 0) {
 		mhconf_free();
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	}
 
 	if (optk) {
-		if (daemon_pid_file_kill_wait(SIGINT, DEFAULT_PID_KILL_WAIT) < 0) {
+		if (daemon_pid_file_kill_wait(SIGINT, killwait) < 0) {
 			mh_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
 			mhconf_free();
 			return EXIT_FAILURE;

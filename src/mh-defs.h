@@ -54,6 +54,7 @@ extern const char *password;
 
 extern int timeout;
 extern int reconnect;
+extern int killwait;
 extern enum mpd_idle idle;
 
 extern int optnd;

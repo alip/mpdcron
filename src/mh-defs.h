@@ -29,7 +29,7 @@
 #include <mpd/client.h>
 
 /* Configuration */
-#define ENV_HOME_DIR		"MPD_HOOKER_DIR"
+#define ENV_HOME_DIR		"MPDHOOKER_DIR"
 #define ENV_MPD_HOST		"MPD_HOST"
 #define ENV_MPD_PORT		"MPD_PORT"
 #define ENV_MPD_PASSWORD	"MPD_PASSWORD"

@@ -95,7 +95,7 @@ int mhkeyfile_load(void)
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mh_log(LOG_WARNING, "mpd.reconnect not a double: %s", config_err->message);
+				mh_log(LOG_WARNING, "mpd.timeout not a double: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;

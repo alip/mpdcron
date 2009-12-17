@@ -23,7 +23,7 @@
 
 #include <mpd/client.h>
 
-double timeout = DEFAULT_MPD_TIMEOUT;
+int timeout = DEFAULT_MPD_TIMEOUT;
 int reconnect = DEFAULT_MPD_RECONNECT;
 enum mpd_idle idle = 0;
 
@@ -92,11 +92,11 @@ int mhkeyfile_load(void)
 
 	/* Get mpd.timeout */
 	config_err = NULL;
-	timeout = g_key_file_get_double(config_fd, "mpd", "timeout", &config_err);
+	timeout = g_key_file_get_integer(config_fd, "mpd", "timeout", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mh_log(LOG_WARNING, "mpd.timeout not a double: %s", config_err->message);
+				mh_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -109,9 +109,8 @@ int mhkeyfile_load(void)
 	}
 
 	if (timeout <= 0) {
-		mh_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %.2lf",
-				DEFAULT_MPD_TIMEOUT);
-		reconnect = DEFAULT_MPD_TIMEOUT;
+		mh_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
+		timeout = DEFAULT_MPD_TIMEOUT;
 	}
 
 	return 0;

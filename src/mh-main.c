@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	g_setenv("MHOPT_RECONNECT", optstr, 1);
 	g_free(optstr);
 
-	optstr = g_strdup_printf("%f", timeout);
+	optstr = g_strdup_printf("%d", timeout);
 	g_setenv("MHOPT_TIMEOUT", optstr, 1);
 	g_free(optstr);
 

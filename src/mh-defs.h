@@ -37,9 +37,9 @@
 #define DOT_MPDHOOKER			"." PACKAGE
 #define DOT_HOOKS			"hooks"
 
-#define DEFAULT_PID_KILL_WAIT	1
-#define DEFAULT_MPD_RECONNECT	10
-#define DEFAULT_MPD_TIMEOUT	10.0
+#define DEFAULT_PID_KILL_WAIT	3
+#define DEFAULT_MPD_RECONNECT	5
+#define DEFAULT_MPD_TIMEOUT	0
 
 #define DEFAULT_DATE_FORMAT		"%Y-%m-%d %H-%M-%S %Z"
 #define DEFAULT_DATE_FORMAT_SIZE	64
@@ -52,7 +52,7 @@ extern const char *hostname;
 extern const char *port;
 extern const char *password;
 
-extern double timeout;
+extern int timeout;
 extern int reconnect;
 extern enum mpd_idle idle;
 

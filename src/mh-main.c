@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 
 	if (optnd) {
 		/* Connect and start the main loop */
-		mhmpd_connect();
+		mhloop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		return EXIT_SUCCESS;
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 		/* Send OK to parent process */
 		daemon_retval_send(0);
 		/* Connect and start the main loop */
-		mhmpd_connect();
+		mhloop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		return EXIT_SUCCESS;

@@ -71,8 +71,8 @@ extern int mhevent_run(enum mpd_idle event);
 
 extern int mhkeyfile_load(void);
 
-extern void mhmpd_connect(void);
-extern void mhmpd_disconnect(void);
+extern void mhloop_connect(void);
+extern void mhloop_disconnect(void);
 
 extern int mhhooker_run_hook(const char *name);
 

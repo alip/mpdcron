@@ -49,7 +49,7 @@ static void mhloop_failure(void)
 
 static gboolean mhloop_reconnect(G_GNUC_UNUSED gpointer data)
 {
-	mh_log(LOG_INFO, "Connection to `%s' on port %s with timeout %d",
+	mh_log(LOG_INFO, "Connecting to `%s' on port %s with timeout %d",
 			hostname, port, timeout);
 	if ((conn = mpd_connection_new(hostname, atoi(port), timeout)) == NULL) {
 		mh_log(LOG_ERR, "Error creating mpd connection: out of memory");

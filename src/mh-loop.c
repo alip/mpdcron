@@ -146,7 +146,6 @@ static void mhloop_schedule_reconnect(void)
 
 static void mhloop_schedule_idle(void)
 {
-	int fd;
 	bool ret;
 	GIOChannel *channel;
 
@@ -162,8 +161,7 @@ static void mhloop_schedule_idle(void)
 	}
 
 	/* Add a GLib watch on the libmpdclient socket. */
-	fd = mpd_connection_get_fd(conn);
-	channel = g_io_channel_unix_new(fd);
+	channel = g_io_channel_unix_new(mpd_connection_get_fd(conn));
 	idle_sid = g_io_add_watch(channel, G_IO_IN, mhloop_idle, NULL);
 	g_io_channel_unref(channel);
 }

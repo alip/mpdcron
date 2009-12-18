@@ -8,10 +8,10 @@
 
 ## Configuration ##
 See the [conf/](http://github.com/alip/mpdhooker/tree/master/conf/) directory
-for information about how to configure mpdhooker and its hooks.
+for information about how to configure <tt>mpdhooker</tt> and its hooks.
 
 ## Requirements ##
-mpdhooker requires:
+<tt>mpdhooker</tt> requires:
 
  - [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer.
  - [glib](http://library.gnome.org/devel/glib/)-2.18 or newer.

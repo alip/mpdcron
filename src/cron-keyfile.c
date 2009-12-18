@@ -36,18 +36,19 @@ int keyfile_load(void)
 
 	config_fd = g_key_file_new();
 	if (!g_key_file_load_from_file(config_fd, conf_path, G_KEY_FILE_NONE, &config_err)) {
-		if (config_err->code != G_KEY_FILE_ERROR_NOT_FOUND) {
-			crlog(LOG_ERR, "Failed to parse configuration file `%s': %s",
-					conf_path, config_err->message);
-			g_error_free(config_err);
-			g_key_file_free(config_fd);
-			return -1;
-		}
-		else {
-			crlogv(LOG_DEBUG, "Configuration file `%s' not found, skipping", conf_path);
-			g_error_free(config_err);
-			g_key_file_free(config_fd);
-			return 0;
+		switch (config_err->code) {
+			case G_FILE_ERROR_NOENT:
+			case G_KEY_FILE_ERROR_NOT_FOUND:
+				crlogv(LOG_DEBUG, "Configuration file `%s' not found, skipping", conf_path);
+				g_error_free(config_err);
+				g_key_file_free(config_fd);
+				return 0;
+			default:
+				crlog(LOG_ERR, "Failed to parse configuration file `%s': %s",
+						conf_path, config_err->message);
+				g_error_free(config_err);
+				g_key_file_free(config_fd);
+				return -1;
 		}
 	}
 

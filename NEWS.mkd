@@ -1,0 +1,14 @@
+## News for mpdhooker
+
+This file lists the major changes between versions. For a more detailed list of
+every change, see git log.
+
+### 0.2
+* Initial public release
+* Require Mpd's idle mode
+* Port to libmpdclient-2, mpdhooker now requires libmpdclient-2.1 or newer.
+
+### 0.1
+* Unreleased first version
+
+<!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

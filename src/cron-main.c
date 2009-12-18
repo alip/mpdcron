@@ -96,6 +96,9 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	/* Version to environment variable */
+	g_setenv("MPDCRON_VERSION", PACKAGE"-"VERSION GITHEAD, 1);
+
 	/* Command line options to environment variables */
 	if (optnd)
 		g_unsetenv("MCOPT_DAEMONIZE");

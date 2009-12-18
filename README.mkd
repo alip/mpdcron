@@ -1,24 +1,24 @@
-## What is mpdhooker? ##
-[mpdhooker](http://github.com/alip/mpdhooker/) is a hooker daemon for [mpd](http://mpd.wikia.com/).  
+## What is mpdcron? ##
+[mpdcron](http://github.com/alip/mpdcron/) is a cron like daemon for [mpd](http://mpd.wikia.com/).  
 
 ## Features ##
-- <tt>mpdhooker</tt> uses mpd's idle mode.
-- <tt>mpdhooker</tt> calls hooks depending on the event.
-- <tt>mpdhooker</tt> sets special environment variables to pass data to the hooks.
+- <tt>mpdcron</tt> uses mpd's idle mode.
+- <tt>mpdcron</tt> calls hooks depending on the event.
+- <tt>mpdcron</tt> sets special environment variables to pass data to the hooks.
 
 ## Configuration ##
-See the [conf/](http://github.com/alip/mpdhooker/tree/master/conf/) directory
-for information about how to configure <tt>mpdhooker</tt> and its hooks.
+See the [conf/](http://github.com/alip/mpdcron/tree/master/conf/) directory
+for information about how to configure <tt>mpdcron</tt> and its hooks.
 
 ## Requirements ##
-<tt>mpdhooker</tt> requires:
+<tt>mpdcron</tt> requires:
 
  - [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer.
  - [libmpdclient](http://mpd.wikia.com/wiki/ClientLib:libmpdclient)-2.1 or newer.
  - [glib](http://library.gnome.org/devel/glib/)-2.18 or newer.
 
 ## Contribute ##
-Clone [git://github.com/alip/mpdhooker.git](git://github.com/alip/mpdhooker.git).  
+Clone [git://github.com/alip/mpdcron.git](git://github.com/alip/mpdcron.git).  
 Format patches are preferred. Either mail me or poke me on irc.  
 My personal email address is [alip@exherbo.org](mailto:alip@exherbo.org).  
 I'm available on IRC as <tt>alip</tt> on [Freenode](http://www.freenode.net/) and [OFTC](http://www.oftc.net/).

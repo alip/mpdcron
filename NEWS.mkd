@@ -1,7 +1,9 @@
-## News for mpdhooker
+## News for mpdcron
 
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
+
+* Changed name to mpdcron
 
 ### 0.2
 * Initial public release

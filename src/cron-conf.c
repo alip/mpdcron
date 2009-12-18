@@ -3,11 +3,11 @@
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
  *
- * This file is part of the mpdhooker mpd client. mpdhooker is free software;
+ * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
  * Public License version 2, as published by the Free Software Foundation.
  *
- * mpdhooker is distributed in the hope that it will be useful, but WITHOUT ANY
+ * mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "mh-defs.h"
+#include "cron-defs.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@ const char *hostname = NULL;
 const char *port = NULL;
 const char *password = NULL;
 
-const char *mhconf_pid_file_proc(void)
+const char *conf_pid_file_proc(void)
 {
 	char *name;
 
@@ -46,7 +46,7 @@ const char *mhconf_pid_file_proc(void)
 	return pid_path;
 }
 
-int mhconf_init(void)
+int conf_init(void)
 {
 	char *kfname;
 
@@ -54,9 +54,9 @@ int mhconf_init(void)
 	if (g_getenv(ENV_HOME_DIR))
 		home_path = g_strdup(g_getenv(ENV_HOME_DIR));
 	else if (g_getenv("HOME"))
-		home_path = g_build_filename(g_getenv("HOME"), DOT_MPDHOOKER, NULL);
+		home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
 	else {
-		mh_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
+		crlog(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
 		return -1;
 	}
 
@@ -75,7 +75,7 @@ int mhconf_init(void)
 	return 0;
 }
 
-void mhconf_free(void)
+void conf_free(void)
 {
 	g_free(conf_path);
 	g_free(home_path);

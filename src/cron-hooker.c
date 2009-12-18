@@ -3,11 +3,11 @@
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
  *
- * This file is part of the mpdhooker mpd client. mpdhooker is free software;
+ * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
  * Public License version 2, as published by the Free Software Foundation.
  *
- * mpdhooker is distributed in the hope that it will be useful, but WITHOUT ANY
+ * mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "mh-defs.h"
+#include "cron-defs.h"
 
 #include <string.h>
 
@@ -30,19 +30,19 @@ static struct hook_calls {
 	const char *env;
 	unsigned int ncalls;
 } calls[] = {
-	{"database",		"MH_CALLS_DATABASE",		0},
-	{"stored_playlist",	"MH_CALLS_STORED_PLAYLIST",	0},
-	{"queue",		"MH_CALLS_QUEUE",		0},
-	{"playlist",		"MH_CALLS_PLAYLIST",		0},
-	{"player",		"MH_CALLS_PLAYER",		0},
-	{"mixer",		"MH_CALLS_MIXER",		0},
-	{"output",		"MH_CALLS_OUTPUT",		0},
-	{"options",		"MH_CALLS_OPTIONS",		0},
-	{"update",		"MH_CALLS_UPDATE",		0},
+	{"database",		"MC_CALLS_DATABASE",		0},
+	{"stored_playlist",	"MC_CALLS_STORED_PLAYLIST",	0},
+	{"queue",		"MC_CALLS_QUEUE",		0},
+	{"playlist",		"MC_CALLS_PLAYLIST",		0},
+	{"player",		"MC_CALLS_PLAYER",		0},
+	{"mixer",		"MC_CALLS_MIXER",		0},
+	{"output",		"MC_CALLS_OUTPUT",		0},
+	{"options",		"MC_CALLS_OPTIONS",		0},
+	{"update",		"MC_CALLS_UPDATE",		0},
 	{NULL,			NULL,				0},
 };
 
-static void mhhooker_increment(const char *name)
+static void hooker_increment(const char *name)
 {
 	char *envstr;
 
@@ -50,31 +50,31 @@ static void mhhooker_increment(const char *name)
 		if (strcmp(name, calls[i].name) == 0) {
 			envstr = g_strdup_printf("%u", ++calls[i].ncalls);
 			g_setenv(calls[i].env, envstr, 1);
-			mh_logv(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
+			crlogv(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
 			g_free(envstr);
 			break;
 		}
 	}
 }
 
-int mhhooker_run_hook(const char *name)
+int hooker_run_hook(const char *name)
 {
 	int pid;
 	gchar **myargv;
 	GError *hook_err = NULL;
 
-	mhhooker_increment(name);
+	hooker_increment(name);
 
 	myargv = g_malloc(2 * sizeof(gchar *));
 	myargv[0] = g_build_filename(DOT_HOOKS, name, NULL);
 	myargv[1] = NULL;
 
-	mh_logv(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
+	crlog(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
 	if (!g_spawn_async(home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
 				NULL, NULL, &pid, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
-			mh_log(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
+			crlog(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
 		g_free(myargv[0]);
 		g_free(myargv);
 		g_error_free(hook_err);

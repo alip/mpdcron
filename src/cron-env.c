@@ -3,11 +3,11 @@
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
  *
- * This file is part of the mpdhooker mpd client. mpdhooker is free software;
+ * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
  * Public License version 2, as published by the Free Software Foundation.
  *
- * mpdhooker is distributed in the hope that it will be useful, but WITHOUT ANY
+ * mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "mh-defs.h"
+#include "cron-defs.h"
 
 #include <time.h>
 
@@ -25,7 +25,7 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-static const char *mhenv_strstate(enum mpd_state state)
+static const char *env_strstate(enum mpd_state state)
 {
 	char *strstate = NULL;
 	switch (state) {
@@ -48,7 +48,7 @@ static const char *mhenv_strstate(enum mpd_state state)
 	return strstate;
 }
 
-static void mhenv_export_status(struct mpd_status *status)
+static void env_export_status(struct mpd_status *status)
 {
 	char *envstr;
 	const struct mpd_audio_format *fmt;
@@ -113,7 +113,7 @@ static void mhenv_export_status(struct mpd_status *status)
 	g_setenv("MPD_STATUS_UPDATE_ID", envstr, 1);
 	g_free(envstr);
 
-	g_setenv("MPD_STATUS_STATE", mhenv_strstate(mpd_status_get_state(status)), 1);
+	g_setenv("MPD_STATUS_STATE", env_strstate(mpd_status_get_state(status)), 1);
 
 	if ((fmt = mpd_status_get_audio_format(status)) == NULL)
 		g_setenv("MPD_STATUS_AUDIO_FORMAT", "0", 1);
@@ -134,7 +134,7 @@ static void mhenv_export_status(struct mpd_status *status)
 	}
 }
 
-static void mhenv_export_song(struct mpd_song *song, int envid)
+static void env_export_song(struct mpd_song *song, int envid)
 {
 	const char *tag;
 	char *envname, *envstr;
@@ -275,7 +275,7 @@ static void mhenv_export_song(struct mpd_song *song, int envid)
 	}
 }
 
-int mhenv_list_all_meta(struct mpd_connection *conn)
+int env_list_all_meta(struct mpd_connection *conn)
 {
 	int i;
 	char *envname;
@@ -285,7 +285,7 @@ int mhenv_list_all_meta(struct mpd_connection *conn)
 	struct mpd_entity *entity;
 
 	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending list_all_meta command to Mpd server");
+	crlog(LOG_DEBUG, "Sending list_all_meta command to Mpd server");
 	if (!mpd_send_list_meta(conn, NULL))
 		return -1;
 
@@ -310,26 +310,26 @@ int mhenv_list_all_meta(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int mhenv_list_queue_meta(struct mpd_connection *conn)
+int env_list_queue_meta(struct mpd_connection *conn)
 {
 	int i;
 	struct mpd_song *song;
 
 	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending list_queue_meta command to Mpd server");
+	crlog(LOG_DEBUG, "Sending list_queue_meta command to Mpd server");
 	if (!mpd_send_list_queue_meta(conn))
 		return -1;
 
 	i = 0;
 	while ((song = mpd_recv_song(conn)) != NULL) {
-		mhenv_export_song(song, ++i);
+		env_export_song(song, ++i);
 		mpd_song_free(song);
 	}
 
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int mhenv_stats(struct mpd_connection *conn)
+int env_stats(struct mpd_connection *conn)
 {
 	char *envstr;
 	time_t t;
@@ -337,7 +337,7 @@ int mhenv_stats(struct mpd_connection *conn)
 	struct mpd_stats *stats;
 
 	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending stats command to Mpd server");
+	crlog(LOG_DEBUG, "Sending stats command to Mpd server");
 	if ((stats = mpd_run_stats(conn)) == NULL)
 		return -1;
 
@@ -374,21 +374,21 @@ int mhenv_stats(struct mpd_connection *conn)
 	return 0;
 }
 
-int mhenv_status(struct mpd_connection *conn)
+int env_status(struct mpd_connection *conn)
 {
 	struct mpd_status *status;
 
 	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending status command to Mpd server");
+	crlog(LOG_DEBUG, "Sending status command to Mpd server");
 	if ((status = mpd_run_status(conn)) == NULL)
 		return -1;
 
-	mhenv_export_status(status);
+	env_export_status(status);
 	mpd_status_free(status);
 	return 0;
 }
 
-int mhenv_outputs(struct mpd_connection *conn)
+int env_outputs(struct mpd_connection *conn)
 {
 	int id;
 	const char *name;
@@ -396,7 +396,7 @@ int mhenv_outputs(struct mpd_connection *conn)
 	struct mpd_output *output;
 
 	g_assert(conn != NULL);
-	mh_log(LOG_DEBUG, "Sending outputs command to Mpd server");
+	crlog(LOG_DEBUG, "Sending outputs command to Mpd server");
 	if (!mpd_send_outputs(conn))
 		return -1;
 
@@ -418,13 +418,13 @@ int mhenv_outputs(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int mhenv_status_currentsong(struct mpd_connection *conn)
+int env_status_currentsong(struct mpd_connection *conn)
 {
 	struct mpd_status *status;
 	struct mpd_song *song = NULL;
 
 	g_assert (conn != NULL);
-	mh_log(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
+	crlog(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
 	if (!mpd_command_list_begin(conn, true) ||
 	    !mpd_send_status(conn) ||
 	    !mpd_send_current_song(conn) ||
@@ -447,17 +447,17 @@ int mhenv_status_currentsong(struct mpd_connection *conn)
 		}
 	}
 
-	mhenv_export_status(status);
+	env_export_status(status);
 	mpd_status_free(status);
 	if (song != NULL) {
-		mhenv_export_song(song, 0);
+		env_export_song(song, 0);
 		mpd_song_free(song);
 	}
 
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-void mhenv_clearenv(void)
+void env_clearenv(void)
 {
 	int i;
 	char *envname;

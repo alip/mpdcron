@@ -4,7 +4,7 @@ MAINTAINERCLEANFILES= Makefile.in configure aclocal.m4 \
 ACLOCAL_AMFLAGS= -I m4
 AUTOMAKE_OPTIONS= dist-bzip2 no-dist-gzip std-options foreign
 EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
-	    conf/mpdhooker.conf \
+	    conf/mpdcron.conf \
 	    conf/hooks/database conf/hooks/mixer conf/hooks/options \
 	    conf/hooks/output conf/hooks/player conf/hooks/playlist \
 	    conf/hooks/queue conf/hooks/stored_playlist conf/hooks/update \
@@ -21,4 +21,4 @@ checksum: dist
 
 upload:
 	@echo "UPLOAD $(PACKAGE)-$(VERSION).tar.bz2*"
-	scp $(PACKAGE)-$(VERSION).tar.bz2* bach.exherbo.org:public_html/mpdhooker
+	scp $(PACKAGE)-$(VERSION).tar.bz2* bach.exherbo.org:public_html/mpdcron

@@ -3,11 +3,11 @@
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
  *
- * This file is part of the mpdhooker mpd client. mpdhooker is free software;
+ * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
  * Public License version 2, as published by the Free Software Foundation.
  *
- * mpdhooker is distributed in the hope that it will be useful, but WITHOUT ANY
+ * mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "mh-defs.h"
+#include "cron-defs.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -55,13 +55,13 @@ int main(int argc, char **argv)
 	GError *parse_err = NULL;
 
 	daemon_pid_file_ident = daemon_log_ident = daemon_ident_from_argv0(argv[0]);
-	daemon_pid_file_proc = mhconf_pid_file_proc;
-	if (mhconf_init() < 0)
+	daemon_pid_file_proc = conf_pid_file_proc;
+	if (conf_init() < 0)
 		return EXIT_FAILURE;
 
 	ctx = g_option_context_new("");
 	g_option_context_add_main_entries(ctx, options, PACKAGE);
-	g_option_context_set_summary(ctx, PACKAGE"-"VERSION GITHEAD" - mpd hooker");
+	g_option_context_set_summary(ctx, PACKAGE"-"VERSION GITHEAD" - mpd cron daemon");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
 		g_printerr("option parsing failed: %s\n", parse_err->message);
@@ -73,50 +73,50 @@ int main(int argc, char **argv)
 
 	if (optv) {
 		about();
-		mhconf_free();
+		conf_free();
 		return EXIT_SUCCESS;
 	}
 
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */
-	if (mhkeyfile_load() < 0) {
-		mhconf_free();
+	if (keyfile_load() < 0) {
+		conf_free();
 		return EXIT_FAILURE;
 	}
 
 	if (optk) {
 		if (daemon_pid_file_kill_wait(SIGINT, killwait) < 0) {
-			mh_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
-			mhconf_free();
+			crlog(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
+			conf_free();
 			return EXIT_FAILURE;
 		}
 		daemon_pid_file_remove();
-		mhconf_free();
+		conf_free();
 		return EXIT_SUCCESS;
 	}
 
 	/* Command line options to environment variables */
 	if (optnd)
-		g_unsetenv("MHOPT_DAEMONIZE");
+		g_unsetenv("MCOPT_DAEMONIZE");
 	else
-		g_setenv("MHOPT_DAEMONIZE", "1", 1);
+		g_setenv("MCOPT_DAEMONIZE", "1", 1);
 
 	/* Configuration file options to environment variables */
 	optstr = g_strdup_printf("%d", reconnect);
-	g_setenv("MHOPT_RECONNECT", optstr, 1);
+	g_setenv("MCOPT_RECONNECT", optstr, 1);
 	g_free(optstr);
 
 	optstr = g_strdup_printf("%d", timeout);
-	g_setenv("MHOPT_TIMEOUT", optstr, 1);
+	g_setenv("MCOPT_TIMEOUT", optstr, 1);
 	g_free(optstr);
 
 	/* Call mhconf_free() on exit to free allocated data */
-	g_atexit(mhconf_free);
+	g_atexit(conf_free);
 
 	if (optnd) {
 		/* Connect and start the main loop */
-		mhloop_connect();
+		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		return EXIT_SUCCESS;
@@ -124,37 +124,37 @@ int main(int argc, char **argv)
 
 	/* Daemonize */
 	if ((pid = daemon_pid_file_is_running()) > 0) {
-		mh_log(LOG_ERR, "Daemon already running on PID %u", pid);
+		crlog(LOG_ERR, "Daemon already running on PID %u", pid);
 		return EXIT_FAILURE;
 	}
 
 	daemon_retval_init();
 	pid = daemon_fork();
 	if (pid < 0) {
-		mh_log(LOG_ERR, "Failed to fork: %s", strerror(errno));
+		crlog(LOG_ERR, "Failed to fork: %s", strerror(errno));
 		daemon_retval_done();
 		return EXIT_FAILURE;
 	}
 	else if (pid != 0) { /* Parent */
 		if ((ret = daemon_retval_wait(2)) < 0) {
-			mh_log(LOG_ERR, "Could not receive return value from daemon process: %s",
+			crlog(LOG_ERR, "Could not receive return value from daemon process: %s",
 					strerror(errno));
 			return 255;
 		}
 
-		mh_log((ret != 0) ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value", ret);
+		crlog((ret != 0) ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value", ret);
 		return ret;
 	}
 	else { /* Daemon */
 		if (daemon_close_all(-1) < 0) {
-			mh_log(LOG_ERR, "Failed to close all file descriptors: %s",
+			crlog(LOG_ERR, "Failed to close all file descriptors: %s",
 					strerror(errno));
 			daemon_retval_send(1);
 			return EXIT_FAILURE;
 		}
 
 		if (daemon_pid_file_create() < 0) {
-			mh_log(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
+			crlog(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
 			daemon_retval_send(2);
 			return EXIT_FAILURE;
 		}
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 		/* Send OK to parent process */
 		daemon_retval_send(0);
 		/* Connect and start the main loop */
-		mhloop_connect();
+		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		return EXIT_SUCCESS;

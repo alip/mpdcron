@@ -3,11 +3,11 @@
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
  *
- * This file is part of the mpdhooker mpd client. mpdhooker is free software;
+ * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
  * Public License version 2, as published by the Free Software Foundation.
  *
- * mpdhooker is distributed in the hope that it will be useful, but WITHOUT ANY
+ * mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
  * FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
  * details.
@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "mh-defs.h"
+#include "cron-defs.h"
 
 #include <glib.h>
 
@@ -28,7 +28,7 @@ int reconnect = DEFAULT_MPD_RECONNECT;
 int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
-int mhkeyfile_load(void)
+int keyfile_load(void)
 {
 	GKeyFile *config_fd;
 	GError *config_err = NULL;
@@ -37,14 +37,14 @@ int mhkeyfile_load(void)
 	config_fd = g_key_file_new();
 	if (!g_key_file_load_from_file(config_fd, conf_path, G_KEY_FILE_NONE, &config_err)) {
 		if (config_err->code != G_KEY_FILE_ERROR_NOT_FOUND) {
-			mh_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
+			crlog(LOG_ERR, "Failed to parse configuration file `%s': %s",
 					conf_path, config_err->message);
 			g_error_free(config_err);
 			g_key_file_free(config_fd);
 			return -1;
 		}
 		else {
-			mh_logv(LOG_DEBUG, "Configuration file `%s' not found, skipping", conf_path);
+			crlogv(LOG_DEBUG, "Configuration file `%s' not found, skipping", conf_path);
 			g_error_free(config_err);
 			g_key_file_free(config_fd);
 			return 0;
@@ -61,7 +61,7 @@ int mhkeyfile_load(void)
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mh_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
+				crlog(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -74,7 +74,7 @@ int mhkeyfile_load(void)
 	}
 
 	if (killwait <= 0) {
-		mh_log(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
+		crlog(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}
 
@@ -83,7 +83,7 @@ int mhkeyfile_load(void)
 		for (unsigned int i = 0; events[i] != NULL; i++) {
 			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
 			if (parsed == 0)
-				mh_log(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
+				crlog(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
 			else
 				idle |= parsed;
 		}
@@ -95,7 +95,7 @@ int mhkeyfile_load(void)
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mh_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
+				crlog(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -108,7 +108,7 @@ int mhkeyfile_load(void)
 	}
 
 	if (reconnect <= 0) {
-		mh_log(LOG_WARNING, "reconnect %s zero, adjusting to default %d",
+		crlog(LOG_WARNING, "reconnect %s zero, adjusting to default %d",
 				(reconnect == 0) ? "equal to" : "smaller than",
 				DEFAULT_MPD_RECONNECT);
 		reconnect = DEFAULT_MPD_RECONNECT;
@@ -120,7 +120,7 @@ int mhkeyfile_load(void)
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mh_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
+				crlog(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -133,7 +133,7 @@ int mhkeyfile_load(void)
 	}
 
 	if (timeout < 0) {
-		mh_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
+		crlog(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}
 

@@ -14,6 +14,7 @@ for information about how to configure <tt>mpdhooker</tt> and its hooks.
 <tt>mpdhooker</tt> requires:
 
  - [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer.
+ - [libmpdclient](http://mpd.wikia.com/wiki/ClientLib:libmpdclient)-2.1 or newer.
  - [glib](http://library.gnome.org/devel/glib/)-2.18 or newer.
 
 ## Contribute ##

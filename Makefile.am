@@ -13,3 +13,12 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
 SUBDIRS = src .
 
+checksum: dist
+	@echo "SHA1 $(PACKAGE)-$(VERSION).tar.bz2"
+	sha1sum $(PACKAGE)-$(VERSION).tar.bz2 > $(PACKAGE)-$(VERSION).tar.bz2.sha1sum
+	@echo "SIGN $(PACKAGE)-$(VERSION).tar.bz2"
+	gpg --detach-sign --armor $(PACKAGE)-$(VERSION).tar.bz2
+
+upload:
+	@echo "UPLOAD $(PACKAGE)-$(VERSION).tar.bz2*"
+	scp $(PACKAGE)-$(VERSION).tar.bz2* bach.exherbo.org:public_html/mpdhooker

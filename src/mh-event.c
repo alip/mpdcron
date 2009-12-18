@@ -41,7 +41,11 @@ static int mhevent_stored_playlist(struct mpd_connection *conn)
 
 static int mhevent_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 {
-	return 0;
+	/* The playlist has been changed.
+	 * Send list_queue_meta command and add the variables to the
+	 * environment.
+	 */
+	return mhenv_list_queue_meta(conn);
 }
 
 static int mhevent_player(struct mpd_connection *conn)

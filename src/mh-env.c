@@ -134,65 +134,144 @@ static void mhenv_export_status(struct mpd_status *status)
 	}
 }
 
-static void mhenv_export_song(struct mpd_song *song)
+static void mhenv_export_song(struct mpd_song *song, int envid)
 {
 	const char *tag;
-	char *envstr;
+	char *envname, *envstr;
 	time_t t;
 	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 
-	g_setenv("MPD_SONG_URI", mpd_song_get_uri(song), 1);
+	envname = (envid == 0) ? g_strdup("MPD_SONG_URI")
+			       : g_strdup_printf("MPD_SONG_%d_URI", envid);
+	g_setenv(envname, mpd_song_get_uri(song), 1);
+	g_free(envname);
 
 	/* Export tags. FIXME: For now we just export the first tag value to
 	 * the environment.
 	 */
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_ARTIST", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_ALBUM", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_ALBUM_ARTIST, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_ALBUM_ARTIST", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_TITLE, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_TITLE", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_TRACK, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_TRACK", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_NAME, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_NAME", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_GENRE, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_GENRE", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_DATE, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_DATE", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_COMPOSER, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_COMPOSER", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_PERFORMER, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_PERFORMER", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_COMMENT, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_COMMENT", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_DISC, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_DISC", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ARTISTID, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_MUSICBRAINZ_ARTISTID", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMID, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_MUSICBRAINZ_ALBUMID", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMARTISTID, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_MUSICBRAINZ_ALBUMARTISTID", tag, 1);
-	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0)) != NULL)
-		g_setenv("MPD_SONG_TAG_MUSICBRAINZ_TRACKID", tag, 1);
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_ARTIST")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_ARTIST", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_ALBUM")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_ALBUM", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_ALBUM_ARTIST, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_ALBUM_ARTIST")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_ALBUM_ARTIST", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_TITLE, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_TITLE")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_TITLE", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_TRACK, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_TRACK")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_TRACK", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_NAME, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_NAME")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_NAME", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_GENRE, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_GENRE")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_GENRE", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_DATE, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_DATE")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_DATE", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_COMPOSER, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_COMPOSER")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_COMPOSER", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_PERFORMER, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_PERFORMER")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_PERFORMER", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_COMMENT, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_COMMENT")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_COMMENT", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_DISC, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_DISC")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_DISC", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ARTISTID, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_MUSICBRAINZ_ARTISTID")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ARTISTID", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMID, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_MUSICBRAINZ_ALBUMID")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ALBUMID", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMARTISTID, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_MUSICBRAINZ_ALBUMARTISTID")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ALBUMARTISTID", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
+	if ((tag = mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0)) != NULL) {
+		envname = (envid == 0) ? g_strdup("MPD_SONG_TAG_MUSICBRAINZ_TRACKID")
+				       : g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_TRACKID", envid);
+		g_setenv(envname, tag, 1);
+		g_free(envname);
+	}
 
 	t = mpd_song_get_last_modified(song);
 	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
-	g_setenv("MPD_SONG_LAST_MODIFIED", date, 1);
+	envname = (envid == 0) ? g_strdup("MPD_SONG_LAST_MODIFIED")
+			       : g_strdup_printf("MPD_SONG_%d_LAST_MODIFIED", envid);
+	g_setenv(envname, date, 1);
+	g_free(envname);
 
+	envname = (envid == 0) ? g_strdup("MPD_SONG_DURATION")
+			       : g_strdup_printf("MPD_SONG_%d_DURATION", envid);
 	envstr = g_strdup_printf("%u", mpd_song_get_duration(song));
-	g_setenv("MPD_SONG_DURATION", envstr, 1);
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
 	g_free(envstr);
 
+	envname = (envid == 0) ? g_strdup("MPD_SONG_POS")
+			       : g_strdup_printf("MPD_SONG_%d_POS", envid);
 	envstr = g_strdup_printf("%u", mpd_song_get_pos(song));
-	g_setenv("MPD_SONG_POS", envstr, 1);
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
 	g_free(envstr);
 
+	envname = (envid == 0) ? g_strdup("MPD_SONG_ID")
+			       : g_strdup_printf("MPD_SONG_%d_ID", envid);
 	envstr = g_strdup_printf("%u", mpd_song_get_id(song));
-	g_setenv("MPD_SONG_ID", envstr, 1);
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
 	g_free(envstr);
 }
 
@@ -215,7 +294,7 @@ int mhenv_list_all_meta(struct mpd_connection *conn)
 		if (mpd_entity_get_type(entity) == MPD_ENTITY_TYPE_PLAYLIST) {
 			pl = mpd_entity_get_playlist(entity);
 
-			envname = g_strdup_printf("MPD_PLAYLIST_%d_PATH", i++);
+			envname = g_strdup_printf("MPD_PLAYLIST_%d_PATH", ++i);
 			g_setenv(envname, mpd_playlist_get_path(pl), 1);
 			g_free(envname);
 
@@ -226,6 +305,25 @@ int mhenv_list_all_meta(struct mpd_connection *conn)
 			g_free(envname);
 		}
 		mpd_entity_free(entity);
+	}
+
+	return mpd_response_finish(conn) ? 0 : -1;
+}
+
+int mhenv_list_queue_meta(struct mpd_connection *conn)
+{
+	int i;
+	struct mpd_song *song;
+
+	g_assert(conn != NULL);
+	mh_log(LOG_DEBUG, "Sending list_queue_meta command to Mpd server");
+	if (!mpd_send_list_queue_meta(conn))
+		return -1;
+
+	i = 0;
+	while ((song = mpd_recv_song(conn)) != NULL) {
+		mhenv_export_song(song, ++i);
+		mpd_song_free(song);
 	}
 
 	return mpd_response_finish(conn) ? 0 : -1;
@@ -352,7 +450,7 @@ int mhenv_status_currentsong(struct mpd_connection *conn)
 	mhenv_export_status(status);
 	mpd_status_free(status);
 	if (song != NULL) {
-		mhenv_export_song(song);
+		mhenv_export_song(song, 0);
 		mpd_song_free(song);
 	}
 
@@ -407,6 +505,95 @@ void mhenv_clearenv(void)
 	g_unsetenv("MPD_SONG_LAST_MODIFIED");
 	g_unsetenv("MPD_SONG_POS");
 	g_unsetenv("MPD_SONG_ID");
+	for (i = 1 ;; i++) {
+		envname = g_strdup_printf("MPD_SONG_%d_URI", i);
+		if (g_getenv(envname) == NULL) {
+			g_free(envname);
+			break;
+		}
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_ARTIST", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_ALBUM", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_ALBUMARTIST", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_ALBUM_ARTIST", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_TITLE", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_TRACK", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_NAME", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_GENRE", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_DATE", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_COMPOSER", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_PERFORMER", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_COMMENT", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_DISC", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ARTISTID", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ALBUMID", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_ALBUMARTISTID", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_TAG_MUSICBRAINZ_TRACKID", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_LAST_MODIFIED", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_POS", i);
+		g_unsetenv(envname);
+		g_free(envname);
+
+		envname = g_strdup_printf("MPD_SONG_%d_ID", i);
+		g_unsetenv(envname);
+		g_free(envname);
+	}
 
 	/* stats */
 	g_unsetenv("MPD_DATABASE_UPDATE_TIME");
@@ -420,7 +607,7 @@ void mhenv_clearenv(void)
 	/* outputs */
 	for (i = 1 ;; i++) {
 		envname = g_strdup_printf("MPD_OUTPUT_ID_%d", i);
-		if (!g_getenv(envname)) {
+		if (g_getenv(envname) == NULL) {
 			g_free(envname);
 			break;
 		}

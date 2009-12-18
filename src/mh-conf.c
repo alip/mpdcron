@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include <glib.h>
-
+#include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
 char *home_path = NULL;

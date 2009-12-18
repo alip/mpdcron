@@ -50,6 +50,10 @@ static int mhevent_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 
 static int mhevent_player(struct mpd_connection *conn)
 {
+	/* The player state has changed.
+	 * Send status & currentsong command and add the variables to the
+	 * environment.
+	 */
 	return mhenv_status_currentsong(conn);
 }
 

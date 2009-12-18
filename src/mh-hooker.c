@@ -38,8 +38,12 @@ int mhhooker_run_hook(const char *name)
 				NULL, NULL, &pid, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
 			mh_log(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
+		g_free(myargv[0]);
+		g_free(myargv);
 		g_error_free(hook_err);
 		return -1;
 	}
+	g_free(myargv[0]);
+	g_free(myargv);
 	return 0;
 }

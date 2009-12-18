@@ -146,6 +146,34 @@ static void mhenv_export_song(struct mpd_song *song, int envid)
 	g_setenv(envname, mpd_song_get_uri(song), 1);
 	g_free(envname);
 
+	t = mpd_song_get_last_modified(song);
+	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
+	envname = (envid == 0) ? g_strdup("MPD_SONG_LAST_MODIFIED")
+			       : g_strdup_printf("MPD_SONG_%d_LAST_MODIFIED", envid);
+	g_setenv(envname, date, 1);
+	g_free(envname);
+
+	envname = (envid == 0) ? g_strdup("MPD_SONG_DURATION")
+			       : g_strdup_printf("MPD_SONG_%d_DURATION", envid);
+	envstr = g_strdup_printf("%u", mpd_song_get_duration(song));
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
+	g_free(envstr);
+
+	envname = (envid == 0) ? g_strdup("MPD_SONG_POS")
+			       : g_strdup_printf("MPD_SONG_%d_POS", envid);
+	envstr = g_strdup_printf("%u", mpd_song_get_pos(song));
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
+	g_free(envstr);
+
+	envname = (envid == 0) ? g_strdup("MPD_SONG_ID")
+			       : g_strdup_printf("MPD_SONG_%d_ID", envid);
+	envstr = g_strdup_printf("%u", mpd_song_get_id(song));
+	g_setenv(envname, envstr, 1);
+	g_free(envname);
+	g_free(envstr);
+
 	/* Export tags. FIXME: For now we just export the first tag value to
 	 * the environment.
 	 */
@@ -245,34 +273,6 @@ static void mhenv_export_song(struct mpd_song *song, int envid)
 		g_setenv(envname, tag, 1);
 		g_free(envname);
 	}
-
-	t = mpd_song_get_last_modified(song);
-	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
-	envname = (envid == 0) ? g_strdup("MPD_SONG_LAST_MODIFIED")
-			       : g_strdup_printf("MPD_SONG_%d_LAST_MODIFIED", envid);
-	g_setenv(envname, date, 1);
-	g_free(envname);
-
-	envname = (envid == 0) ? g_strdup("MPD_SONG_DURATION")
-			       : g_strdup_printf("MPD_SONG_%d_DURATION", envid);
-	envstr = g_strdup_printf("%u", mpd_song_get_duration(song));
-	g_setenv(envname, envstr, 1);
-	g_free(envname);
-	g_free(envstr);
-
-	envname = (envid == 0) ? g_strdup("MPD_SONG_POS")
-			       : g_strdup_printf("MPD_SONG_%d_POS", envid);
-	envstr = g_strdup_printf("%u", mpd_song_get_pos(song));
-	g_setenv(envname, envstr, 1);
-	g_free(envname);
-	g_free(envstr);
-
-	envname = (envid == 0) ? g_strdup("MPD_SONG_ID")
-			       : g_strdup_printf("MPD_SONG_%d_ID", envid);
-	envstr = g_strdup_printf("%u", mpd_song_get_id(song));
-	g_setenv(envname, envstr, 1);
-	g_free(envname);
-	g_free(envstr);
 }
 
 int mhenv_list_all_meta(struct mpd_connection *conn)

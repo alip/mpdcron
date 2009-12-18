@@ -19,14 +19,51 @@
 
 #include "mh-defs.h"
 
+#include <string.h>
+
 #include <glib.h>
 #include <libdaemon/dlog.h>
+
+/* Count the number of hook calls */
+static struct hook_calls {
+	const char *name;
+	const char *env;
+	unsigned int ncalls;
+} calls[] = {
+	{"database",		"MH_CALLS_DATABASE",		0},
+	{"stored_playlist",	"MH_CALLS_STORED_PLAYLIST",	0},
+	{"queue",		"MH_CALLS_QUEUE",		0},
+	{"playlist",		"MH_CALLS_PLAYLIST",		0},
+	{"player",		"MH_CALLS_PLAYER",		0},
+	{"mixer",		"MH_CALLS_MIXER",		0},
+	{"output",		"MH_CALLS_OUTPUT",		0},
+	{"options",		"MH_CALLS_OPTIONS",		0},
+	{"update",		"MH_CALLS_UPDATE",		0},
+	{NULL,			NULL,				0},
+};
+
+static void mhhooker_increment(const char *name)
+{
+	char *envstr;
+
+	for (unsigned int i = 0; calls[i].name != NULL; i++) {
+		if (strcmp(name, calls[i].name) == 0) {
+			envstr = g_strdup_printf("%u", ++calls[i].ncalls);
+			g_setenv(calls[i].env, envstr, 1);
+			mh_logv(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
+			g_free(envstr);
+			break;
+		}
+	}
+}
 
 int mhhooker_run_hook(const char *name)
 {
 	int pid;
 	gchar **myargv;
 	GError *hook_err = NULL;
+
+	mhhooker_increment(name);
 
 	myargv = g_malloc(2 * sizeof(gchar *));
 	myargv[0] = g_build_filename(DOT_HOOKS, name, NULL);

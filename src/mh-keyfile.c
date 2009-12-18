@@ -137,5 +137,6 @@ int mhkeyfile_load(void)
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}
 
+	g_key_file_free(config_fd);
 	return 0;
 }

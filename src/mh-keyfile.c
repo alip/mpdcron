@@ -53,7 +53,7 @@ int mhkeyfile_load(void)
 
 	/* Get main.pidfile */
 	if (pid_path == NULL)
-		pid_path = g_key_file_get_string(config_fd, "main", "pidfile", &config_err);
+		pid_path = g_key_file_get_string(config_fd, "main", "pidfile", NULL);
 
 	/* Get main.killwait */
 	config_err = NULL;

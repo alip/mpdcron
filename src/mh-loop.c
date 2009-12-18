@@ -96,7 +96,16 @@ static gboolean mhloop_idle(G_GNUC_UNUSED GIOChannel *source,
 	g_assert(conn != NULL);
 
 	idle_sid = 0;
-	if ((myidle = mpd_recv_idle(conn, false)) == 0) {
+	myidle = mpd_recv_idle(conn, false);
+	if (!mpd_response_finish(conn)) {
+		/* Check whether idle command is supported */
+		if (mpd_connection_get_error(conn) == MPD_ERROR_SERVER &&
+		    mpd_connection_get_server_error(conn) == MPD_SERVER_ERROR_UNKNOWN_CMD) {
+			mh_log(LOG_ERR, "Idle command not supported by Mpd");
+			mpd_connection_free(conn);
+			conn = NULL;
+			exit(EXIT_FAILURE);
+		}
 		if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 			mhloop_failure();
 			mhloop_schedule_reconnect();

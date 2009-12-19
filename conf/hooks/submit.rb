@@ -29,6 +29,7 @@ FIXME:
 
 # Constants
 MYNAME = File.basename($0, ".rb")
+HTTP_PROXY = ENV['http_proxy']
 MCOPT_DAEMONIZE = ENV['MCOPT_DAEMONIZE']
 MC_CALLS_PLAYER = ENV['MC_CALLS_PLAYER'] ? ENV['MC_CALLS_PLAYER'].to_i : 0
 MPD_STATUS_STATE = ENV['MPD_STATUS_STATE']
@@ -62,6 +63,14 @@ class Connection
     @base_url = base_url
     @username = args[:username]
     @password = args[:password]
+
+    if HTTP_PROXY
+      proxy_url = URI.parse(HTTP_PROXY)
+      @proxy_host = proxy_url.host if proxy_url and proxy_url.host
+      @proxy_port = proxy_url.port if proxy_url and proxy_url.port
+      @proxy_user, @proxy_pass = proxy_url.userinfo.split(/:/) if proxy_url and proxy_url.userinfo
+      log("Successfully set up proxy host: %s, port: %d", @proxy_host, @proxy_url)
+    end
   end
 
   def request resource, method = 'get', args = nil
@@ -84,8 +93,9 @@ class Connection
       req.basic_auth(@username, @password)
     end
 
-    http = Net::HTTP.new(url.host, url.port)
-    res = http.start() { |conn| conn.request(req) }
+    http = Net::HTTP::Proxy(@proxy_host, @proxy_port,
+                            @proxy_user, @proxy_pass)
+    res = http.start(url.host, url.port) { |conn| conn.request(req) }
     res.body
   end
 

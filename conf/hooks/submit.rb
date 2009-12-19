@@ -418,6 +418,7 @@ when 'play'
     log "Initial song playing `%s', saving to cache", csong.uri
     csong.start = Time.now
     s.settings['song'] = csong
+    s.save
 
     ###################################
     ### Send now playing notifications#
@@ -445,34 +446,34 @@ when 'play'
       end
     end
     ###################################
-    s.save
   elsif s.settings['song'].id != csong.id
     csong.start = Time.now
+    psong = s.settings['song']
+    s.settings['song'] = csong
+    s.save
 
     ###################################
     ### Scrobble previous song ########
     ###################################
     if s.librefm
-      log "Scrobbling previous song `%s' to Libre.fm", s.settings['song'].uri
+      log "Scrobbling previous song `%s' to Libre.fm", psong.uri
       begin
         s.librefm.handshake!
       rescue BadAuthError, BadSessionError, BannedError, RequestFailedError, BadTimeError => e
         log "Handshake with Libre.fm failed: %s", e.message
       end
-        s.librefm.queue s.settings['song']
+        s.librefm.queue psong
     end
     if s.lastfm
-      log "Submitting previous song `%s' to Last.fm", s.settings['song'].uri
+      log "Submitting previous song `%s' to Last.fm", psong
       begin
         s.lastfm.handshake!
       rescue BadAuthError, BadSessionError, BannedError, RequestFailedError, BadTimeError => e
         log "Handshake with Last.fm failed: %s", e.message
       end
-        s.lastfm.queue s.settings['song']
+        s.lastfm.queue psong
     end
     ###################################
-
-    s.settings['song'] = csong
 
     ###################################
     ### Send now playing notifications#
@@ -500,7 +501,6 @@ when 'play'
       end
     end
     ###################################
-    s.save
   else
     log "Seek called on the song `%s'.", csong.uri
     s.save

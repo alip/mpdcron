@@ -59,7 +59,6 @@ static void hooker_increment(const char *name)
 
 int hooker_run_hook(const char *name)
 {
-	int pid;
 	gchar **myargv;
 	GError *hook_err = NULL;
 
@@ -72,7 +71,7 @@ int hooker_run_hook(const char *name)
 	crlog(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
 	if (!g_spawn_async(home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
-				NULL, NULL, &pid, &hook_err)) {
+				NULL, NULL, NULL, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
 			crlog(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
 		g_free(myargv[0]);

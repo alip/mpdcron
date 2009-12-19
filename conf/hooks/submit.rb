@@ -30,6 +30,9 @@ FIXME:
 # Constants
 MYNAME = File.basename($0, ".rb")
 HTTP_PROXY = ENV['http_proxy']
+MPDCRON_PACKAGE = ENV['MPDCRON_PACKAGE']
+MPDCRON_VERSION = ENV['MPDCRON_VERSION']
+MPDCRON_GITHEAD = ENV['MPDCRON_GITHEAD']
 MCOPT_DAEMONIZE = ENV['MCOPT_DAEMONIZE']
 MC_CALLS_PLAYER = ENV['MC_CALLS_PLAYER'] ? ENV['MC_CALLS_PLAYER'].to_i : 0
 MPD_STATUS_STATE = ENV['MPD_STATUS_STATE']
@@ -69,7 +72,7 @@ class Connection
       @proxy_host = proxy_url.host if proxy_url and proxy_url.host
       @proxy_port = proxy_url.port if proxy_url and proxy_url.port
       @proxy_user, @proxy_pass = proxy_url.userinfo.split(/:/) if proxy_url and proxy_url.userinfo
-      log("Successfully set up proxy host: %s, port: %d", @proxy_host, @proxy_url)
+      log("Successfully set up proxy host: %s, port: %d", @proxy_host, @proxy_port)
     end
   end
 
@@ -79,6 +82,13 @@ class Connection
     if args
       url.query = args.map { |k,v| "%s=%s" % [escape(k.to_s), escape(v.to_s)] }.join("&")
     end
+
+    headers = {
+      'Accept-Charset' => 'UTF-8',
+      'Content-type' => 'application/x-www-form-urlencoded',
+      'Host' => url.host,
+      'User-Agent' => MPDCRON_PACKAGE + '/' + MPDCRON_VERSION
+    }
 
     case method
     when 'get'
@@ -95,7 +105,7 @@ class Connection
 
     http = Net::HTTP::Proxy(@proxy_host, @proxy_port,
                             @proxy_user, @proxy_pass)
-    res = http.start(url.host, url.port) { |conn| conn.request(req) }
+    res = http.start(url.host, url.port) { |conn| conn.request(req, headers) }
     res.body
   end
 

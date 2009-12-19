@@ -21,8 +21,6 @@ lastfm:
 ###
 where MPDCRON_DIR is ~/.mpdcron by default.
 PASSWORD can be specified either bare or in the form md5:MD5_HASH_OF_THE_PASSWORD
-FIXME:
-- Libre.fm doesn't work for me but Last.fm works (wtf?)
 =end
 
 %w{digest/md5 net/http uri yaml}.each {|m| require m }
@@ -82,10 +80,6 @@ class Connection
   def request resource, method = 'get', args = nil
     url = URI.join(@base_url, resource)
 
-    if args
-      url.query = args.map { |k,v| "%s=%s" % [escape(k.to_s), escape(v.to_s)] }.join("&")
-    end
-
     headers = {
       'Accept-Charset' => 'UTF-8',
       'Content-type' => 'application/x-www-form-urlencoded',
@@ -95,9 +89,13 @@ class Connection
 
     case method
     when 'get'
-      req = Net::HTTP::Get.new(url.request_uri)
+      if args
+        url.query = args.map { |k,v| "%s=%s" % [escape(k.to_s), escape(v.to_s)] }.join("&")
+      end
+      req = Net::HTTP::Get.new(url.request_uri, headers)
     when 'post'
-      req = Net::HTTP::Post.new(url.request_uri)
+      req = Net::HTTP::Post.new(url.request_uri, headers)
+      req.set_form_data(args) if args
     else
       raise ArgumentError, "Invalid method"
     end
@@ -108,7 +106,7 @@ class Connection
 
     http = Net::HTTP::Proxy(@proxy_host, @proxy_port,
                             @proxy_user, @proxy_pass)
-    res = http.start(url.host, url.port) { |conn| conn.request(req, headers) }
+    res = http.start(url.host, url.port) { |conn| conn.request(req) }
     res.body
   end
 

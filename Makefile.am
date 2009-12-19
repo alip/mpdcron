@@ -12,6 +12,7 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
 SUBDIRS = src .
+doc_DATA = README.mkd NEWS.mkd
 
 checksum: dist
 	@echo "SHA1 $(PACKAGE)-$(VERSION).tar.bz2"

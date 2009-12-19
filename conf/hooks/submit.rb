@@ -32,13 +32,18 @@ LASTFM_AUTH_URL = 'http://post.audioscrobbler.com'
 LASTFM_AUTH_VER = '1.2.1'
 LIBREFM_AUTH_URL = 'http://turtle.libre.fm'
 LIBREFM_AUTH_VER = LASTFM_AUTH_VER
+
 MYNAME = File.basename($0, ".rb")
+
 HTTP_PROXY = ENV['http_proxy']
+
 MPDCRON_PACKAGE = ENV['MPDCRON_PACKAGE']
 MPDCRON_VERSION = ENV['MPDCRON_VERSION']
 MPDCRON_GITHEAD = ENV['MPDCRON_GITHEAD']
+
 MCOPT_DAEMONIZE = ENV['MCOPT_DAEMONIZE']
 MC_CALLS_PLAYER = ENV['MC_CALLS_PLAYER'] ? ENV['MC_CALLS_PLAYER'].to_i : 0
+
 MPD_STATUS_STATE = ENV['MPD_STATUS_STATE']
 MPD_STATUS_TOTAL_TIME = ENV['MPD_STATUS_TOTAL_TIME'] ? ENV['MPD_STATUS_TOTAL_TIME'].to_i : 0
 MPD_SONG_ID = ENV['MPD_SONG_ID'] ? ENV['MPD_SONG_ID'].to_i : -1
@@ -339,8 +344,8 @@ class Song
 end
 
 class Submit
-  attr_accessor :lastfm, :librefm, :settings
   attr_reader :config
+  attr_accessor :lastfm, :librefm, :settings
 
   def initialize
     @confpath = "./submit.yaml"

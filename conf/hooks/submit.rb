@@ -51,7 +51,7 @@ class BadAuthError < StandardError; end
 class RequestFailedError < StandardError; end
 class BadTimeError < StandardError; end
 class BadSessionError < StandardError; end
-class UnImplementedError < StandardError; end
+class NonImplementedError < StandardError; end
 
 def log format, *args
   return if MCOPT_DAEMONIZE
@@ -59,7 +59,6 @@ def log format, *args
   $stderr.puts(sprintf(format, *args))
   $stderr.flush
 end
-
 
 class Connection
   def initialize base_url, args = {}
@@ -125,7 +124,7 @@ class AnyFM
 
   # Classes should implement initialize which should initialize the variables:
   # auth_url, auth_ver, user, password, cid and cver
-  def initialize; raise UnImplementedError end
+  def initialize; raise NonImplementedError end
 
   def handshake!
     timestamp = Time.now.to_i.to_s

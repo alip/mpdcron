@@ -204,7 +204,8 @@ class AnyFM
 
     duration = (Time.now - time).to_i
     if duration < 240 && duration < (length / 2)
-      log "Not submitting song `%s' because neither it was played for 240 seconds nor half of it (%d seconds) has passed", song.uri, (length / 2)
+      log "Not submitting song `%s' because neither it was played for 240 seconds,", song.uri
+      log "nor half of it (%d seconds) has passed", (length / 2)
       return false
     end
 

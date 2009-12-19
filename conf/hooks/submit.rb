@@ -21,6 +21,8 @@ lastfm:
 ###
 where MPDCRON_DIR is ~/.mpdcron by default.
 PASSWORD can be specified either bare or in the form md5:MD5_HASH_OF_THE_PASSWORD
+TODO:
+Use MPD_STATUS_ELAPSED_TIME
 =end
 
 %w{digest/md5 net/http uri yaml}.each {|m| require m }

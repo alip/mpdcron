@@ -97,7 +97,9 @@ int main(int argc, char **argv)
 	}
 
 	/* Version to environment variable */
-	g_setenv("MPDCRON_VERSION", PACKAGE"-"VERSION GITHEAD, 1);
+	g_setenv("MPDCRON_PACKAGE", PACKAGE, 1);
+	g_setenv("MPDCRON_VERSION", VERSION, 1);
+	g_setenv("MPDCRON_GITHEAD", GITHEAD, 1);
 
 	/* Command line options to environment variables */
 	if (optnd)

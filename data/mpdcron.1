@@ -1,0 +1,393 @@
+.TH mpdcron 1 "December 20, 2009" "manual"
+.SH NAME
+.PP
+mpdcron - cron like daemon for mpd
+.SH SYNOPSIS
+.PP
+mpdcron [\f[I]option\f[]]
+.SH DESCRIPTION
+.PP
+mpdcron is a cron like daemon for mpd.
+It connects to mpd, waits for idle events and executes hooks.
+It sets environment variables which hooks can use in order to get
+more information about the event without having to connect to mpd.
+.PP
+By default it will get the hostname and port for mpd from
+\f[B]MPD_HOST\f[] and \f[B]MPD_PORT\f[] environment variables.
+\f[B]MPD_PASSWORD\f[] environment variable can be set to make
+mpdcron connect to a password-protected mpd.
+If these environment variables aren't set, mpdcron connects to
+localhost on port 6600.
+.SH OPTIONS
+.TP
+.B -?, --help
+Show help options and exit.
+.RS
+.RE
+.TP
+.B -V, --version
+Print version information and exit.
+.RS
+.RE
+.TP
+.B -k, --kill
+Instead of launching the daemon, attempt to kill the already
+running daemon.
+.RS
+.RE
+.TP
+.B -n, --no-daemon
+Don't detach from console.
+This option can be used for debugging.
+.RS
+.RE
+.SH CONFIGURATION
+.PP
+At startup mpdcron reads its configuration from the file
+MPDCRON_DIR/mpdcron.conf where \f[B]MPDCRON_DIR\f[] is ~/.mpdcron
+by default.
+Configuration file is in standard \&.ini format.
+.PP
+# mpdcron configuration
+file
+.PD 0
+.P
+.PD
+#
+.PD 0
+.P
+.PD
+[main]
+.PD 0
+.P
+.PD
+# Path to the
+PID file, by default the PID file is
+MPDCRON_DIR/mpdcron.pid
+.PD 0
+.P
+.PD
+\f[B]pidfile\f[] =
+/path/to/mpdcron.pid
+.PD 0
+.P
+.PD
+# Wait this many seconds after
+sending signal to kill the daemon.
+.PD 0
+.P
+.PD
+# Default is 3
+seconds.
+.PD 0
+.P
+.PD
+\f[B]killwait\f[] =
+3
+.PD 0
+.P
+.PD
+[mpd]
+.PD 0
+.P
+.PD
+# Semicolon delimited list of
+events to wait for.
+By default mpdcron waits for all events.
+.PD 0
+.P
+.PD
+# Valid
+events are:
+.PD 0
+.P
+.PD
+# \f[I]database\f[]: Song database has
+been updated.
+.PD 0
+.P
+.PD
+# \f[I]stored_playlist\f[]: A stored
+playlist has been modified, created, deleted or
+renamed.
+.PD 0
+.P
+.PD
+# \f[I]queue\f[]: The queue has been
+modified.
+.PD 0
+.P
+.PD
+# \f[I]playlist\f[]: Same as
+queue
+.PD 0
+.P
+.PD
+# \f[I]player\f[]: The player state has been
+changed: play, stop, pause, seek, \&...
+.PD 0
+.P
+.PD
+#
+\f[I]mixer\f[]: The volume has been modified.
+.PD 0
+.P
+.PD
+#
+\f[I]output\f[]: An audio output device has been enabled or
+disabled.
+.PD 0
+.P
+.PD
+# \f[I]options\f[]: Options have changed:
+crossfade, random, repeat, \&...
+.PD 0
+.P
+.PD
+# \f[I]update\f[]: A
+database update has started or
+finished.
+.PD 0
+.P
+.PD
+\f[B]events\f[] =
+player;mixer
+.PD 0
+.P
+.PD
+# Interval in seconds to reconnect to mpd
+after an error or disconnect.
+.PD 0
+.P
+.PD
+\f[B]reconnect\f[] =
+5
+.PD 0
+.P
+.PD
+# Timeout in milliseconds for mpd timeout, 0 for
+default timeout of libmpdclient.
+.PD 0
+.P
+.PD
+\f[B]timeout\f[] = 0
+.SH HOOKS
+.PP
+mpdcron executes hooks depending on the event received from mpd.
+Hooks are stored under MPDCRON_DIR/hooks where \f[B]MPDCRON_DIR\f[]
+is ~/.mpdcron by default.
+Here's a list of hooks and commands run before them:
+.IP \[bu] 2
+\f[B]hooks/database\f[]: mpdcron calls \f[B]stats\f[] before this
+and updates the environment.
+.IP \[bu] 2
+\f[B]hooks/stored_playlist\f[]: mpdcron calls
+\f[B]list_all_meta\f[] command and updates the environment.
+.IP \[bu] 2
+\f[B]hooks/queue\f[]: mpdcron calls \f[B]list_queue_meta\f[] and
+updates the environment.
+.IP \[bu] 2
+\f[B]hooks/playlist\f[]: mpdcron calls \f[B]list_queue_meta\f[] and
+updates the environment.
+.IP \[bu] 2
+\f[B]hooks/player\f[]: mpdcron calls \f[B]status\f[] and
+\f[B]currentsong\f[] and updates the environment.
+.IP \[bu] 2
+\f[B]hooks/mixer\f[]: mpdcron calls \f[B]status\f[] and updates the
+environment.
+.IP \[bu] 2
+\f[B]hooks/output\f[]: mpdcron calls \f[B]outputs\f[] and updates
+the environment.
+.IP \[bu] 2
+\f[B]hooks/options\f[]: mpdcron calls \f[B]status\f[] and updates
+the environment.
+.IP \[bu] 2
+\f[B]hooks/update\f[]: mpdcron calls \f[B]status\f[] and updates
+the environment.
+.SH ENVIRONMENT VARIABLES
+.PP
+Here's a list of environment variables mpdcron sets depending on
+the command sent:
+.IP \[bu] 2
+\f[B]currentsong\f[]:
+.RS 2
+.IP \[bu] 2
+\f[B]MPD_SONG_URI\f[]: URI of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_LAST_MODIFIED\f[]: Time of last
+modification.
+.PD 0
+.P
+.PD
+ (in format:
+\[lq]%Y-%m-%d %H-%M-%S %Z\[rq])
+.IP \[bu] 2
+\f[B]MPD_SONG_DURATION\f[]: Duration in seconds of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_POS\f[]: Position of this song in the queue.
+.IP \[bu] 2
+\f[B]MPD_SONG_ID\f[]: ID of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_ARTIST\f[]: Artist tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_ALBUM\f[]: Album tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_ALBUM_ARTIST\f[]: Album artist tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_TITLE\f[]: Title tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_TRACK\f[]: Track number tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_NAME\f[]: Name tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_GENRE\f[]: Genre tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_DATE\f[]: Date tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_COMPOSER\f[]: Composer tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_PERFORMER\f[]: Performer tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_COMMENT\f[]: Comment tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_DISC\f[]: Disc tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_MUSICBRAINZ_ARTISTID\f[]: Musicbrainz Artist ID
+tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_MUSICBRAINZ_ALBUMID\f[]: Musicbrainz Album ID tag
+of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_MUSICBRAINZ_ALBUMARTISTID\f[]: Musicbrainz Album
+artist ID tag of the song.
+.IP \[bu] 2
+\f[B]MPD_SONG_TAG_MUSICBRAINZ_TRACKID\f[]: Musicbrainz Track ID tag
+of the song.
+.RE
+.IP \[bu] 2
+\f[B]stats\f[]:
+.RS 2
+.IP \[bu] 2
+\f[B]MPD_DATABASE_UPDATE_TIME\f[]: A date specifying last update
+time.
+.PD 0
+.P
+.PD
+ (in format: \[lq]%Y-%m-%d %H-%M-%S %Z\[rq])
+.IP \[bu] 2
+\f[B]MPD_DATABASE_ARTISTS\f[]: Number of artists in the database.
+.IP \[bu] 2
+\f[B]MPD_DATABASE_ALBUMS\f[]: Number of albums in the database.
+.IP \[bu] 2
+\f[B]MPD_DATABASE_SONGS\f[]: Number of songs in the database.
+.IP \[bu] 2
+\f[B]MPD_DATABASE_PLAY_TIME\f[]: Accumulated time mpd was playing
+music since the process was started.
+.IP \[bu] 2
+\f[B]MPD_DATABASE_UPTIME\f[]: Uptime of mpd in seconds.
+.IP \[bu] 2
+\f[B]MPD_DATABASE_DB_PLAY_TIME\f[]: Accumulated duration of all
+songs in the database.
+.RE
+.IP \[bu] 2
+\f[B]status\f[]:
+.RS 2
+.IP \[bu] 2
+\f[B]MPD_STATUS_VOLUME\f[]: Volume
+.IP \[bu] 2
+\f[B]MPD_STATUS_REPEAT\f[]: Repeat (boolean, 0 or 1)
+.IP \[bu] 2
+\f[B]MPD_STATUS_RANDOM\f[]: Random (boolean, 0 or 1)
+.IP \[bu] 2
+\f[B]MPD_STATUS_SINGLE\f[]: Single (boolean, 0 or 1)
+.IP \[bu] 2
+\f[B]MPD_STATUS_CONSUME\f[]: Consume (boolean, 0 or 1)
+.IP \[bu] 2
+\f[B]MPD_STATUS_QUEUE_LENGTH\f[]: Queue/Playlist length.
+.IP \[bu] 2
+\f[B]MPD_STATUS_CROSSFADE\f[]: Crossfade in seconds.
+.IP \[bu] 2
+\f[B]MPD_STATUS_SONG_POS\f[]: Position of the current playing song.
+.IP \[bu] 2
+\f[B]MPD_STATUS_SONG_ID\f[]: ID of the current playing song.
+.IP \[bu] 2
+\f[B]MPD_STATUS_ELAPSED_TIME\f[]: Elapsed time in seconds
+.IP \[bu] 2
+\f[B]MPD_STATUS_ELAPSED_MS\f[]: Elapsed time in milliseconds.
+.IP \[bu] 2
+\f[B]MPD_STATUS_TOTAL_TIME\f[]: Total time in seconds.
+.IP \[bu] 2
+\f[B]MPD_STATUS_KBIT_RATE\f[]: Current bit rate in kbps.
+.IP \[bu] 2
+\f[B]MPD_STATUS_UPDATE_ID\f[]: The ID of the update.
+.IP \[bu] 2
+\f[B]MPD_STATUS_STATE\f[]: State, one of \f[B]play\f[],
+\f[B]pause\f[], \f[B]stop\f[] or \f[B]unknown\f[]
+.IP \[bu] 2
+\f[B]MPD_STATUS_AUDIO_FORMAT\f[]: Specifies whether audio format is
+available (boolean, 0 or 1)
+.IP \[bu] 2
+\f[B]MPD_STATUS_AUDIO_FORMAT_SAMPLE_RATE\f[]: The sample rate in
+Hz.
+.IP \[bu] 2
+\f[B]MPD_STATUS_AUDIO_FORMAT_BITS\f[]: The number of significant
+bits per sample.
+.IP \[bu] 2
+\f[B]MPD_STATUS_AUDIO_FORMAT_CHANNELS\f[]: The number of channels.
+1 for mono, 2 for stereo.
+.RE
+.IP \[bu] 2
+\f[B]outputs\f[]:
+.RS 2
+.IP \[bu] 2
+\f[B]MPD_OUTPUT_ID_%d\f[]: Where \f[B]%d\f[] is a number (starting
+from 1), specifies the name of the given output ID.
+.IP \[bu] 2
+\f[B]MPD_OUTPUT_ID_%d_ENABLED:\f[] Where \f[B]%d\f[] is a number
+(starting from 1), specifies whether the output is enabled
+(boolean, 0 or 1)
+.RE
+.IP \[bu] 2
+\f[B]list_queue_meta\f[]:
+.RS 2
+.IP \[bu] 2
+All songs in the queue are set in environment.
+The variables are like in \f[B]currentsong\f[] except they get a
+number like:
+.PD 0
+.P
+.PD
+ \f[B]MPD_SONG_URI\f[] becomes
+\f[B]MPD_SONG_%d_URI\f[] where \f[B]%d\f[] is a number starting
+from 1.
+.RE
+.IP \[bu] 2
+\f[B]list_all_meta\f[]:
+.RS 2
+.IP \[bu] 2
+\f[B]MPD_PLAYLIST_%d_PATH\f[]: Where \f[B]%d\f[] is a number
+starting from 1.
+Specifies the path of the playlist.
+.IP \[bu] 2
+\f[B]MPD_PLAYLIST_%d_LAST_MODIFIED\f[]: Where \f[B]%d\f[] is a
+number starting from 1.
+Specifies the last modification time (in format:
+\[lq]%Y-%m-%d %H-%M-%S %Z\[rq])
+.RE
+.SH SEE ALSO
+.PP
+\f[B]mpd\f[](1)
+.SH REPORTING BUGS
+.PP
+Report bugs to <alip@exherbo.org>
+.SH COPYRIGHT
+.PP
+Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+.PD 0
+.P
+.PD
+Free
+use of this software is granted under the terms of the GNU General
+Public License (GPL).
+.SH AUTHOR
+Ali Polatel <alip@exherbo.org>

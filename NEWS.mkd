@@ -3,6 +3,8 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* Added initial manpage
+* Added submit.rb, a script that scrobbles songs to last.fm and libre.fm
 * Changed name to mpdcron
 
 ### 0.2

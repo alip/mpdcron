@@ -28,6 +28,10 @@ FIXME:
 %w{digest/md5 net/http uri yaml}.each {|m| require m }
 
 # Constants
+LASTFM_AUTH_URL = 'http://post.audioscrobbler.com'
+LASTFM_AUTH_VER = '1.2.1'
+LIBREFM_AUTH_URL = 'http://turtle.libre.fm'
+LIBREFM_AUTH_VER = LASTFM_AUTH_VER
 MYNAME = File.basename($0, ".rb")
 HTTP_PROXY = ENV['http_proxy']
 MPDCRON_PACKAGE = ENV['MPDCRON_PACKAGE']
@@ -117,14 +121,35 @@ class Connection
   end
 end
 
-class AnyFM
+class Scrobbler
   attr_reader :auth_url, :auth_ver
   attr_reader :status, :session_id, :now_playing_url, :submission_url
   attr_accessor :user, :password, :cid, :cver, :journal
 
-  # Classes should implement initialize which should initialize the variables:
-  # auth_url, auth_ver, user, password, cid and cver
-  def initialize; raise NonImplementedError end
+  def initialize args = {}
+    @auth_url = args[:auth_url]
+    @auth_ver = args[:auth_ver]
+    @user = args[:user]
+    @password = args[:password]
+
+    raise ArgumentError, "Missing required argument: auth_url" if @auth_url.nil? or @auth_url.empty?
+    raise ArgumentError, "Missing required argument: auth_ver" if @auth_ver.nil? or @auth_ver.empty?
+    raise ArgumentError, "Missing required argument: user" if @user.nil? or @user.empty?
+    raise ArgumentError, "Missing required argument: password" if @password.nil? or @password.empty?
+
+    @journal = args[:journal]
+
+    # TODO: Apply for a client ID
+    @cid = 'tst'
+    @cver = 1.0
+
+    # Parse password
+    if @password =~ /^md5:(.*)/
+      @password = "$1"
+    else
+      @password = Digest::MD5.hexdigest(@password)
+    end
+  end
 
   def handshake!
     timestamp = Time.now.to_i.to_s
@@ -289,56 +314,6 @@ class AnyFM
   end
 end
 
-class LibreFM < AnyFM
-  AUTH_URL = 'http://turtle.libre.fm'
-  AUTH_VER = '1.2.1'
-
-  def initialize args = {}
-    @auth_url = AUTH_URL
-    @auth_ver = AUTH_VER
-    @user = args[:user] # libre.fm username
-    @password = args[:password] # libre.fm password
-    @cid = 'tst' # Client ID TODO: Apply for a client ID :-]
-    @cver = 1.0 # Client Version
-
-    @journal = args[:journal]
-
-    raise ArgumentError, 'Username missing' if @user.nil? or @user.empty?
-    raise ArgumentError, 'Password missing' if @password.nil? or @password.empty?
-
-    if @password =~ /^md5:(.*)/
-      @password = "$1"
-    else
-      @password = Digest::MD5.hexdigest(@password)
-    end
-  end
-end
-
-class LastFM < AnyFM
-  AUTH_URL = 'http://post.audioscrobbler.com'
-  AUTH_VER = '1.2.1'
-
-  def initialize args = {}
-    @auth_url = AUTH_URL
-    @auth_ver = AUTH_VER
-    @user = args[:user] # libre.fm username
-    @password = args[:password] # libre.fm password
-    @cid = 'tst' # Client ID TODO: Apply for a client ID :-]
-    @cver = 1.0 # Client Version
-
-    @journal = args[:journal]
-
-    raise ArgumentError, 'Username missing' if @user.nil? or @user.empty?
-    raise ArgumentError, 'Password missing' if @password.nil? or @password.empty?
-
-    if @password =~ /^md5:(.*)/
-      @password = "$1"
-    else
-      @password = Digest::MD5.hexdigest(@password)
-    end
-  end
-end
-
 class Song
   attr_reader :id, :uri, :total_time, :tag
   attr_accessor :start
@@ -381,9 +356,11 @@ class Submit
     if @config['librefm']
       raise RuntimeError, "librefm.user not defined in `#{confpath}'" unless @config['librefm']['user']
       raise RuntimeError, "librefm.password not defined in `#{confpath}'" unless @config['librefm']['password']
-      @librefm = LibreFM.new(:user => @config['librefm']['user'],
-                             :password => @config['librefm']['password'],
-                             :journal => @config['librefm']['journal'])
+      @librefm = Scrobbler.new(:auth_url => LIBREFM_AUTH_URL,
+                               :auth_ver => LIBREFM_AUTH_VER,
+                               :user => @config['librefm']['user'],
+                               :password => @config['librefm']['password'],
+                               :journal => @config['librefm']['journal'])
     else
       @librefm = nil
     end
@@ -391,9 +368,11 @@ class Submit
     if @config['lastfm']
       raise RuntimeError, "lastfm.user not defined in `#{confpath}'" unless @config['lastfm']['user']
       raise RuntimeError, "lastfm.password not defined in `#{confpath}'" unless @config['lastfm']['password']
-      @lastfm = LastFM.new(:user => @config['lastfm']['user'],
-                           :password => @config['lastfm']['password'],
-                           :journal => @config['lastfm']['journal'])
+      @lastfm = Scrobbler.new(:auth_url => LASTFM_AUTH_URL,
+                              :auth_ver => LASTFM_AUTH_VER,
+                              :user => @config['lastfm']['user'],
+                              :password => @config['lastfm']['password'],
+                              :journal => @config['lastfm']['journal'])
     else
       @lastfm = nil
     end

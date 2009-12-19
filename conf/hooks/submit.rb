@@ -20,7 +20,7 @@ lastfm:
   journal: /path/to/lastfm.yaml
 ###
 where MPDCRON_DIR is ~/.mpdcron by default.
-
+PASSWORD can be specified either bare or in the form md5:MD5_HASH_OF_THE_PASSWORD
 FIXME:
 - Libre.fm doesn't work for me but Last.fm works (wtf?)
 =end

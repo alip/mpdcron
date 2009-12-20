@@ -10,7 +10,8 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd \
 	    conf/hooks/queue conf/hooks/stored_playlist conf/hooks/update \
 	    conf/hooks/dump-outputs.rb conf/hooks/dump-playlists.rb \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
-	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
+	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash \
+	    conf/hooks/submit.rb
 SUBDIRS = src data .
 doc_DATA = README.mkd NEWS.mkd
 doc_confdir= $(docdir)/conf
@@ -21,7 +22,8 @@ doc_conf_hooks_DATA= conf/hooks/database conf/hooks/mixer conf/hooks/options \
 	    conf/hooks/queue conf/hooks/stored_playlist conf/hooks/update \
 	    conf/hooks/dump-outputs.rb conf/hooks/dump-playlists.rb \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
-	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
+	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash \
+	    conf/hooks/submit.rb
 
 checksum: dist
 	@echo "SHA1 $(PACKAGE)-$(VERSION).tar.bz2"

@@ -48,8 +48,7 @@ At startup mpdcron reads its configuration from the file MPDCRON_DIR/mpdcron.con
 \# Valid events are:\
 \# *database*: Song database has been updated.\
 \# *stored\_playlist*: A stored playlist has been modified, created, deleted or renamed.\
-\# *queue*: The queue has been modified.\
-\# *playlist*: Same as queue\
+\# *playlist*: The queue has been modified.\
 \# *player*: The player state has been changed: play, stop, pause, seek, ...\
 \# *mixer*: The volume has been modified.\
 \# *output*: An audio output device has been enabled or disabled.\
@@ -68,7 +67,6 @@ run before them:
 
 - **hooks/database**: mpdcron calls **stats** before this and updates the environment.
 - **hooks/stored\_playlist**: mpdcron calls **list\_all\_meta** command and updates the environment.
-- **hooks/queue**: mpdcron calls **list\_queue\_meta** and updates the environment.
 - **hooks/playlist**: mpdcron calls **list\_queue\_meta** and updates the environment.
 - **hooks/player**: mpdcron calls **status** and **currentsong** and updates the environment.
 - **hooks/mixer**: mpdcron calls **status** and updates the environment.

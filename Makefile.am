@@ -11,7 +11,7 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
 	    conf/hooks/dump-outputs.rb conf/hooks/dump-playlists.rb \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
-SUBDIRS = src .
+SUBDIRS = src data .
 doc_DATA = README.mkd NEWS.mkd
 
 checksum: dist

@@ -6,7 +6,7 @@
 # Distributed under the terms of the GNU General Public License v2
 
 =begin
-MpdHooker hook to submit songs to libre.fm or last.fm
+mpdcron script to submit songs to libre.fm or last.fm
 Execute this hook from your player hook.
 Configuration file is MPDCRON_DIR/submit.yaml which is a yaml file that looks like:
 ### Submit configuration file

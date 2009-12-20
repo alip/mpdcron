@@ -3,7 +3,8 @@ MAINTAINERCLEANFILES= Makefile.in configure aclocal.m4 \
 		      config.h config.h.in INSTALL
 ACLOCAL_AMFLAGS= -I m4
 AUTOMAKE_OPTIONS= dist-bzip2 no-dist-gzip std-options foreign
-EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
+SUBDIRS = src data .
+doc_DATA = README.mkd NEWS.mkd \
 	    conf/mpdcron.conf \
 	    conf/hooks/database conf/hooks/mixer conf/hooks/options \
 	    conf/hooks/output conf/hooks/player conf/hooks/playlist \
@@ -11,8 +12,7 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd\
 	    conf/hooks/dump-outputs.rb conf/hooks/dump-playlists.rb \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash
-SUBDIRS = src data .
-doc_DATA = README.mkd NEWS.mkd
+EXTRA_DIST= autogen.sh $(doc_DATA)
 
 checksum: dist
 	@echo "SHA1 $(PACKAGE)-$(VERSION).tar.bz2"

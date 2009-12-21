@@ -27,7 +27,7 @@
 
 static const char *env_strstate(enum mpd_state state)
 {
-	char *strstate = NULL;
+	const char *strstate = NULL;
 	switch (state) {
 		case MPD_STATE_UNKNOWN:
 			strstate = "unknown";

@@ -145,8 +145,8 @@ class Scrobbler
     @journal = args[:journal]
 
     # TODO: Apply for a client ID
-    @cid = 'tst'
-    @cver = 1.0
+    @cid = 'mcn'
+    @cver = MPDCRON_VERSION
 
     # Parse password
     if @password =~ /^md5:(.*)/

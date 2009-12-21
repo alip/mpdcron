@@ -48,6 +48,9 @@
 extern char *home_path;
 extern char *conf_path;
 extern char *pid_path;
+#ifdef HAVE_MODULE
+extern char *mod_path;
+#endif /* HAVE_MODULE */
 
 extern const char *hostname;
 extern const char *port;

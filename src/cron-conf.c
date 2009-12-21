@@ -29,6 +29,9 @@
 char *home_path = NULL;
 char *conf_path = NULL;
 char *pid_path = NULL;
+#ifdef HAVE_MODULE
+char *mod_path = NULL;
+#endif /* HAVE_MODULE */
 
 const char *hostname = NULL;
 const char *port = NULL;
@@ -65,6 +68,11 @@ int conf_init(void)
 	conf_path = g_build_filename(home_path, kfname, NULL);
 	g_free(kfname);
 
+#ifdef HAVE_MODULE
+	/* Set module path */
+	mod_path = g_build_filename(home_path, DOT_MODULES, NULL);
+#endif /* HAVE_MODULE */
+
 	/* Get Mpd host, port, password */
 	if ((hostname = g_getenv(ENV_MPD_HOST)) == NULL)
 		hostname = "localhost";
@@ -80,4 +88,7 @@ void conf_free(void)
 	g_free(conf_path);
 	g_free(home_path);
 	g_free(pid_path);
+#ifdef HAVE_MODULE
+	g_free(mod_path);
+#endif /* HAVE_MODULE */
 }

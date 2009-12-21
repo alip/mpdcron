@@ -19,193 +19,265 @@
 
 #include "cron-defs.h"
 
+#include <string.h>
+
 #include <glib.h>
 #include <gmodule.h>
 #include <mpd/client.h>
 
-typedef void (*module_initfunc_t) (void);
-typedef void (*module_closefunc_t) (void);
+typedef void (*initfunc_t) (void);
+typedef void (*closefunc_t) (void);
 
-typedef int (*module_database_func_t) (const struct mpd_connection *conn, const struct mpd_stats *stats);
-typedef int (*module_stored_playlist_func_t) (const struct mpd_connection *conn);
-typedef int (*module_queue_func_t) (const struct mpd_connection *conn);
-typedef int (*module_player_func_t) (const struct mpd_connection *conn, const struct mpd_song *song,
+typedef int (*database_func_t) (const struct mpd_connection *conn, const struct mpd_stats *stats);
+typedef int (*stored_playlist_func_t) (const struct mpd_connection *conn);
+typedef int (*queue_func_t) (const struct mpd_connection *conn);
+typedef int (*player_func_t) (const struct mpd_connection *conn, const struct mpd_song *song,
 		const struct mpd_status *status);
-typedef int (*module_mixer_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
-typedef int (*module_output_func_t) (const struct mpd_connection *conn);
-typedef int (*module_options_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
-typedef int (*module_update_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
+typedef int (*mixer_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
+typedef int (*output_func_t) (const struct mpd_connection *conn);
+typedef int (*options_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
+typedef int (*update_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
 
-GModule *module_database = NULL;
-GModule *module_stored_playlist = NULL;
-GModule *module_queue = NULL;
-GModule *module_player = NULL;
-GModule *module_mixer = NULL;
-GModule *module_output = NULL;
-GModule *module_options = NULL;
-GModule *module_update = NULL;
+GSList *modules_database = NULL;
+GSList *modules_stored_playlist = NULL;
+GSList *modules_queue = NULL;
+GSList *modules_player = NULL;
+GSList *modules_mixer = NULL;
+GSList *modules_output = NULL;
+GSList *modules_options = NULL;
+GSList *modules_update = NULL;
 
-static void module_init_name(const char *name, const char *initsym, GModule **module)
+static void module_init_list(const char *name, GSList **list)
 {
-	char *sname, *path;
-	module_initfunc_t initfunc = NULL;
+	int len;
+	char *path, *initsym;
+	const char *entry;
+	GDir *mdir;
+	GError *direrr = NULL;
+	GModule *mod;
+	initfunc_t initfunc = NULL;
 
-	sname = g_strdup_printf("%s.%s", name, G_MODULE_SUFFIX);
-	path = g_build_filename(home_path, DOT_MODULES, sname, NULL);
-	g_free(sname);
-	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
-		g_free(path);
-		return;
+	if ((mdir = g_dir_open(mod_path, 0, &direrr)) == NULL) {
+		switch (direrr->code) {
+			case G_FILE_ERROR_NOENT:
+				/* skip */
+				break;
+			default:
+				crlog(LOG_WARNING, "Failed to open modules directory `%s': %s",
+						mod_path, direrr->message);
+				break;
+		}
+		g_error_free(direrr);
 	}
-	else if ((*module = g_module_open(path, G_MODULE_BIND_LAZY)) == NULL) {
-		crlog(LOG_WARNING, "Error loading module `%s': %s", path, g_module_error());
-		g_free(path);
-		return;
-	}
-	crlog(LOG_DEBUG, "Loaded module `%s'", path);
-	g_free(path);
 
-	/* Run the init function if there's any */
-	if (g_module_symbol(*module, initsym, (gpointer *)&initfunc) && initfunc != NULL)
-		initfunc();
+	len = strlen(name);
+	while ((entry = g_dir_read_name(mdir)) != NULL) {
+		if (strncmp(entry, name, len) == 0) {
+			/* Check if the suffix is what we want. */
+			char *dot = strrchr(entry, '.');
+			if (dot != NULL && strncmp(++dot, G_MODULE_SUFFIX, strlen(G_MODULE_SUFFIX) + 1) == 0) {
+				path = g_build_filename(mod_path, entry, NULL);
+				if ((mod = g_module_open(path, G_MODULE_BIND_LAZY)) == NULL) {
+					crlog(LOG_WARNING, "Error loading module `%s': %s", path, g_module_error());
+					g_free(path);
+					continue;
+				}
+				/* Run the init function if there's any */
+				initsym = g_strdup_printf("%s_init", name);
+				if (g_module_symbol(mod, initsym, (gpointer *)&initfunc) && initfunc != NULL)
+					initfunc();
+				g_free(initsym);
+				/* Add to the list of modules */
+				*list = g_slist_prepend(*list, path);
+				crlogv(LOG_DEBUG, "Loaded `%s' to module list: %s", path, name);
+				g_free(path);
+			}
+		}
+	}
+	g_dir_close(mdir);
 }
 
-static void module_close_name(const char *closesym, GModule **module)
+static void module_close_list(const char *name, GSList **list)
 {
-	module_closefunc_t closefunc = NULL;
+	char *closesym;
+	GSList *walk;
+	GModule *mod;
+	closefunc_t closefunc = NULL;
 
-	if (*module != NULL) {
+	closesym = g_strdup_printf("%s_close", name);
+	for (walk = *list; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (GModule *) walk->data;
 		/* Run the close function if there's any */
-		if (g_module_symbol(*module, closesym, (gpointer *)&closefunc) && closefunc != NULL)
+		if (g_module_symbol(mod, closesym, (gpointer *)&closefunc) && closefunc != NULL)
 			closefunc();
-		g_module_close(*module);
-		*module = NULL;
+		g_module_close(mod);
 	}
+	g_free(closesym);
+	g_slist_free(*list);
+	*list = NULL;
 }
 
 void module_init(void)
 {
-	module_init_name("database", "database_init", &module_database);
-	module_init_name("stored_playlist", "stored_playlist_init", &module_stored_playlist);
-	module_init_name("queue", "queue_init", &module_queue);
-	module_init_name("player", "player_init", &module_player);
-	module_init_name("mixer", "mixer_init", &module_mixer);
-	module_init_name("output", "output_init", &module_output);
-	module_init_name("options", "options_init", &module_options);
-	module_init_name("update", "update_init", &module_update);
+	module_init_list(mpd_idle_name(MPD_IDLE_DATABASE), &modules_database);
+	module_init_list(mpd_idle_name(MPD_IDLE_STORED_PLAYLIST), &modules_stored_playlist);
+	module_init_list(mpd_idle_name(MPD_IDLE_QUEUE), &modules_queue);
+	module_init_list(mpd_idle_name(MPD_IDLE_PLAYER), &modules_player);
+	module_init_list(mpd_idle_name(MPD_IDLE_MIXER), &modules_mixer);
+	module_init_list(mpd_idle_name(MPD_IDLE_OUTPUT), &modules_output);
+	module_init_list(mpd_idle_name(MPD_IDLE_OPTIONS), &modules_options);
+	module_init_list(mpd_idle_name(MPD_IDLE_UPDATE), &modules_update);
 }
 
 void module_close(void)
 {
-	module_close_name("database_close", &module_database);
-	module_close_name("stored_playlist_close", &module_stored_playlist);
-	module_close_name("playlist_close", &module_queue);
-	module_close_name("player_close", &module_player);
-	module_close_name("mixer_close", &module_mixer);
-	module_close_name("output_close", &module_output);
-	module_close_name("update_close", &module_update);
+	module_close_list(mpd_idle_name(MPD_IDLE_DATABASE), &modules_database);
+	module_close_list(mpd_idle_name(MPD_IDLE_STORED_PLAYLIST), &modules_stored_playlist);
+	module_close_list(mpd_idle_name(MPD_IDLE_QUEUE), &modules_queue);
+	module_close_list(mpd_idle_name(MPD_IDLE_PLAYER), &modules_player);
+	module_close_list(mpd_idle_name(MPD_IDLE_MIXER), &modules_mixer);
+	module_close_list(mpd_idle_name(MPD_IDLE_OUTPUT), &modules_output);
+	module_close_list(mpd_idle_name(MPD_IDLE_OPTIONS), &modules_options);
+	module_close_list(mpd_idle_name(MPD_IDLE_UPDATE), &modules_update);
 }
 
 int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats)
 {
-	module_database_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	database_func_t func = NULL;
 
-	if (module_database == NULL)
-		return 0;
-
-	if (g_module_symbol(module_database, "database_run", (gpointer *)&func) && func != NULL)
-		return func(conn, stats);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_DATABASE));
+	for (walk = modules_database; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn, stats)) < 0)
+				return ret;
+		}
+	}
+	g_free(funcsym);
 	return 0;
 }
 
 int module_stored_playlist_run(const struct mpd_connection *conn)
 {
-	module_stored_playlist_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	stored_playlist_func_t func = NULL;
 
-	if (module_stored_playlist == NULL)
-		return 0;
-
-	if (g_module_symbol(module_stored_playlist, "stored_playlist_run", (gpointer *)&func) && func != NULL)
-		return func(conn);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_STORED_PLAYLIST));
+	for (walk = modules_stored_playlist; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn)) < 0)
+				return ret;
+		}
+	}
+	g_free(funcsym);
 	return 0;
 }
 
 int module_queue_run(const struct mpd_connection *conn)
 {
-	module_queue_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	queue_func_t func = NULL;
 
-	if (module_queue == NULL)
-		return 0;
-
-	if (g_module_symbol(module_queue, "queue_run", (gpointer *)&func) && func != NULL)
-		return func(conn);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_QUEUE));
+	for (walk = modules_queue; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn)) < 0)
+				return ret;
+		}
+	}
+	g_free(funcsym);
 	return 0;
 }
 
-int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song, const struct mpd_status *status)
+extern int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
+		const struct mpd_status *status)
 {
-	module_player_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	player_func_t func = NULL;
 
-	if (module_player == NULL)
-		return 0;
-
-	if (g_module_symbol(module_player, "player_run", (gpointer *)&func) && func != NULL)
-		return func(conn, song, status);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_PLAYER));
+	for (walk = modules_player; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn, song, status)) < 0)
+				return ret;
+		}
+	}
 	return 0;
 }
 
 int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
-	module_mixer_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	mixer_func_t func = NULL;
 
-	if (module_mixer == NULL)
-		return 0;
-
-	if (g_module_symbol(module_mixer, "mixer_run", (gpointer *)&func) && func != NULL)
-		return func(conn, status);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_MIXER));
+	for (walk = modules_mixer; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn, status)) < 0)
+				return ret;
+		}
+	}
 	return 0;
 }
 
 int module_output_run(const struct mpd_connection *conn)
 {
-	module_output_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	output_func_t func = NULL;
 
-	if (module_output == NULL)
-		return 0;
-
-	if (g_module_symbol(module_output, "output_run", (gpointer *)&func) && func != NULL)
-		return func(conn);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_OUTPUT));
+	for (walk = modules_output; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn)) < 0)
+				return ret;
+		}
+	}
+	g_free(funcsym);
 	return 0;
 }
 
 int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
-	module_options_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	options_func_t func = NULL;
 
-	if (module_options == NULL)
-		return 0;
-
-	if (g_module_symbol(module_options, "options_run", (gpointer *)&func) && func != NULL)
-		return func(conn, status);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_OPTIONS));
+	for (walk = modules_options; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn, status)) < 0)
+				return ret;
+		}
+	}
 	return 0;
 }
 
 int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
-	module_update_func_t func = NULL;
+	int ret;
+	char *funcsym;
+	GSList *walk;
+	update_func_t func = NULL;
 
-	if (module_update == NULL)
-		return 0;
-
-	if (g_module_symbol(module_update, "update_run", (gpointer *)&func) && func != NULL)
-		return func(conn, status);
-
+	funcsym = g_strdup_printf("%s_run", mpd_idle_name(MPD_IDLE_UPDATE));
+	for (walk = modules_update; walk != NULL; walk = g_slist_next(walk)) {
+		if (g_module_symbol((GModule *)walk->data, funcsym, (gpointer *)&func) && func != NULL) {
+			if ((ret = func(conn, status)) < 0)
+				return ret;
+		}
+	}
 	return 0;
 }

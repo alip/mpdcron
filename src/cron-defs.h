@@ -36,6 +36,7 @@
 
 #define DOT_MPDCRON			"." PACKAGE
 #define DOT_HOOKS			"hooks"
+#define DOT_MODULES			"modules"
 
 #define DEFAULT_PID_KILL_WAIT	3
 #define DEFAULT_MPD_RECONNECT	5
@@ -73,14 +74,27 @@ extern void conf_free(void);
 extern void env_clearenv(void);
 extern int env_list_all_meta(struct mpd_connection *conn);
 extern int env_list_queue_meta(struct mpd_connection *conn);
-extern int env_stats(struct mpd_connection *conn);
-extern int env_status(struct mpd_connection *conn);
-extern int env_status_currentsong(struct mpd_connection *conn);
+extern int env_stats(struct mpd_connection *conn, struct mpd_stats **stats);
+extern int env_status(struct mpd_connection *conn, struct mpd_status **status);
+extern int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status);
 extern int env_outputs(struct mpd_connection *conn);
 extern int event_run(struct mpd_connection *conn, enum mpd_idle event);
 extern int hooker_run_hook(const char *name);
 extern int keyfile_load(void);
 extern void loop_connect(void);
 extern void loop_disconnect(void);
+#ifdef HAVE_MODULE
+extern void module_init(void);
+extern void module_close(void);
+extern int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
+extern int module_stored_playlist_run(const struct mpd_connection *conn);
+extern int module_queue_run(const struct mpd_connection *conn);
+extern int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
+		const struct mpd_status *status);
+extern int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status);
+extern int module_output_run(const struct mpd_connection *conn);
+extern int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status);
+extern int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status);
+#endif /* HAVE_MODULE */
 
 #endif /* !MPDCRON_GUARD_CRON_DEFS_H */

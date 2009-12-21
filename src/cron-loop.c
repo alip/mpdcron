@@ -128,8 +128,6 @@ static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
 				loop_schedule_reconnect();
 				return FALSE;
 			}
-			/* Run the hook */
-			hooker_run_hook(name);
 		}
 	}
 

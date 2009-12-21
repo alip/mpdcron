@@ -119,6 +119,10 @@ int main(int argc, char **argv)
 	/* Call mhconf_free() on exit to free allocated data */
 	g_atexit(conf_free);
 
+	/* Initialize modules */
+	module_init();
+	g_atexit(module_close);
+
 	if (optnd) {
 		/* Connect and start the main loop */
 		loop_connect();

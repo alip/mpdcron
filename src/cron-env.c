@@ -329,62 +329,57 @@ int env_list_queue_meta(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int env_stats(struct mpd_connection *conn)
+int env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
 {
 	char *envstr;
 	time_t t;
 	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
-	struct mpd_stats *stats;
 
 	g_assert(conn != NULL);
 	crlog(LOG_DEBUG, "Sending stats command to Mpd server");
-	if ((stats = mpd_run_stats(conn)) == NULL)
+	if ((*stats = mpd_run_stats(conn)) == NULL)
 		return -1;
 
-	t = mpd_stats_get_db_update_time(stats);
+	t = mpd_stats_get_db_update_time(*stats);
 	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
 	g_setenv("MPD_DATABASE_UPDATE_TIME", date, 1);
 
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_artists(stats));
+	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_artists(*stats));
 	g_setenv("MPD_DATABASE_ARTISTS", envstr, 1);
 	g_free(envstr);
 
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_albums(stats));
+	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_albums(*stats));
 	g_setenv("MPD_DATABASE_ALBUMS", envstr, 1);
 	g_free(envstr);
 
-	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_songs(stats));
+	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_songs(*stats));
 	g_setenv("MPD_DATABASE_SONGS", envstr, 1);
 	g_free(envstr);
 
-	envstr = g_strdup_printf("%lu", mpd_stats_get_play_time(stats));
+	envstr = g_strdup_printf("%lu", mpd_stats_get_play_time(*stats));
 	g_setenv("MPD_DATABASE_PLAY_TIME", envstr, 1);
 	g_free(envstr);
 
-	envstr = g_strdup_printf("%lu", mpd_stats_get_uptime(stats));
+	envstr = g_strdup_printf("%lu", mpd_stats_get_uptime(*stats));
 	g_setenv("MPD_DATABASE_UPTIME", envstr, 1);
 	g_free(envstr);
 
-	envstr = g_strdup_printf("%lu", mpd_stats_get_db_play_time(stats));
+	envstr = g_strdup_printf("%lu", mpd_stats_get_db_play_time(*stats));
 	g_setenv("MPD_DATABASE_DB_PLAY_TIME", envstr, 1);
 	g_free(envstr);
 
 	envstr = NULL;
-	mpd_stats_free(stats);
 	return 0;
 }
 
-int env_status(struct mpd_connection *conn)
+int env_status(struct mpd_connection *conn, struct mpd_status **status)
 {
-	struct mpd_status *status;
-
 	g_assert(conn != NULL);
 	crlog(LOG_DEBUG, "Sending status command to Mpd server");
-	if ((status = mpd_run_status(conn)) == NULL)
+	if ((*status = mpd_run_status(conn)) == NULL)
 		return -1;
 
-	env_export_status(status);
-	mpd_status_free(status);
+	env_export_status(*status);
 	return 0;
 }
 
@@ -418,11 +413,8 @@ int env_outputs(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int env_status_currentsong(struct mpd_connection *conn)
+int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status)
 {
-	struct mpd_status *status;
-	struct mpd_song *song = NULL;
-
 	g_assert (conn != NULL);
 	crlog(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
 	if (!mpd_command_list_begin(conn, true) ||
@@ -431,28 +423,25 @@ int env_status_currentsong(struct mpd_connection *conn)
 	    !mpd_command_list_end(conn))
 		return -1;
 
-	if ((status = mpd_recv_status(conn)) == NULL)
+	if ((*status = mpd_recv_status(conn)) == NULL)
 		return -1;
 
-	if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
-	    mpd_status_get_state(status) == MPD_STATE_PAUSE) {
+	if (mpd_status_get_state(*status) == MPD_STATE_PLAY ||
+	    mpd_status_get_state(*status) == MPD_STATE_PAUSE) {
 		if (!mpd_response_next(conn)) {
-			mpd_status_free(status);
+			mpd_status_free(*status);
 			return -1;
 		}
 
-		if ((song = mpd_recv_song(conn)) == NULL) {
-			mpd_status_free(status);
+		if ((*song = mpd_recv_song(conn)) == NULL) {
+			mpd_status_free(*status);
 			return -1;
 		}
 	}
 
-	env_export_status(status);
-	mpd_status_free(status);
-	if (song != NULL) {
-		env_export_song(song, 0);
-		mpd_song_free(song);
-	}
+	env_export_status(*status);
+	if (*song != NULL)
+		env_export_song(*song, 0);
 
 	return mpd_response_finish(conn) ? 0 : -1;
 }

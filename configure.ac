@@ -51,12 +51,32 @@ PKG_PROG_PKG_CONFIG([0.9.0])
 dnl }}}
 
 dnl {{{ Check for libraries
-PKG_CHECK_MODULES([libdaemon], [libdaemon >= 0.13],,
-				  [AC_MSG_ERROR([mpdcron requires libdaemon-0.13 or newer])])
-PKG_CHECK_MODULES([libmpdclient], [libmpdclient >= 2.1],,
-				  [AC_MSG_ERROR([mpdcron requires libmpdclient-2.1 or newer])])
-PKG_CHECK_MODULES([glib], [glib-2.0 >= 2.18],,
-				  [AC_MSG_ERROR([mpdcron requires glib-2.18 or newer])])
+GLIB_REQUIRED=2.18
+LIBDAEMON_REQUIRED=0.13
+LIBMPDCLIENT_REQUIRED=2.1
+
+PKG_CHECK_MODULES([glib], [glib-2.0 >= $GLIB_REQUIRED],,
+				  [AC_MSG_ERROR([mpdcron requires glib-$GLIB_REQUIRED or newer])])
+PKG_CHECK_MODULES([libdaemon], [libdaemon >= $LIBDAEMON_REQUIRED],,
+				  [AC_MSG_ERROR([mpdcron requires libdaemon-$LIBDAEMON_REQUIRED or newer])])
+PKG_CHECK_MODULES([libmpdclient], [libmpdclient >= $LIBMPDCLIENT_REQUIRED],,
+				  [AC_MSG_ERROR([mpdcron requires libmpdclient-$LIBMPDCLIENT_REQUIRED or newer])])
+dnl }}}
+
+dnl {{{ --enable-module
+AC_MSG_CHECKING([whether module support is wanted])
+AC_ARG_ENABLE([module],
+			  [AS_HELP_STRING([--enable-module],
+							  [enable module support (via GModule)])],
+			  WANT_MODULE="$enableval",
+			  WANT_MODULE="no")
+AC_MSG_RESULT([$WANT_MODULE])
+AM_CONDITIONAL(HAVE_MODULE, test x"$WANT_MODULE" = x"yes")
+if test x"$WANT_MODULE" = x"yes"; then
+	PKG_CHECK_MODULES([gmodule], [gmodule-2.0 >= $GLIB_REQUIRED],,
+					  [AC_MSG_ERROR([mpdcron requires gmodule-$GLIB_REQUIRED or newer for module support])])
+	AC_DEFINE([HAVE_MODULE], 1, [Define for module support])
+fi
 dnl }}}
 
 dnl {{{ Extra CFLAGS

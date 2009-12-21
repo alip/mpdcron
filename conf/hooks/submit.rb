@@ -6,6 +6,10 @@
 # Distributed under the terms of the GNU General Public License v2
 
 =begin
+XXX XXX XXX XXX XXX XXX XXX XXX XXX  XXX
+XXX THIS SCRIPT IS DEPRECATED!       XXX
+XXX USE THE SCROBBLER MODULE INSTEAD XXX
+XXX XXX XXX XXX XXX XXX XXX XXX XXX  XXX
 mpdcron script to submit songs to libre.fm or last.fm
 Execute this hook from your player hook.
 Configuration file is MPDCRON_DIR/submit.yaml which is a yaml file that looks like:

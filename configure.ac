@@ -42,6 +42,7 @@ if test x"$ac_cv_prog_cc_c99" = x"no"; then
 	AC_MSG_ERROR([mpdcron requires a C compiler that supports ISO C99!])
 fi
 AC_PROG_INSTALL
+AC_PROG_LIBTOOL
 AC_PROG_MAKE_SET
 AC_PROG_SED
 dnl }}}
@@ -65,9 +66,9 @@ dnl }}}
 
 dnl {{{ --enable-module
 AC_MSG_CHECKING([whether module support is wanted])
-AC_ARG_ENABLE([module],
-			  [AS_HELP_STRING([--enable-module],
-							  [enable module support (via GModule)])],
+AC_ARG_ENABLE([modules],
+			  [AS_HELP_STRING([--enable-modules],
+							  [enable support for modules (via GModule)])],
 			  WANT_MODULE="$enableval",
 			  WANT_MODULE="no")
 AC_MSG_RESULT([$WANT_MODULE])
@@ -76,12 +77,17 @@ if test x"$WANT_MODULE" = x"yes"; then
 	PKG_CHECK_MODULES([gmodule], [gmodule-2.0 >= $GLIB_REQUIRED],,
 					  [AC_MSG_ERROR([mpdcron requires gmodule-$GLIB_REQUIRED or newer for module support])])
 	AC_DEFINE([HAVE_MODULE], 1, [Define for module support])
+dnl Standard module scrobbler requires curl.
+	PKG_CHECK_MODULES([libcurl], [libcurl], found_curl=yes, found_curl=no)
+else
+	found_curl=no
 fi
+AM_CONDITIONAL([HAVE_CURL], test x"$found_curl" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS
-MPDHOOKER_CFLAGS=
-WANTED_CFLAGS="-Wall -W -Wextra -Wvla -Wformat=2 -Wformat-security -Wformat-nonliteral -Wlogical-op -Winit-self -Wpointer-arith -Wfloat-equal -Wmissing-prototypes -Wmissing-declarations -Wredundant-decls -Wmissing-noreturn -Wshadow -Wcast-align -Winline -pedantic"
+MPDCRON_CFLAGS=
+WANTED_CFLAGS="-Wall -W -Wextra -Wvla -Wformat=2 -Wformat-security -Wformat-nonliteral -Winit-self -Wfloat-equal -Wno-deprecated-declarations -Wmissing-declarations -Wmissing-noreturn -Wmissing-prototypes -Wredundant-decls  -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-qual -Wwrite-strings -pedantic"
 for flag in $WANTED_CFLAGS ; do
 	AX_CHECK_COMPILER_FLAGS([$flag], [MPDCRON_CFLAGS="$MPDCRON_CFLAGS $flag"],)
 done
@@ -93,6 +99,8 @@ AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(
 		  Makefile
 		  src/Makefile
+		  src/modules/Makefile
+		  src/modules/scrobbler/Makefile
 		  data/Makefile
 )
 dnl }}}

@@ -50,7 +50,6 @@ static void about(void)
 int main(int argc, char **argv)
 {
 	int pid, ret;
-	char *optstr;
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
@@ -82,6 +81,17 @@ int main(int argc, char **argv)
 		daemon_set_verbosity(LOG_DEBUG);
 #endif /* DAEMON_SET_VERBOSITY_AVAILABLE */
 
+	/* Version to environment variable */
+	g_setenv("MPDCRON_PACKAGE", PACKAGE, 1);
+	g_setenv("MPDCRON_VERSION", VERSION, 1);
+	g_setenv("MPDCRON_GITHEAD", GITHEAD, 1);
+
+	/* Command line options to environment variables */
+	if (optnd)
+		g_unsetenv("MCOPT_DAEMONIZE");
+	else
+		g_setenv("MCOPT_DAEMONIZE", "1", 1);
+
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */
@@ -101,32 +111,8 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
-	/* Version to environment variable */
-	g_setenv("MPDCRON_PACKAGE", PACKAGE, 1);
-	g_setenv("MPDCRON_VERSION", VERSION, 1);
-	g_setenv("MPDCRON_GITHEAD", GITHEAD, 1);
-
-	/* Command line options to environment variables */
-	if (optnd)
-		g_unsetenv("MCOPT_DAEMONIZE");
-	else
-		g_setenv("MCOPT_DAEMONIZE", "1", 1);
-
-	/* Configuration file options to environment variables */
-	optstr = g_strdup_printf("%d", reconnect);
-	g_setenv("MCOPT_RECONNECT", optstr, 1);
-	g_free(optstr);
-
-	optstr = g_strdup_printf("%d", timeout);
-	g_setenv("MCOPT_TIMEOUT", optstr, 1);
-	g_free(optstr);
-
-	/* Call mhconf_free() on exit to free allocated data */
+	/* Call conf_free() on exit to free allocated data */
 	g_atexit(conf_free);
-
-	/* Initialize modules */
-	module_init();
-	g_atexit(module_close);
 
 	if (optnd) {
 		/* Connect and start the main loop */

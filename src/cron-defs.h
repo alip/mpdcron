@@ -38,6 +38,10 @@
 #define DOT_HOOKS			"hooks"
 #define DOT_MODULES			"modules"
 
+#define MODULE_INIT_FUNC		"mpdcron_init"
+#define MODULE_CLOSE_FUNC		"mpdcron_close"
+#define MODULE_RUN_FUNC			"mpdcron_run"
+
 #define DEFAULT_PID_KILL_WAIT	3
 #define DEFAULT_MPD_RECONNECT	5
 #define DEFAULT_MPD_TIMEOUT	0
@@ -87,7 +91,7 @@ extern int keyfile_load(void);
 extern void loop_connect(void);
 extern void loop_disconnect(void);
 #ifdef HAVE_MODULE
-extern void module_init(void);
+extern int module_load(int event, const char *modname, GKeyFile *config_fd);
 extern void module_close(void);
 extern int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
 extern int module_stored_playlist_run(const struct mpd_connection *conn);

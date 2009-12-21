@@ -20,7 +20,6 @@
 #include "cron-defs.h"
 
 #include <glib.h>
-
 #include <mpd/client.h>
 
 int timeout = DEFAULT_MPD_TIMEOUT;
@@ -32,7 +31,11 @@ int keyfile_load(void)
 {
 	GKeyFile *config_fd;
 	GError *config_err = NULL;
-	char **events = NULL;
+	char *optstr;
+	char **events;
+#ifdef HAVE_MODULE
+	char **modules;
+#endif /* HAVE_MODULE */
 
 	config_fd = g_key_file_new();
 	if (!g_key_file_load_from_file(config_fd, conf_path, G_KEY_FILE_NONE, &config_err)) {
@@ -76,18 +79,7 @@ int keyfile_load(void)
 
 	if (killwait <= 0) {
 		crlog(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
-		timeout = DEFAULT_MPD_TIMEOUT;
-	}
-
-	/* Get mpd.events */
-	if ((events = g_key_file_get_string_list(config_fd, "mpd", "events", NULL, NULL)) != NULL) {
-		for (unsigned int i = 0; events[i] != NULL; i++) {
-			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
-			if (parsed == 0)
-				crlog(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
-			else
-				idle |= parsed;
-		}
+		killwait = DEFAULT_PID_KILL_WAIT;
 	}
 
 	/* Get mpd.reconnect */
@@ -115,6 +107,10 @@ int keyfile_load(void)
 		reconnect = DEFAULT_MPD_RECONNECT;
 	}
 
+	optstr = g_strdup_printf("%d", reconnect);
+	g_setenv("MCOPT_RECONNECT", optstr, 1);
+	g_free(optstr);
+
 	/* Get mpd.timeout */
 	config_err = NULL;
 	timeout = g_key_file_get_integer(config_fd, "mpd", "timeout", &config_err);
@@ -137,6 +133,98 @@ int keyfile_load(void)
 		crlog(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}
+
+	optstr = g_strdup_printf("%d", timeout);
+	g_setenv("MCOPT_TIMEOUT", optstr, 1);
+	g_free(optstr);
+
+	/* Get mpd.events */
+	if ((events = g_key_file_get_string_list(config_fd, "mpd", "events", NULL, NULL)) != NULL) {
+		for (unsigned int i = 0; events[i] != NULL; i++) {
+			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
+			if (parsed == 0)
+				crlog(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
+			else
+				idle |= parsed;
+		}
+		g_strfreev(events);
+	}
+
+#ifdef HAVE_MODULE
+	/* Load modules */
+	if (idle | MPD_IDLE_DATABASE) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_DATABASE), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_DATABASE, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_STORED_PLAYLIST) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_STORED_PLAYLIST), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_STORED_PLAYLIST, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_QUEUE) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_QUEUE), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_QUEUE, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_PLAYER) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_PLAYER), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_PLAYER, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_MIXER) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_MIXER), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_MIXER, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_OUTPUT) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_OUTPUT), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_OUTPUT, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_OPTIONS) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_OPTIONS), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_OPTIONS, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+	if (idle | MPD_IDLE_UPDATE) {
+		if ((modules = g_key_file_get_string_list(config_fd,
+						mpd_idle_name(MPD_IDLE_UPDATE), "modules",
+						NULL, NULL)) != NULL) {
+			for (unsigned int i = 0; modules[i] != NULL; i++)
+				module_load(MPD_IDLE_UPDATE, modules[i], config_fd);
+			g_strfreev(modules);
+		}
+	}
+#endif /* HAVE_MODULE */
 
 	g_key_file_free(config_fd);
 	return 0;

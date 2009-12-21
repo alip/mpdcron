@@ -1,6 +1,6 @@
 AM_CFLAGS= -DGITHEAD=\"$(GITHEAD)\" \
 	   $(glib_CFLAGS) $(gmodule_CFLAGS) $(libdaemon_CFLAGS) $(libmpdclient_CFLAGS) \
-	   @MPDCRON_CFLAGS@
+	   -DLIBDIR=\"$(libdir)\" @MPDCRON_CFLAGS@
 
 bin_PROGRAMS= mpdcron
 noinst_HEADERS= cron-defs.h
@@ -10,3 +10,8 @@ if HAVE_MODULE
 mpdcron_SOURCES+= cron-module.c
 endif
 mpdcron_LDADD= $(glib_LIBS) $(gmodule_LIBS) $(libdaemon_LIBS) $(libmpdclient_LIBS)
+
+SUBDIRS= .
+if HAVE_MODULE
+SUBDIRS+= modules
+endif

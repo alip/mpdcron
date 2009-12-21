@@ -2,7 +2,7 @@ AM_CFLAGS= -DGITHEAD=\"$(GITHEAD)\" \
 	   $(glib_CFLAGS) $(gmodule_CFLAGS) $(libcurl_CFLAGS) $(libdaemon_CFLAGS) $(libmpdclient_CFLAGS) \
 	   -DLIBDIR=\"$(libdir)\" @MPDCRON_CFLAGS@
 SUBDIRS= .
-MODULE_DIR=$(libdir)/$(PACKAGE)-$(VERSION)
+MODULE_DIR=$(libdir)/$(PACKAGE)-$(VERSION)/modules
 
 noinst_HEADERS= scrobbler-defs.h
 scrobbler_LTLIBRARIES= scrobbler.la

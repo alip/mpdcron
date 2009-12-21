@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <glib.h>
+#include <libdaemon/dlog.h>
 
 static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *grp)
 {
@@ -35,21 +36,27 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	scrobbler->name = g_strdup(grp);
 	scrobbler->url = g_key_file_get_string(fd, grp, "url", &cerr);
 	if (cerr != NULL) {
-		vlog("error while reading url from group %s: %s", grp, cerr->message);
+		vlog(LOG_ERR, "%serror while reading url from group %s: %s",
+				optnd ? "" : SCROBBLER_LOG_PREFIX,
+				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
 		return NULL;
 	}
 	scrobbler->username = g_key_file_get_string(fd, grp, "username", &cerr);
 	if (cerr != NULL) {
-		vlog("error while reading username from group %s: %s", grp, cerr->message);
+		vlog(LOG_ERR, "%serror while reading username from group %s: %s",
+				optnd ? "" : SCROBBLER_LOG_PREFIX,
+				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
 		return NULL;
 	}
 	scrobbler->password = g_key_file_get_string(fd, grp, "password", &cerr);
 	if (cerr != NULL) {
-		vlog("error while reading password from group %s: %s", grp, cerr->message);
+		vlog(LOG_ERR, "%serror while reading password from group %s: %s",
+				optnd ? "" : SCROBBLER_LOG_PREFIX,
+				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
 		return NULL;
@@ -75,17 +82,19 @@ int file_load(GKeyFile *fd, GSList **scrobblers_ptr)
 	int s = 0;
 	struct scrobbler_config *scrobbler;
 
-	if ((scrobbler = file_load_scrobbler(fd, "librefm")) != NULL) {
+	if ((scrobbler = file_load_scrobbler(fd, "libre.fm")) != NULL) {
 		*scrobblers_ptr = g_slist_prepend(*scrobblers_ptr, scrobbler);
 		++s;
 	}
-	if ((scrobbler = file_load_scrobbler(fd, "lastfm")) != NULL) {
+	if ((scrobbler = file_load_scrobbler(fd, "last.fm")) != NULL) {
 		*scrobblers_ptr = g_slist_prepend(*scrobblers_ptr, scrobbler);
 		++s;
 	}
 
 	if (s == 0) {
-		vlog("neither lastfm nor librefm group defined in configuration file");
+		vlog(LOG_ERR,
+			"%sneither last.fm nor libre.fm group defined",
+			optnd ? "" : SCROBBLER_LOG_PREFIX);
 		return -1;
 	}
 

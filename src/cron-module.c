@@ -25,7 +25,7 @@
 #include <gmodule.h>
 #include <mpd/client.h>
 
-typedef int (*initfunc_t) (GKeyFile *);
+typedef int (*initfunc_t) (int, GKeyFile *);
 typedef void (*closefunc_t) (void);
 
 typedef int (*database_func_t) (const struct mpd_connection *conn, const struct mpd_stats *stats);
@@ -98,7 +98,7 @@ static int module_load_one(const char *modname, GKeyFile *config_fd, GSList **li
 	 * non-zero skip loading the module.
 	 */
 	if (g_module_symbol(mod, MODULE_INIT_FUNC, (gpointer *)&initfunc) && initfunc != NULL) {
-		if (initfunc(config_fd) != 0) {
+		if (initfunc(optnd, config_fd) != 0) {
 			crlog(LOG_WARNING, "Skipping loading module `%s': "MODULE_INIT_FUNC"() returned non-zero",
 					path);
 			g_free(path);

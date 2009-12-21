@@ -3,7 +3,11 @@
 *~
 *.[oa]
 
+*.lo
+*.la
+
 .deps
+.libs
 Makefile.in
 Makefile
 

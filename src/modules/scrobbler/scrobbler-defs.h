@@ -32,6 +32,8 @@
 
 #include <glib.h>
 
+#define SCROBBLER_LOG_PREFIX	"[scrobbler] "
+
 struct record {
 	char *artist;
 	char *track;
@@ -62,6 +64,7 @@ struct scrobbler_config {
 	char *journal;
 };
 
+extern int optnd;
 extern char *proxy;
 
 /**
@@ -120,5 +123,5 @@ void as_save_cache(void);
 char *as_timestamp(void);
 
 int file_load(GKeyFile *fd, GSList **scrobblers_ptr);
-void vlog(const char *fmt, ...);
+void vlog(int level, const char *fmt, ...);
 #endif /* !MPDCRON_GUARD_SCROBBLER_DEFS_H */

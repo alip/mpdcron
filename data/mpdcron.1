@@ -8,9 +8,15 @@ mpdcron [\f[I]option\f[]]
 .SH DESCRIPTION
 .PP
 mpdcron is a cron like daemon for mpd.
-It connects to mpd, waits for idle events and executes hooks.
-It sets environment variables which hooks can use in order to get
-more information about the event without having to connect to mpd.
+It connects to mpd, waits for idle events.
+It has two interfaces:
+.IP \[bu] 2
+Hooks which are executed after setting environment variables which
+hooks can use to get more information about the event without
+having to connect to mpd.
+.IP \[bu] 2
+Modules, which are dynamically loaded and have direct access to mpd
+connection and the file descriptor of mpdcron's configuration file.
 .PP
 By default it will get the hostname and port for mpd from
 \f[B]MPD_HOST\f[] and \f[B]MPD_PORT\f[] environment variables.
@@ -166,6 +172,154 @@ default timeout of libmpdclient.
 .P
 .PD
 \f[B]timeout\f[] = 0
+# MODULES # Modules are specified in event sections as a semi-colon
+delimited list like: [player] modules = module1;module2 [mixer]
+modules = module3;module4
+.SH MODULES
+.PP
+mpdcron can load modules dynamically.
+These modules have direct access to mpd connection thus can do a
+lot of fancy stuff.
+A module needs to define \f[B]mpdcron_run()\f[] function which is
+called depending on the event like below:
+.IP \[bu] 2
+\f[B]database\f[]: int mpdcron_run(const struct mpd_connection *,
+const struct mpd_stats *);
+.IP \[bu] 2
+\f[B]stored_playlist\f[]: int mpdcron_run(const struct
+mpd_connection *);
+.IP \[bu] 2
+\f[B]playlist\f[]: int mpdcron_run(const struct mpd_connection *);
+.IP \[bu] 2
+\f[B]mixer\f[]: int mpdcron_run(const struct mpd_connection *,
+const struct mpd_status *);
+.IP \[bu] 2
+\f[B]output\f[]: int mpdcron_run(const struct mpd_connection *);
+.IP \[bu] 2
+\f[B]options\f[]: int mpdcron_run(const struct mpd_connection *,
+const struct mpd_status *);
+.IP \[bu] 2
+\f[B]update\f[]: int mpdcron_run(const struct mpd_connection *,
+const struct mpd_status *);
+.PP
+mpdcron_run() function should return zero on success.
+If non-zero is returned mpdcron stops running modules and
+immediately schedules a reconnection to the mpd server.
+.PP
+Modules may also define mpdcron_init() and mpdcron_close()
+functions to initialize and finalize.
+The prototypes are:
+.IP \[bu] 2
+int mpdcron_init(int, const GKeyFile *);
+.IP \[bu] 2
+void mpdcron_close(void);
+.PP
+Where the first argument is non-zero when --no-daemon option is
+passed.
+The fd points to mpdcron's configuration file.
+If the init function returns non-zero, the module is unloaded.
+mpdcron_close() function is self-explanatory.
+It should be called to do any kind of cleaning up.
+.SH MODULE LOADING
+.PP
+To load a module, the user has to mention its name in the event
+section of the configuration file.
+See CONFIGURATION section for more information.
+mpdcron looks for the modules first under MPDCRON_DIR/modules/
+where \f[B]MPDCRON_DIR\f[] is ~/.mpdcron by default.
+Next it looks at LIBDIR/mpdcron-VERSION/modules where
+\f[B]LIBDIR\f[] is /usr/lib on most systems.
+.SH STANDARD MODULES
+.IP \[bu] 2
+\f[B]scrobbler\f[]: mpdcron standard module to submit songs to
+Last.fm or Libre.fm.
+.PD 0
+.P
+.PD
+Requires
+curl.
+.PD 0
+.P
+.PD
+Example configuration:
+.PD 0
+.P
+.PD
+
+.PP
+# mpdcron configuration file
+.PD 0
+.P
+.PD
+\&...
+.PD 0
+.P
+.PD
+#
+Module options are specified in the scrobbler
+group:
+.PD 0
+.P
+.PD
+[scrobbler]
+.PD 0
+.P
+.PD
+proxy =
+http://127.0.0.1:8080
+.PD 0
+.P
+.PD
+# Last.fm credentials are
+specified in the last.fm group:
+.PD 0
+.P
+.PD
+# The password can be
+specified in two ways, either bare or in the form
+md5:MD5_HASH
+.PD 0
+.P
+.PD
+[last.fm]
+.PD 0
+.P
+.PD
+username =
+myusername
+.PD 0
+.P
+.PD
+password = mypassword
+.PD 0
+.P
+.PD
+url =
+http://post.audioscrobbler.com
+.PD 0
+.P
+.PD
+# Libre.fm credentials
+are specified in the libre.fm
+group:
+.PD 0
+.P
+.PD
+[libre.fm]
+.PD 0
+.P
+.PD
+username =
+myusername
+.PD 0
+.P
+.PD
+password = mypassword
+.PD 0
+.P
+.PD
+url =
+http://turtle.libre.fm
 .SH HOOKS
 .PP
 mpdcron executes hooks depending on the event received from mpd.

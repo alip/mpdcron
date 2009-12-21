@@ -62,7 +62,7 @@ void vlog(int level, const char *fmt, ...)
 {
 	va_list args;
 
-	if (optnd) {
+	if (!optnd) {
 		va_start(args, fmt);
 		daemon_logv(level, fmt, args);
 		va_end(args);

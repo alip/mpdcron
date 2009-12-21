@@ -210,13 +210,13 @@ Modules may also define mpdcron_init() and mpdcron_close()
 functions to initialize and finalize.
 The prototypes are:
 .IP \[bu] 2
-int mpdcron_init(int, const GKeyFile *);
+int mpdcron_init(int, GKeyFile *);
 .IP \[bu] 2
 void mpdcron_close(void);
 .PP
 Where the first argument is non-zero when --no-daemon option is
 passed.
-The fd points to mpdcron's configuration file.
+The fd (GKeyFile *) points to mpdcron's configuration file.
 If the init function returns non-zero, the module is unloaded.
 mpdcron_close() function is self-explanatory.
 It should be called to do any kind of cleaning up.
@@ -245,9 +245,8 @@ Example configuration:
 .PD 0
 .P
 .PD
-
-.PP
-# mpdcron configuration file
+# mpdcron
+configuration file
 .PD 0
 .P
 .PD
@@ -255,9 +254,22 @@ Example configuration:
 .PD 0
 .P
 .PD
-#
-Module options are specified in the scrobbler
-group:
+# Load it in
+event group player:
+.PD 0
+.P
+.PD
+[player]
+.PD 0
+.P
+.PD
+modules =
+scrobbler
+.PD 0
+.P
+.PD
+# Module options are specified in the
+scrobbler group:
 .PD 0
 .P
 .PD

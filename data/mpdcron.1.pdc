@@ -89,10 +89,10 @@ modules and immediately schedules a reconnection to the mpd server.
 Modules may also define mpdcron_init() and mpdcron_close() functions to initialize and finalize.
 The prototypes are:
 
-- int mpdcron\_init(int, const GKeyFile *);
+- int mpdcron\_init(int, GKeyFile *);
 - void mpdcron\_close(void);
 
-Where the first argument is non-zero when \--no-daemon option is passed. The fd points to mpdcron's
+Where the first argument is non-zero when \--no-daemon option is passed. The fd (GKeyFile \*) points to mpdcron's
 configuration file. If the init function returns non-zero, the module is unloaded.
 mpdcron\_close() function is self-explanatory. It should be called to do any kind of cleaning up.
 
@@ -106,9 +106,11 @@ default. Next it looks at LIBDIR/mpdcron-VERSION/modules where **LIBDIR** is /us
 - **scrobbler**: mpdcron standard module to submit songs to Last.fm or Libre.fm.\
 Requires curl.\
 Example configuration:\
-
 \# mpdcron configuration file\
 ...\
+\# Load it in event group player:\
+[player]\
+modules = scrobbler\
 \# Module options are specified in the scrobbler group:\
 [scrobbler]\
 proxy = http://127.0.0.1:8080\

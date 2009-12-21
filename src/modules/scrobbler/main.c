@@ -75,7 +75,7 @@ void vlog(int level, const char *fmt, ...)
 	daemon_logv(level, fmt, args);
 	va_end(args);
 
-	fprintf(stderr, "%s\n", colour ? ANSI_NORMAL : "");
+	fprintf(stderr, "%s", colour ? ANSI_NORMAL : "");
 }
 
 static bool played_long_enough(int elapsed, int length)

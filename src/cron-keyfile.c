@@ -27,7 +27,11 @@ int reconnect = DEFAULT_MPD_RECONNECT;
 int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
-int keyfile_load(void)
+int keyfile_load(
+#ifndef HAVE_MODULE
+		G_GNUC_UNUSED
+#endif /* !HAVE_MODULE */
+		int load_modules)
 {
 	GKeyFile *config_fd;
 	GError *config_err = NULL;
@@ -151,6 +155,10 @@ int keyfile_load(void)
 	}
 
 #ifdef HAVE_MODULE
+	if (!load_modules) {
+		g_key_file_free(config_fd);
+		return 0;
+	}
 	/* Load modules */
 	if (idle | MPD_IDLE_DATABASE) {
 		if ((modules = g_key_file_get_string_list(config_fd,

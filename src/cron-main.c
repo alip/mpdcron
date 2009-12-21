@@ -95,7 +95,7 @@ int main(int argc, char **argv)
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */
-	if (keyfile_load() < 0) {
+	if (keyfile_load(!optk) < 0) {
 		conf_free();
 		return EXIT_FAILURE;
 	}

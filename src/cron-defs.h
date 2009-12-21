@@ -87,7 +87,7 @@ extern int env_status_currentsong(struct mpd_connection *conn, struct mpd_song *
 extern int env_outputs(struct mpd_connection *conn);
 extern int event_run(struct mpd_connection *conn, enum mpd_idle event);
 extern int hooker_run_hook(const char *name);
-extern int keyfile_load(void);
+extern int keyfile_load(int load_modules);
 extern void loop_connect(void);
 extern void loop_disconnect(void);
 #ifdef HAVE_MODULE

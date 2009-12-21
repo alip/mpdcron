@@ -77,6 +77,11 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+#ifdef DAEMON_SET_VERBOSITY_AVAILABLE
+	if (optnd)
+		daemon_set_verbosity(LOG_DEBUG);
+#endif /* DAEMON_SET_VERBOSITY_AVAILABLE */
+
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */

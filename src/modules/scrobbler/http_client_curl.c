@@ -327,23 +327,28 @@ static GSourceFuncs curl_source_funcs = {
 	.dispatch = curl_source_dispatch,
 };
 
-void http_client_init(void)
+int http_client_init(void)
 {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
-	if (code != CURLE_OK)
+	if (code != CURLE_OK) {
 		vlog(LOG_ERR, "%scurl_global_init() failed: %s",
 			optnd ? "" : SCROBBLER_LOG_PREFIX,
 			curl_easy_strerror(code));
+		return -1;
+	}
 
 	http_client.multi = curl_multi_init();
-	if (http_client.multi == NULL)
+	if (http_client.multi == NULL) {
 		vlog(LOG_ERR, "%scurl_multi_init() failed",
 				optnd ? "" : SCROBBLER_LOG_PREFIX);
+		return -1;
+	}
 
 	http_client.source = g_source_new(&curl_source_funcs,
 					  sizeof(*http_client.source));
 	http_client.source_id = g_source_attach(http_client.source,
 						g_main_context_default());
+	return 0;
 }
 
 static void

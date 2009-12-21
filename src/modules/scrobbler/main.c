@@ -205,7 +205,8 @@ int mpdcron_init(int nodaemon, GKeyFile *fd)
 	/* Parse configuration */
 	if (file_load(fd, &scrobblers) < 0)
 		return -1;
-	http_client_init();
+	if (http_client_init() < 0)
+		return -1;
 	as_init(scrobblers);
 
 	timer = g_timer_new();

@@ -98,7 +98,7 @@ void journal_read(const char *path, GQueue *queue);
 /**
  * Perform global initialization on the HTTP client library.
  */
-void http_client_init(void);
+int http_client_init(void);
 /**
  * Global deinitializaton.
  */

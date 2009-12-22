@@ -50,7 +50,7 @@ static void hooker_increment(const char *name)
 		if (strcmp(name, calls[i].name) == 0) {
 			envstr = g_strdup_printf("%u", ++calls[i].ncalls);
 			g_setenv(calls[i].env, envstr, 1);
-			crlogv(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
+			daemon_log(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
 			g_free(envstr);
 			break;
 		}
@@ -68,12 +68,12 @@ int hooker_run_hook(const char *name)
 	myargv[0] = g_build_filename(DOT_HOOKS, name, NULL);
 	myargv[1] = NULL;
 
-	crlog(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
+	daemon_log(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
 	if (!g_spawn_async(home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
 				NULL, NULL, NULL, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
-			crlog(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
+			daemon_log(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
 		g_free(myargv[0]);
 		g_free(myargv);
 		g_error_free(hook_err);

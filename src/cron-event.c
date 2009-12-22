@@ -229,7 +229,7 @@ int event_run(struct mpd_connection *conn, enum mpd_idle event)
 		case MPD_IDLE_UPDATE:
 			return event_update(conn);
 		default:
-			crlog(LOG_WARNING, "Unknown event 0x%x", event);
+			daemon_log(LOG_WARNING, "Unknown event 0x%x", event);
 			return 0;
 	}
 }

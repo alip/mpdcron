@@ -45,13 +45,6 @@ extern enum mpd_idle idle;
 extern int optnd;
 extern GMainLoop *loop;
 
-#define crlog(level, ...) daemon_log(level, __VA_ARGS__)
-#define crlogv(level, ...)				\
-	do {						\
-		if (optnd)				\
-			daemon_log(level, __VA_ARGS__);	\
-	} while(0)
-
 extern const char *conf_pid_file_proc(void);
 extern int conf_init(void);
 extern void conf_free(void);

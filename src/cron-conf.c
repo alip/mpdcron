@@ -59,7 +59,7 @@ int conf_init(void)
 	else if (g_getenv("HOME"))
 		home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
 	else {
-		crlog(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
+		daemon_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
 		return -1;
 	}
 

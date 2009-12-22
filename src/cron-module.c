@@ -58,15 +58,15 @@ static char *module_path(const char *modname, int *user)
 {
 	char *name, *path;
 
-	crlogv(LOG_DEBUG, "Trying to load module: %s", modname);
+	daemon_log(LOG_DEBUG, "Trying to load module: %s", modname);
 	name = g_strdup_printf("%s.%s", modname, G_MODULE_SUFFIX);
-	crlogv(LOG_DEBUG, "Added module suffix %s -> %s", modname, name);
+	daemon_log(LOG_DEBUG, "Added module suffix %s -> %s", modname, name);
 
 	/* First check user path */
 	path = g_build_filename(mod_path, name, NULL);
-	crlogv(LOG_DEBUG, "Trying user configured path `%s'", path);
+	daemon_log(LOG_DEBUG, "Trying user configured path `%s'", path);
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-		crlogv(LOG_DEBUG, "Found %s -> `%s'", modname, path);
+		daemon_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
 		g_free(name);
 		*user = 1;
 		return path;
@@ -75,9 +75,9 @@ static char *module_path(const char *modname, int *user)
 
 	/* Next check system path */
 	path = g_build_filename(LIBDIR, PACKAGE"-"VERSION, DOT_MODULES, name, NULL);
-	crlogv(LOG_DEBUG, "Trying system path `%s'", path);
+	daemon_log(LOG_DEBUG, "Trying system path `%s'", path);
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-		crlogv(LOG_DEBUG, "Found %s -> `%s'", modname, path);
+		daemon_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
 		g_free(name);
 		*user = 0;
 		return path;
@@ -95,12 +95,12 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 	mod = g_new0(struct mpdcron_module, 1);
 	mod->event = event;
 	if ((mod->path = module_path(modname, &(mod->user))) == NULL) {
-		crlog(LOG_WARNING, "Error loading module %s: file not found", modname);
+		daemon_log(LOG_WARNING, "Error loading module %s: file not found", modname);
 		g_free(mod);
 		return -1;
 	}
 	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LAZY)) == NULL) {
-		crlog(LOG_WARNING, "Error loading module `%s': %s", mod->path, g_module_error());
+		daemon_log(LOG_WARNING, "Error loading module `%s': %s", mod->path, g_module_error());
 		g_free(mod->path);
 		g_free(mod);
 		return -1;
@@ -111,7 +111,7 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 	 */
 	if (g_module_symbol(mod->module, MODULE_INIT_FUNC, (gpointer *)&initfunc) && initfunc != NULL) {
 		if (initfunc(optnd, config_fd) == MPDCRON_INIT_RETVAL_FAILURE) {
-			crlog(LOG_WARNING,
+			daemon_log(LOG_WARNING,
 					"Skipped loading module `%s': "MODULE_INIT_FUNC"() returned non-zero",
 					mod->path);
 			g_free(mod->path);
@@ -120,7 +120,7 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 			return -1;
 		}
 	}
-	crlogv(LOG_DEBUG, "Loaded module `%s'", mod->path);
+	daemon_log(LOG_DEBUG, "Loaded module `%s'", mod->path);
 	*list_ptr = g_slist_prepend(*list_ptr, mod);
 	return 0;
 }
@@ -213,7 +213,7 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -230,7 +230,7 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -258,7 +258,7 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -275,7 +275,7 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -303,7 +303,7 @@ int module_queue_run(const struct mpd_connection *conn)
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -320,7 +320,7 @@ int module_queue_run(const struct mpd_connection *conn)
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -349,7 +349,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -366,7 +366,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -394,7 +394,7 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -411,7 +411,7 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -439,7 +439,7 @@ int module_output_run(const struct mpd_connection *conn)
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -456,7 +456,7 @@ int module_output_run(const struct mpd_connection *conn)
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -484,7 +484,7 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -501,7 +501,7 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}
@@ -529,7 +529,7 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
 			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
+				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MPDCRON_RUN_RETVAL_UNLOAD);
@@ -546,7 +546,7 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 				continue;
 			}
 			else
-				crlog(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event), mret);
 		}

@@ -34,8 +34,6 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-#define ENV_DAEMONIZE		"MHOPT_DAEMONIZE"
-
 #define ANSI_NORMAL         "[00;00m"
 #define ANSI_MAGENTA        "[00;35m"
 #define ANSI_DARK_MAGENTA   "[01;35m"
@@ -76,6 +74,7 @@ void vlog(int level, const char *fmt, ...)
 	va_end(args);
 
 	fprintf(stderr, "%s", colour ? ANSI_NORMAL : "");
+	fflush(stderr);
 }
 
 static bool played_long_enough(int elapsed, int length)

@@ -23,7 +23,12 @@
 #ifndef MPDCRON_GUARD_SCROBBLER_DEFS_H
 #define MPDCRON_GUARD_SCROBBLER_DEFS_H 1
 
-#include "../../cron-config.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* !HAVE_CONFIG_H */
+
+#define MPDCRON_EVENT_PLAYER 1
+#include "../module.h"
 
 #include <stdbool.h>
 #include <stddef.h>

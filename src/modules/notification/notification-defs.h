@@ -20,7 +20,12 @@
 #ifndef MPDCRON_GUARD_NOTIFICATION_DEFS_H
 #define MPDCRON_GUARD_NOTIFICATION_DEFS_H 1
 
-#include "../../cron-config.h"
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* !HAVE_CONFIG_H */
+
+#define MPDCRON_EVENT_PLAYER 1
+#include "../module.h"
 
 #include <glib.h>
 
@@ -35,7 +40,5 @@ int mcnotify_send(char **hints, const char *urgency, const char *timeout,
 		const char *type, const char *cover,
 		const char *artist, const char *title,
 		const char *album, const char *uri);
-
-void vlog(int level, const char *fmt, ...) G_GNUC_PRINTF(2,3);
 
 #endif /* !MPDCRON_GUARD_NOTIFICATION_DEFS_H */

@@ -45,11 +45,6 @@ static bool was_paused = 0;
 static struct mpd_song *prev = NULL;
 static GTimer *timer = NULL;
 
-/* Prototypes */
-int mpdcron_init(int nodaemon, GKeyFile *fd);
-void mpdcron_close(void);
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_song *song, const struct mpd_status *status);
-
 static bool played_long_enough(int elapsed, int length)
 {
 	/* http://www.lastfm.de/api/submissions "The track must have been
@@ -176,13 +171,13 @@ int mpdcron_init(int nodaemon, GKeyFile *fd)
 
 	/* Parse configuration */
 	if (file_load(fd, &scrobblers) < 0)
-		return -1;
+		return MPDCRON_INIT_RETVAL_FAILURE;
 	if (http_client_init() < 0)
-		return -1;
+		return MPDCRON_INIT_RETVAL_FAILURE;
 	as_init(scrobblers);
 
 	timer = g_timer_new();
-	return 0;
+	return MPDCRON_INIT_RETVAL_SUCCESS;
 }
 
 void mpdcron_close(void)
@@ -206,7 +201,7 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MODULE_RETVAL_SUCCESS;
+		return MPDCRON_RUN_RETVAL_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY)
 		song_stopped();
@@ -241,8 +236,8 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 		if ((prev = mpd_song_dup(song)) == NULL) {
 			daemon_log(LOG_ERR, "%smpd_song_dup failed: out of memory",
 					SCROBBLER_LOG_PREFIX);
-			return MODULE_RETVAL_UNLOAD;
+			return MPDCRON_RUN_RETVAL_UNLOAD;
 		}
 	}
-	return MODULE_RETVAL_SUCCESS;
+	return MPDCRON_RUN_RETVAL_SUCCESS;
 }

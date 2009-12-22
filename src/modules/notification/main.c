@@ -36,11 +36,6 @@ static char **hints;
 static unsigned last_id = -1;
 static GTimer *timer = NULL;
 
-/* Prototypes */
-int mpdcron_init(int nodaemon, GKeyFile *fd);
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_song *song, const struct mpd_status *status);
-void mpdcron_close(void);
-
 /* Utility functions */
 static void song_paused(void)
 {
@@ -115,7 +110,7 @@ int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
 	last_id = -1;
 
 	if (mcnotify_init() < 0)
-		return -1;
+		return MPDCRON_INIT_RETVAL_FAILURE;
 
 	/* Parse configuration */
 	if ((cover_path = g_key_file_get_string(fd, "notification", "cover_path", NULL)) == NULL) {
@@ -136,7 +131,7 @@ int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
 	}
 
 	timer = g_timer_new();
-	return 0;
+	return MPDCRON_INIT_RETVAL_SUCCESS;
 }
 
 int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -149,11 +144,11 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MODULE_RETVAL_SUCCESS;
+		return MPDCRON_RUN_RETVAL_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY) {
 		song_stopped();
-		return MODULE_RETVAL_SUCCESS;
+		return MPDCRON_RUN_RETVAL_SUCCESS;
 	}
 
 	if (was_paused) {
@@ -166,17 +161,17 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 		if (mpd_song_get_id(song) != last_id) {
 			/* New song */
 			if (song_started(song) < 0)
-				return MODULE_RETVAL_UNLOAD;
+				return MPDCRON_RUN_RETVAL_UNLOAD;
 			last_id = mpd_song_get_id(song);
 		}
 		else {
 			/* Still playing the previous song */
 			if (song_playing(song, mpd_status_get_elapsed_time(status)) < 0)
-				return MODULE_RETVAL_UNLOAD;
+				return MPDCRON_RUN_RETVAL_UNLOAD;
 		}
 	}
 
-	return MODULE_RETVAL_SUCCESS;
+	return MPDCRON_RUN_RETVAL_SUCCESS;
 }
 
 void mpdcron_close(void)

@@ -22,12 +22,80 @@
 
 #include "scrobbler-defs.h"
 
+#include <stdbool.h>
 #include <string.h>
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
-static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *grp)
+struct config fileconfig;
+
+static bool load_string(GKeyFile *fd, const char *name, char **value_r)
+{
+	char *value;
+	GError *e = NULL;
+
+	if (*value_r != NULL) {
+		/* already set */
+		return true;
+	}
+
+	value = g_key_file_get_string(fd, "scrobbler", name, &e);
+	if (e != NULL) {
+		if (e->code  != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
+			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
+					SCROBBLER_LOG_PREFIX, name, e->message);
+			g_error_free(e);
+			return false;
+		}
+	}
+
+	*value_r = value;
+	return true;
+}
+
+static bool load_integer(GKeyFile *fd, const char *name, int *value_r)
+{
+	int value;
+	GError *e = NULL;
+
+	if (*value_r != -1) {
+		/* already set */
+		return true;
+	}
+
+	value = g_key_file_get_integer(fd, "scrobbler", name, &e);
+	if (e != NULL) {
+		if (e->code  != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
+			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
+					SCROBBLER_LOG_PREFIX, name, e->message);
+			g_error_free(e);
+			return false;
+		}
+	}
+
+	*value_r = value;
+	return true;
+}
+
+static bool load_unsigned(GKeyFile *fd, const char *name, unsigned *value_r)
+{
+	int value = -1;
+
+	if (!load_integer(fd, name, &value))
+		return false;
+
+	if (value < 0) {
+		daemon_log(LOG_ERR, "%ssetting scrobbler.%s must not be negative",
+				SCROBBLER_LOG_PREFIX, name);
+		return false;
+	}
+
+	*value_r = (unsigned)value;
+	return true;
+}
+
+static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 {
 	char *p;
 	struct scrobbler_config *scrobbler = g_new(struct scrobbler_config, 1);
@@ -80,17 +148,37 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	return scrobbler;
 }
 
-int file_load(GKeyFile *fd, GSList **scrobblers_ptr)
+static void scrobbler_config_free_callback(gpointer data, G_GNUC_UNUSED gpointer user_data)
+{
+	struct scrobbler_config *scrobbler = data;
+
+	g_free(scrobbler->name);
+	g_free(scrobbler->url);
+	g_free(scrobbler->username);
+	g_free(scrobbler->password);
+	g_free(scrobbler->journal);
+	g_free(scrobbler);
+}
+
+int file_load(GKeyFile *fd)
 {
 	int s = 0;
 	struct scrobbler_config *scrobbler;
 
-	if ((scrobbler = file_load_scrobbler(fd, "libre.fm")) != NULL) {
-		*scrobblers_ptr = g_slist_prepend(*scrobblers_ptr, scrobbler);
+	memset(&file_config, 0, sizeof(struct config));
+	file_config.journal_interval = -1;
+
+	if (!load_string(fd, "proxy", &file_config.proxy))
+		return -1;
+	if (!load_unsigned(fd, "journal_interval", &file_config.journal_interval))
+		return -1;
+
+	if ((scrobbler = load_scrobbler(fd, "libre.fm")) != NULL) {
+		file_config.scrobblers = g_slist_prepend(file_config.scrobblers, scrobbler);
 		++s;
 	}
-	if ((scrobbler = file_load_scrobbler(fd, "last.fm")) != NULL) {
-		*scrobblers_ptr = g_slist_prepend(*scrobblers_ptr, scrobbler);
+	if ((scrobbler = load_scrobbler(fd, "last.fm")) != NULL) {
+		file_config.scrobblers = g_slist_prepend(file_config.scrobblers, scrobbler);
 		++s;
 	}
 
@@ -101,8 +189,15 @@ int file_load(GKeyFile *fd, GSList **scrobblers_ptr)
 		return -1;
 	}
 
-	proxy = g_key_file_get_string(fd, "scrobbler", "proxy", NULL);
-	if (proxy == NULL && g_getenv("http_proxy"))
-		proxy = g_strdup(g_getenv("http_proxy"));
+	if (file_config.proxy == NULL && g_getenv("http_proxy"))
+		file_config.proxy = g_strdup(g_getenv("http_proxy"));
+
 	return 0;
+}
+
+void file_cleanup(void)
+{
+	g_free(file_config.proxy);
+	g_slist_foreach(file_config.scrobblers, scrobbler_config_free_callback, NULL);
+	g_slist_free(file_config.scrobblers);
 }

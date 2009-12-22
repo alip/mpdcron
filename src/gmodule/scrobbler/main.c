@@ -34,16 +34,12 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-/* Configuration variables */
-int optnd = 0;
-char *proxy = NULL;
-static GSList *scrobblers = NULL;
-
 /* Globals */
 static unsigned last_id = -1;
 static bool was_paused = 0;
 static struct mpd_song *prev = NULL;
 static GTimer *timer = NULL;
+static int save_source_id = -1;
 
 static bool played_long_enough(int elapsed, int length)
 {
@@ -165,28 +161,29 @@ static void song_stopped(void)
 }
 
 /* Module functions */
-int mpdcron_init(int nodaemon, GKeyFile *fd)
+int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 {
-	optnd = nodaemon;
-
 	/* Parse configuration */
-	if (file_load(fd, &scrobblers) < 0)
+	if (file_load(fd) < 0)
 		return MPDCRON_INIT_RETVAL_FAILURE;
 	if (http_client_init() < 0)
 		return MPDCRON_INIT_RETVAL_FAILURE;
-	as_init(scrobblers);
+	as_init(file_config.scrobblers);
 
 	timer = g_timer_new();
+	save_source_id = g_timeout_add_seconds(file_config.journal_interval, timer_save_journal, NULL);
+
 	return MPDCRON_INIT_RETVAL_SUCCESS;
 }
 
 void mpdcron_close(void)
 {
+	file_cleanup();
 	as_save_cache();
 	as_cleanup();
 	http_client_finish();
-	g_free(proxy);
 	g_timer_destroy(timer);
+	g_source_remove(save_source_id);
 	if (prev != NULL)
 		mpd_song_free(prev);
 }

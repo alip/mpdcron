@@ -49,6 +49,18 @@ struct record {
 
 typedef void http_client_callback_t(size_t, const char *, void *);
 
+struct config {
+	char *proxy;
+
+	/**
+	 * The interval in seconds after which the journal is saved to
+	 * the file system.
+	 */
+	unsigned journal_interval;
+
+	GSList *scrobblers;
+};
+
 struct scrobbler_config {
 	/**
 	 * The name of the mpdscribble.conf section.  It is used in
@@ -67,8 +79,7 @@ struct scrobbler_config {
 	char *journal;
 };
 
-extern int optnd;
-extern char *proxy;
+extern struct config file_config;
 
 /**
  * Copies attributes from one record to another.  Does not free
@@ -125,5 +136,8 @@ void as_songchange(const char *file, const char *artist, const char *track,
 void as_save_cache(void);
 char *as_timestamp(void);
 
-int file_load(GKeyFile *fd, GSList **scrobblers_ptr);
+int file_load(GKeyFile *fd);
+void file_cleanup(void);
+
+gboolean timer_save_journal(gpointer data);
 #endif /* !MPDCRON_GUARD_SCROBBLER_DEFS_H */

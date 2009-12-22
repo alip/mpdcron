@@ -439,8 +439,8 @@ void http_client_request(const char *url, const char *post_data,
 	curl_easy_setopt(request->curl, CURLOPT_ERRORBUFFER, request->error);
 	curl_easy_setopt(request->curl, CURLOPT_BUFFERSIZE, 2048);
 
-	if (proxy != NULL)
-		curl_easy_setopt(request->curl, CURLOPT_PROXY, proxy);
+	if (file_config.proxy != NULL)
+		curl_easy_setopt(request->curl, CURLOPT_PROXY, file_config.proxy);
 
 	request->post_data = g_strdup(post_data);
 	if (request->post_data != NULL) {

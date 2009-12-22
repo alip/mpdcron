@@ -509,6 +509,8 @@ static void scrobbler_send_now_playing(struct scrobbler *scrobbler, const char *
 	add_var(post_data, "m", mbid);
 
 	daemon_log(LOG_INFO, "[%s] sending 'now playing' notification", scrobbler->config->name);
+	daemon_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
+	daemon_log(LOG_DEBUG, "[%s] url: %s", scrobbler->config->name, scrobbler->nowplay_url);
 
 	http_client_request(scrobbler->nowplay_url, post_data->str, scrobbler_submit_callback, scrobbler);
 

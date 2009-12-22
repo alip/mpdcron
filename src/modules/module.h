@@ -47,6 +47,7 @@ enum mpdcron_run_retval {
 	MPDCRON_RUN_RETVAL_UNLOAD, /** Unload the module **/
 };
 
+#ifndef MPDCRON_INTERNAL
 /**
  * Initialize function. This function is called when the module is loaded.
  *
@@ -105,5 +106,7 @@ int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *stat
 #else
 #error None of the required MPDCRON_EVENT_* constants were defined!
 #endif
+
+#endif /* !MPDCRON_INTERNAL */
 
 #endif /* !MPDCRON_GUARD_MODULE_H */

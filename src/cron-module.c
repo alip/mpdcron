@@ -110,7 +110,7 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 	 * non-zero skip loading the module.
 	 */
 	if (g_module_symbol(mod->module, MODULE_INIT_FUNC, (gpointer *)&initfunc) && initfunc != NULL) {
-		if (initfunc(optnd, config_fd) != 0) {
+		if (initfunc(optnd, config_fd) == MPDCRON_INIT_RETVAL_FAILURE) {
 			crlog(LOG_WARNING,
 					"Skipped loading module `%s': "MODULE_INIT_FUNC"() returned non-zero",
 					mod->path);
@@ -206,17 +206,17 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, stats);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -250,17 +250,17 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -294,17 +294,17 @@ int module_queue_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -338,18 +338,19 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	for (walk = modules_player; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
+			crlog(LOG_DEBUG, "Calling mpdcron_run()");
 			mret = func(conn, song, status);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -383,17 +384,17 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -427,17 +428,17 @@ int module_output_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -471,17 +472,17 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)
@@ -515,17 +516,17 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MODULE_RETVAL_SUCCESS)
+			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;
-			else if (mret == MODULE_RETVAL_RECONNECT)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
 				ret = -1;
-			else if (mret == MODULE_RETVAL_RECONNECT_NOW)
+			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
 				return -1;
-			else if (mret == MODULE_RETVAL_UNLOAD) {
+			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
 				crlog(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
-						MODULE_RETVAL_UNLOAD);
+						MPDCRON_RUN_RETVAL_UNLOAD);
 				/* Run the close function if there's any */
 				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 							(gpointer *)&closefunc) && closefunc != NULL)

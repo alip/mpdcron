@@ -81,12 +81,13 @@ fi
 dnl }}}
 
 dnl {{{ standard modules
-ALL_STANDARD_MODULES="scrobbler"
+ALL_STANDARD_MODULES="notification scrobbler"
 AC_MSG_CHECKING([which standard modules are wanted])
 AC_ARG_WITH([standard-modules],
 			  [--with-standard-modules=foo,bar,...
 			   Build the specified standard modules:
 			   all              Build all available standard modules
+			   notification     Build the notification module
 			   scrobbler        Build the scrobbler module],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
 			   [standard_modules=""])
@@ -98,15 +99,22 @@ if test x"$WANT_MODULE" != x"yes" && test x"$standard_modules" != x""; then
 fi
 STANDARD_MODULES="$standard_modules"
 AC_SUBST([STANDARD_MODULES])
-HAS_CURL=no
+WANT_NOTIFICATION=no
+WANT_SCROBBLER=no
 for m in $STANDARD_MODULES ; do
+	if test x"$m" = x"notification" ; then
+		# Notification requires libnotify.
+		PKG_CHECK_MODULES([libnotify], [libnotify], [WANT_NOTIFICATION=yes],
+						  AC_MSG_ERROR([notification standard module requires libnotify]))
+	fi
 	if test x"$m" = x"scrobbler" ; then
 		# Scrobbler requires curl.
-		PKG_CHECK_MODULES([libcurl], [libcurl], [HAS_CURL=yes],
+		PKG_CHECK_MODULES([libcurl], [libcurl], [WANT_SCROBBLER=yes],
 						  AC_MSG_ERROR([scrobbler standard module requires curl]))
 	fi
 done
-AM_CONDITIONAL([HAVE_CURL], test x"$HAS_CURL" = x"yes")
+AM_CONDITIONAL([WANT_NOTIFICATION], test x"$WANT_NOTIFICATION" = x"yes")
+AM_CONDITIONAL([WANT_SCROBBLER], test x"$WANT_SCROBBLER" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS
@@ -124,6 +132,7 @@ AC_OUTPUT(
 		  Makefile
 		  src/Makefile
 		  src/modules/Makefile
+		  src/modules/notification/Makefile
 		  src/modules/scrobbler/Makefile
 		  data/Makefile
 )

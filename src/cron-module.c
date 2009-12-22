@@ -226,6 +226,7 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_database;
 				continue;
 			}
 			else
@@ -270,6 +271,7 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_stored_playlist;
 				continue;
 			}
 			else
@@ -314,6 +316,7 @@ int module_queue_run(const struct mpd_connection *conn)
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_queue;
 				continue;
 			}
 			else
@@ -360,6 +363,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_player;
 				continue;
 			}
 			else
@@ -404,6 +408,7 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_mixer;
 				continue;
 			}
 			else
@@ -448,6 +453,7 @@ int module_output_run(const struct mpd_connection *conn)
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_output;
 				continue;
 			}
 			else
@@ -492,6 +498,7 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_options;
 				continue;
 			}
 			else
@@ -536,6 +543,7 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 				g_module_close(mod->module);
 				g_free(mod);
 				g_slist_free(walk);
+				walk = modules_update;
 				continue;
 			}
 			else

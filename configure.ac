@@ -64,7 +64,7 @@ PKG_CHECK_MODULES([libmpdclient], [libmpdclient >= $LIBMPDCLIENT_REQUIRED],,
 				  [AC_MSG_ERROR([mpdcron requires libmpdclient-$LIBMPDCLIENT_REQUIRED or newer])])
 dnl }}}
 
-dnl {{{ --enable-module
+dnl {{{ --enable-modules
 AC_MSG_CHECKING([whether module support is wanted])
 AC_ARG_ENABLE([modules],
 			  [AS_HELP_STRING([--enable-modules],
@@ -77,12 +77,36 @@ if test x"$WANT_MODULE" = x"yes"; then
 	PKG_CHECK_MODULES([gmodule], [gmodule-2.0 >= $GLIB_REQUIRED],,
 					  [AC_MSG_ERROR([mpdcron requires gmodule-$GLIB_REQUIRED or newer for module support])])
 	AC_DEFINE([HAVE_MODULE], 1, [Define for module support])
-dnl Standard module scrobbler requires curl.
-	PKG_CHECK_MODULES([libcurl], [libcurl], found_curl=yes, found_curl=no)
-else
-	found_curl=no
 fi
-AM_CONDITIONAL([HAVE_CURL], test x"$found_curl" = x"yes")
+dnl }}}
+
+dnl {{{ standard modules
+ALL_STANDARD_MODULES="scrobbler"
+AC_MSG_CHECKING([which standard modules are wanted])
+AC_ARG_WITH([standard-modules],
+			  [--with-standard-modules=foo,bar,...
+			   Build the specified standard modules:
+			   all              Build all available standard modules
+			   scrobbler        Build the scrobbler module],
+			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
+			   [standard_modules=""])
+standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`
+AC_MSG_RESULT([$standard_modules])
+if test x"$WANT_MODULE" != x"yes" && test x"$standard_modules" != x""; then
+	AC_MSG_WARN([Module support is disabled, no standard modules will be built!])
+	standard_modules=""
+fi
+STANDARD_MODULES="$standard_modules"
+AC_SUBST([STANDARD_MODULES])
+HAS_CURL=no
+for m in $STANDARD_MODULES ; do
+	if test x"$m" = x"scrobbler" ; then
+		# Scrobbler requires curl.
+		PKG_CHECK_MODULES([libcurl], [libcurl], [HAS_CURL=yes],
+						  AC_MSG_ERROR([scrobbler standard module requires curl]))
+	fi
+done
+AM_CONDITIONAL([HAVE_CURL], test x"$HAS_CURL" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS

@@ -122,7 +122,6 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 	}
 	crlogv(LOG_DEBUG, "Loaded module `%s'", mod->path);
 	*list_ptr = g_slist_prepend(*list_ptr, mod);
-	g_free(mod->path);
 	return 0;
 }
 

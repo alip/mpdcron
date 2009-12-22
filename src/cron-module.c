@@ -198,6 +198,7 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	database_func_t func = NULL;
 
 	ret = 0;
@@ -216,6 +217,10 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_database = g_slist_remove_link(modules_database, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -237,6 +242,7 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	stored_playlist_func_t func = NULL;
 
 	ret = 0;
@@ -255,6 +261,10 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_stored_playlist = g_slist_remove_link(modules_stored_playlist, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -276,6 +286,7 @@ int module_queue_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	queue_func_t func = NULL;
 
 	ret = 0;
@@ -294,6 +305,10 @@ int module_queue_run(const struct mpd_connection *conn)
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_queue = g_slist_remove_link(modules_queue, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -316,6 +331,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	player_func_t func = NULL;
 
 	ret = 0;
@@ -334,6 +350,10 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_player = g_slist_remove_link(modules_player, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -355,6 +375,7 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	mixer_func_t func = NULL;
 
 	ret = 0;
@@ -373,6 +394,10 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_mixer = g_slist_remove_link(modules_mixer, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -394,6 +419,7 @@ int module_output_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	output_func_t func = NULL;
 
 	ret = 0;
@@ -412,6 +438,10 @@ int module_output_run(const struct mpd_connection *conn)
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_output = g_slist_remove_link(modules_output, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -433,6 +463,7 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	options_func_t func = NULL;
 
 	ret = 0;
@@ -451,6 +482,10 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_options = g_slist_remove_link(modules_options, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);
@@ -472,6 +507,7 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
+	closefunc_t closefunc = NULL;
 	update_func_t func = NULL;
 
 	ret = 0;
@@ -490,6 +526,10 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 						mod->user ? "user" : "standard",
 						mod->path, mpd_idle_name(mod->event),
 						MODULE_RETVAL_UNLOAD);
+				/* Run the close function if there's any */
+				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+							(gpointer *)&closefunc) && closefunc != NULL)
+					closefunc();
 				modules_update = g_slist_remove_link(modules_update, walk);
 				g_free(mod->path);
 				g_module_close(mod->module);

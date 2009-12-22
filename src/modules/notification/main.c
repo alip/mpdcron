@@ -60,8 +60,9 @@ static void song_continued(void)
 	g_timer_continue(timer);
 }
 
-static void song_changed(const struct mpd_song *song)
+static int song_changed(const struct mpd_song *song)
 {
+	int ret;
 	char *cpath;
 
 	assert(song != NULL);
@@ -83,26 +84,28 @@ static void song_changed(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	mcnotify_send(hints, urgency, timeout, type, cpath,
+	ret = mcnotify_send(hints, urgency, timeout, type, cpath,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			mpd_song_get_uri(song));
 	g_free(cpath);
+	return ret;
 }
 
-static void song_started(const struct mpd_song *song)
+static int song_started(const struct mpd_song *song)
 {
-	song_changed(song);
+	return song_changed(song);
 }
 
-static void song_playing(const struct mpd_song *song, unsigned elapsed)
+static int song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
 		daemon_log(LOG_DEBUG, "%srepeated song detected", NOTIFICATION_LOG_PREFIX);
-		song_started(song);
+		return song_started(song);
 	}
+	return 0;
 }
 
 int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
@@ -162,12 +165,14 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 	if (song != NULL) {
 		if (mpd_song_get_id(song) != last_id) {
 			/* New song */
-			song_started(song);
+			if (song_started(song) < 0)
+				return MODULE_RETVAL_UNLOAD;
 			last_id = mpd_song_get_id(song);
 		}
 		else {
 			/* Still playing the previous song */
-			song_playing(song, mpd_status_get_elapsed_time(status));
+			if (song_playing(song, mpd_status_get_elapsed_time(status)) < 0)
+				return MODULE_RETVAL_UNLOAD;
 		}
 	}
 

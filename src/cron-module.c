@@ -341,7 +341,6 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	for (walk = modules_player; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			crlog(LOG_DEBUG, "Calling mpdcron_run()");
 			mret = func(conn, song, status);
 			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
 				continue;

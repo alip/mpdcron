@@ -119,6 +119,7 @@ int main(int argc, char **argv)
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
+		g_main_loop_unref(loop);
 		return EXIT_SUCCESS;
 	}
 
@@ -165,6 +166,7 @@ int main(int argc, char **argv)
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
+		g_main_loop_unref(loop);
 		return EXIT_SUCCESS;
 	}
 	return EXIT_SUCCESS;

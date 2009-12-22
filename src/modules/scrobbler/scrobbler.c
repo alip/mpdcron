@@ -595,10 +595,10 @@ scrobbler_submit(struct scrobbler *scrobbler)
 		count++;
 	}
 
-	g_message("[%s] submitting %i song%s",
+	daemon_log(LOG_INFO, "[%s] submitting %i song%s",
 			scrobbler->config->name, count, count == 1 ? "" : "s");
-	g_debug("[%s] post data: %s", scrobbler->config->name, post_data->str);
-	g_debug("[%s] url: %s",
+	daemon_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
+	daemon_log(LOG_DEBUG, "[%s] url: %s",
 		scrobbler->config->name, scrobbler->submit_url);
 
 	scrobbler->pending = count;

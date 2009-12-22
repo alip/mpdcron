@@ -18,8 +18,8 @@
  */
 
 /* Notes about the module:
- * - Unloading this module causes a nasty segfault in glib's mainloop.
- *   So don't ever return MPDCRON_RUN_RETVAL_UNLOAD from mpdcron_run().
+ * Using libnotify directly doesn't work due to many reasons.
+ * That's why we spawn notify-send.
  */
 
 #include "notification-defs.h"
@@ -31,7 +31,6 @@
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
-#include <libnotify/notify.h>
 #include <mpd/client.h>
 
 int optnd = 0;
@@ -111,9 +110,6 @@ int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
 	was_paused = false;
 	last_id = -1;
 
-	if (mcnotify_init() < 0)
-		return MPDCRON_INIT_RETVAL_FAILURE;
-
 	/* Parse configuration */
 	if ((cover_path = g_key_file_get_string(fd, "notification", "cover_path", NULL)) == NULL) {
 		if (g_getenv("HOME") != NULL)
@@ -121,18 +117,14 @@ int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
 	}
 	if ((cover_suffix = g_key_file_get_string(fd, "notification", "cover_suffix", NULL)) == NULL)
 		cover_suffix = g_strdup("jpg");
-	if ((timeout = g_key_file_get_string(fd, "notification", "timeout", NULL)) == NULL)
-		timeout = g_strdup("default");
-	if ((type = g_key_file_get_string(fd, "notification", "type", NULL)) == NULL)
-		type = g_strdup("mpd");
-	if ((urgency = g_key_file_get_string(fd, "notification", "urgency", NULL)) == NULL)
-		urgency = g_strdup("normal");
-	if ((hints = g_key_file_get_string_list(fd, "notification", "hints", NULL, NULL)) == NULL) {
-		/* TODO: Do some error checking */
-		;
-	}
+	timeout = g_key_file_get_string(fd, "notification", "timeout", NULL);
+	type = g_key_file_get_string(fd, "notification", "type", NULL);
+	urgency = g_key_file_get_string(fd, "notification", "urgency", NULL);
+	hints = g_key_file_get_string_list(fd, "notification", "hints", NULL, NULL);
 
 	timer = g_timer_new();
+
+	daemon_log(LOG_INFO, "%sinitialized", NOTIFICATION_LOG_PREFIX);
 	return MPDCRON_INIT_RETVAL_SUCCESS;
 }
 
@@ -176,7 +168,6 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 void mpdcron_close(void)
 {
-	notify_uninit();
 	g_free(cover_path);
 	g_free(cover_suffix);
 	g_free(timeout);

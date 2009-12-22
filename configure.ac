@@ -103,9 +103,9 @@ WANT_NOTIFICATION=no
 WANT_SCROBBLER=no
 for m in $STANDARD_MODULES ; do
 	if test x"$m" = x"notification" ; then
-		# Notification requires libnotify.
-		PKG_CHECK_MODULES([libnotify], [libnotify], [WANT_NOTIFICATION=yes],
-						  AC_MSG_ERROR([notification standard module requires libnotify]))
+		# Notification requires notify-send
+		AC_PATH_PROG([NOTIFY_SEND], [notify-send], [WANT_NOTIFICATION=yes],
+						  AC_MSG_ERROR([notification standard module needs notify-send]))
 	fi
 	if test x"$m" = x"scrobbler" ; then
 		# Scrobbler requires curl.

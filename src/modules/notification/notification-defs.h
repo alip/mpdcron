@@ -35,7 +35,6 @@ extern int optnd;
 
 char *cover_find(const char *path, const char *suffix, const char *artist, const char *album);
 
-int mcnotify_init(void);
 void mcnotify_send(char **hints, const char *urgency, const char *timeout,
 		const char *type, const char *cover,
 		const char *artist, const char *title,

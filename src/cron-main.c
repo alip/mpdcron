@@ -35,6 +35,7 @@
 int optnd = 0;
 GMainLoop *loop = NULL;
 static int optv, optk;
+static int daemonized = 0;
 
 static GOptionEntry options[] = {
 	{"version", 'V', 0, G_OPTION_ARG_NONE, &optv, "Display version", NULL},
@@ -45,6 +46,15 @@ static GOptionEntry options[] = {
 static void about(void)
 {
 	printf(PACKAGE"-"VERSION GITHEAD "\n");
+}
+
+static void cleanup(void)
+{
+	if (daemonized)
+		daemon_log(LOG_INFO, "Exiting");
+	conf_free();
+	if (loop != NULL)
+		g_main_loop_unref(loop);
 }
 
 int main(int argc, char **argv)
@@ -72,7 +82,7 @@ int main(int argc, char **argv)
 
 	if (optv) {
 		about();
-		conf_free();
+		cleanup();
 		return EXIT_SUCCESS;
 	}
 
@@ -96,30 +106,27 @@ int main(int argc, char **argv)
 	 * because the configuration file has a pidfile and killwait option.
 	 */
 	if (keyfile_load(!optk) < 0) {
-		conf_free();
+		cleanup();
 		return EXIT_FAILURE;
 	}
 
 	if (optk) {
 		if (daemon_pid_file_kill_wait(SIGINT, killwait) < 0) {
 			daemon_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
-			conf_free();
+			cleanup();
 			return EXIT_FAILURE;
 		}
 		daemon_pid_file_remove();
-		conf_free();
+		cleanup();
 		return EXIT_SUCCESS;
 	}
 
-	/* Call conf_free() on exit to free allocated data */
-	g_atexit(conf_free);
-
 	if (optnd) {
 		/* Connect and start the main loop */
+		g_atexit(cleanup);
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
-		g_main_loop_unref(loop);
 		return EXIT_SUCCESS;
 	}
 
@@ -137,6 +144,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	else if (pid != 0) { /* Parent */
+		cleanup();
+
 		if ((ret = daemon_retval_wait(2)) < 0) {
 			daemon_log(LOG_ERR, "Could not receive return value from daemon process: %s",
 					strerror(errno));
@@ -162,11 +171,13 @@ int main(int argc, char **argv)
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
+		/* Register cleanup function */
+		daemonized = 1;
+		g_atexit(cleanup);
 		/* Connect and start the main loop */
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
-		g_main_loop_unref(loop);
 		return EXIT_SUCCESS;
 	}
 	return EXIT_SUCCESS;

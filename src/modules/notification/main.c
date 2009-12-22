@@ -91,12 +91,12 @@ static void song_changed(const struct mpd_song *song)
 	g_free(cpath);
 }
 
-static song_started(const struct mpd_song *song)
+static void song_started(const struct mpd_song *song)
 {
 	song_changed(song);
 }
 
-static song_playing(const struct mpd_song *song, unsigned elapsed)
+static void song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {

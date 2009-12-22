@@ -121,5 +121,5 @@ void as_save_cache(void);
 char *as_timestamp(void);
 
 int file_load(GKeyFile *fd, GSList **scrobblers_ptr);
-void vlog(int level, const char *fmt, ...);
+void vlog(int level, const char *fmt, ...) G_GNUC_PRINTF(2,3);
 #endif /* !MPDCRON_GUARD_SCROBBLER_DEFS_H */

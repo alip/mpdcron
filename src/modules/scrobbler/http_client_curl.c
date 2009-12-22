@@ -126,8 +126,8 @@ http_client_update_fds(void)
 
 	mcode = curl_multi_fdset(http_client.multi, &rfds, &wfds, &efds, &max_fd);
 	if (mcode != CURLM_OK) {
-		vlog(LOG_WARNING, "%scurl_multi_fdset() failed: %s\n",
-			  optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_WARNING, "%scurl_multi_fdset() failed: %s\n",
+			  SCROBBLER_LOG_PREFIX,
 			  curl_multi_strerror(mcode));
 		return;
 	}
@@ -222,8 +222,8 @@ static void http_request_done(struct http_request *request, CURLcode result)
 	if (result == CURLE_OK)
 		request->callback(request->body->len, request->body->str, request->callback_data);
 	else {
-		vlog(LOG_WARNING, "%scurl failed: %s",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_WARNING, "%scurl failed: %s",
+				SCROBBLER_LOG_PREFIX,
 				request->error);
 		request->callback(0, NULL, request->callback_data);
 	}
@@ -267,8 +267,8 @@ static bool http_multi_perform(void)
 	} while (mcode == CURLM_CALL_MULTI_PERFORM);
 
 	if (mcode != CURLM_OK && mcode != CURLM_CALL_MULTI_PERFORM) {
-		vlog(LOG_WARNING, "%scurl_multi_perform() failed: %s\n",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_WARNING, "%scurl_multi_perform() failed: %s\n",
+				SCROBBLER_LOG_PREFIX,
 				curl_multi_strerror(mcode));
 		http_client_abort_all_requests();
 		return false;
@@ -331,16 +331,16 @@ int http_client_init(void)
 {
 	CURLcode code = curl_global_init(CURL_GLOBAL_ALL);
 	if (code != CURLE_OK) {
-		vlog(LOG_ERR, "%scurl_global_init() failed: %s",
-			optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_ERR, "%scurl_global_init() failed: %s",
+			SCROBBLER_LOG_PREFIX,
 			curl_easy_strerror(code));
 		return -1;
 	}
 
 	http_client.multi = curl_multi_init();
 	if (http_client.multi == NULL) {
-		vlog(LOG_ERR, "%scurl_multi_init() failed",
-				optnd ? "" : SCROBBLER_LOG_PREFIX);
+		daemon_log(LOG_ERR, "%scurl_multi_init() failed",
+				SCROBBLER_LOG_PREFIX);
 		return -1;
 	}
 

@@ -34,14 +34,9 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-#define ANSI_NORMAL         "[00;00m"
-#define ANSI_MAGENTA        "[00;35m"
-#define ANSI_DARK_MAGENTA   "[01;35m"
-
 /* Configuration variables */
 int optnd = 0;
 char *proxy = NULL;
-static int colour = 1;
 static GSList *scrobblers = NULL;
 
 /* Globals */
@@ -54,28 +49,6 @@ static GTimer *timer = NULL;
 int mpdcron_init(int nodaemon, GKeyFile *fd);
 void mpdcron_close(void);
 int mpdcron_run(const struct mpd_connection *conn, const struct mpd_song *song, const struct mpd_status *status);
-
-/* Utility functions */
-void vlog(int level, const char *fmt, ...)
-{
-	va_list args;
-
-	if (!optnd) {
-		va_start(args, fmt);
-		daemon_logv(level, fmt, args);
-		va_end(args);
-		return;
-	}
-
-	fprintf(stderr, "%s", colour ? ANSI_DARK_MAGENTA : "");
-
-	va_start(args, fmt);
-	daemon_logv(level, fmt, args);
-	va_end(args);
-
-	fprintf(stderr, "%s", colour ? ANSI_NORMAL : "");
-	fflush(stderr);
-}
 
 static bool played_long_enough(int elapsed, int length)
 {
@@ -100,16 +73,16 @@ static void song_changed(const struct mpd_song *song)
 	assert(song != NULL);
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		vlog(LOG_INFO, "%snew song detected with tags missing (%s)",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_INFO, "%snew song detected with tags missing (%s)",
+				SCROBBLER_LOG_PREFIX,
 				mpd_song_get_uri(song));
 		g_timer_start(timer);
 		return;
 	}
 	g_timer_start(timer);
 
-	vlog(LOG_DEBUG, "%snew song detected (%s - %s), id: %u, pos: %u",
-			optnd ? "" : SCROBBLER_LOG_PREFIX,
+	daemon_log(LOG_DEBUG, "%snew song detected (%s - %s), id: %u, pos: %u",
+			SCROBBLER_LOG_PREFIX,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -135,22 +108,22 @@ static void song_ended(const struct mpd_song *song)
 
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		vlog(LOG_INFO, "%ssong (%s) has missing tags, skipping",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_INFO, "%ssong (%s) has missing tags, skipping",
+				SCROBBLER_LOG_PREFIX,
 				mpd_song_get_uri(song));
 		return;
 	}
 	else if (!played_long_enough(elapsed, mpd_song_get_duration(song))) {
-		vlog(LOG_INFO, "%ssong (%s - %s), id: %u, pos: %u not played long enough, skipping",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_INFO, "%ssong (%s - %s), id: %u, pos: %u not played long enough, skipping",
+				SCROBBLER_LOG_PREFIX,
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 				mpd_song_get_id(song), mpd_song_get_pos(song));
 		return;
 	}
 
-	vlog(LOG_DEBUG, "%ssubmitting old song (%s - %s), id: %u, pos: %u",
-			optnd ? "" : SCROBBLER_LOG_PREFIX,
+	daemon_log(LOG_DEBUG, "%ssubmitting old song (%s - %s), id: %u, pos: %u",
+			SCROBBLER_LOG_PREFIX,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -172,7 +145,7 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	int prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (song_repeated(song, elapsed, prev_elapsed)) {
-		vlog(LOG_DEBUG, "%srepeated song detected", optnd ? "" : SCROBBLER_LOG_PREFIX);
+		daemon_log(LOG_DEBUG, "%srepeated song detected", SCROBBLER_LOG_PREFIX);
 		song_ended(song);
 		song_started(song);
 	}
@@ -266,8 +239,8 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 	if (song != NULL) {
 		if ((prev = mpd_song_dup(song)) == NULL) {
-			vlog(LOG_ERR, "%smpd_song_dup failed: out of memory",
-					optnd ? "" : SCROBBLER_LOG_PREFIX);
+			daemon_log(LOG_ERR, "%smpd_song_dup failed: out of memory",
+					SCROBBLER_LOG_PREFIX);
 			return MODULE_RETVAL_UNLOAD;
 		}
 	}

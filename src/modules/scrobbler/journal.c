@@ -53,8 +53,8 @@ bool journal_write(const char *path, GQueue *queue)
 
 	handle = fopen(path, "wb");
 	if (!handle) {
-		vlog(LOG_WARNING, "%sFailed to save %s: %s\n",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_WARNING, "%sFailed to save %s: %s\n",
+				SCROBBLER_LOG_PREFIX,
 				path, g_strerror(errno));
 		return false;
 	}
@@ -100,8 +100,8 @@ import_old_timestamp(const char *p)
 	if (strlen(p) <= 10 || p[10] != ' ')
 		return NULL;
 
-	vlog(LOG_DEBUG, "%simporting time stamp '%s'",
-			optnd ? "" : SCROBBLER_LOG_PREFIX, p);
+	daemon_log(LOG_DEBUG, "%simporting time stamp '%s'",
+			SCROBBLER_LOG_PREFIX, p);
 
 	/* replace a space with 'T', as expected by
 	   g_time_val_from_iso8601() */
@@ -111,11 +111,11 @@ import_old_timestamp(const char *p)
 	success = g_time_val_from_iso8601(q, &time_val);
 	g_free(q);
 	if (!success) {
-		vlog(LOG_DEBUG, "%simport of '%s' failed", optnd ? "" : SCROBBLER_LOG_PREFIX, p);
+		daemon_log(LOG_DEBUG, "%simport of '%s' failed", SCROBBLER_LOG_PREFIX, p);
 		return NULL;
 	}
 
-	vlog(LOG_DEBUG, "%s'%s' -> %ld", optnd ? "" : SCROBBLER_LOG_PREFIX, p, time_val.tv_sec);
+	daemon_log(LOG_DEBUG, "%s'%s' -> %ld", SCROBBLER_LOG_PREFIX, p, time_val.tv_sec);
 	return g_strdup_printf("%ld", time_val.tv_sec);
 }
 
@@ -151,8 +151,8 @@ void journal_read(const char *path, GQueue *queue)
 			/* ENOENT is ignored silently, because the
 			 * user might be starting mpdcron for the
 			 * first time */
-			vlog(LOG_WARNING, "%sFailed to load %s: %s",
-					optnd ? "" : SCROBBLER_LOG_PREFIX,
+			daemon_log(LOG_WARNING, "%sFailed to load %s: %s",
+					SCROBBLER_LOG_PREFIX,
 					path, g_strerror(errno));
 		return;
 	}

@@ -36,8 +36,8 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	scrobbler->name = g_strdup(grp);
 	scrobbler->url = g_key_file_get_string(fd, grp, "url", &cerr);
 	if (cerr != NULL) {
-		vlog(LOG_ERR, "%serror while reading url from group %s: %s",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_ERR, "%serror while reading url from group %s: %s",
+				SCROBBLER_LOG_PREFIX,
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -45,8 +45,8 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	}
 	scrobbler->username = g_key_file_get_string(fd, grp, "username", &cerr);
 	if (cerr != NULL) {
-		vlog(LOG_ERR, "%serror while reading username from group %s: %s",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_ERR, "%serror while reading username from group %s: %s",
+				SCROBBLER_LOG_PREFIX,
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -54,8 +54,8 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	}
 	scrobbler->password = g_key_file_get_string(fd, grp, "password", &cerr);
 	if (cerr != NULL) {
-		vlog(LOG_ERR, "%serror while reading password from group %s: %s",
-				optnd ? "" : SCROBBLER_LOG_PREFIX,
+		daemon_log(LOG_ERR, "%serror while reading password from group %s: %s",
+				SCROBBLER_LOG_PREFIX,
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -92,9 +92,9 @@ int file_load(GKeyFile *fd, GSList **scrobblers_ptr)
 	}
 
 	if (s == 0) {
-		vlog(LOG_ERR,
+		daemon_log(LOG_ERR,
 			"%sneither last.fm nor libre.fm group defined",
-			optnd ? "" : SCROBBLER_LOG_PREFIX);
+			SCROBBLER_LOG_PREFIX);
 		return -1;
 	}
 

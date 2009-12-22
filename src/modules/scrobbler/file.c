@@ -33,6 +33,9 @@ static struct scrobbler_config *file_load_scrobbler(GKeyFile *fd, const char *gr
 	struct scrobbler_config *scrobbler = g_new(struct scrobbler_config, 1);
 	GError *cerr = NULL;
 
+	if (!g_key_file_has_group(fd, grp))
+		return NULL;
+
 	scrobbler->name = g_strdup(grp);
 	scrobbler->url = g_key_file_get_string(fd, grp, "url", &cerr);
 	if (cerr != NULL) {

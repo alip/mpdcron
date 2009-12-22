@@ -345,9 +345,9 @@ int http_client_init(void)
 	}
 
 	http_client.source = g_source_new(&curl_source_funcs,
-					  sizeof(*http_client.source));
+			sizeof(*http_client.source));
 	http_client.source_id = g_source_attach(http_client.source,
-						g_main_context_default());
+			g_main_context_default());
 	return 0;
 }
 

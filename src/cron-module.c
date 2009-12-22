@@ -144,6 +144,46 @@ static void module_close_list(GSList **list)
 	*list = NULL;
 }
 
+static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slink, GSList **slist)
+{
+	closefunc_t closefunc = NULL;
+
+	switch (ret) {
+		case MPDCRON_RUN_RETVAL_SUCCESS:
+			return 0;
+		case MPDCRON_RUN_RETVAL_RECONNECT:
+			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect (event: %s)",
+					mod->user ? "User" : "Standard",
+					mod->path, mpd_idle_name(mod->event));
+			return -1;
+		case MPDCRON_RUN_RETVAL_RECONNECT_NOW:
+			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW! (event: %s)",
+					mod->user ? "User" : "Standard",
+					mod->path, mpd_idle_name(mod->event));
+			return -1;
+		case MPDCRON_RUN_RETVAL_UNLOAD:
+			daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s)",
+					mod->user ? "user" : "standard",
+					mod->path, mpd_idle_name(mod->event));
+			/* Run the close function if there's any */
+			if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
+						(gpointer *)&closefunc) && closefunc != NULL)
+				closefunc();
+			*slist = g_slist_remove_link(*slist, *slink);
+			g_free(mod->path);
+			g_module_close(mod->module);
+			g_free(mod);
+			g_slist_free(*slink);
+			*slink = *slist;
+			return 0;
+		default:
+			daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+					mod->user ? "user" : "standard",
+					mod->path, mpd_idle_name(mod->event), ret);
+			return 0;
+	}
+}
+
 int module_load(int event, const char *modname, GKeyFile *config_fd)
 {
 	GSList **list_ptr = NULL;
@@ -198,7 +238,6 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	database_func_t func = NULL;
 
 	ret = 0;
@@ -206,33 +245,9 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, stats);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_database = g_slist_remove_link(modules_database, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_database;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -243,7 +258,6 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	stored_playlist_func_t func = NULL;
 
 	ret = 0;
@@ -251,33 +265,9 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_stored_playlist = g_slist_remove_link(modules_stored_playlist, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_stored_playlist;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -288,7 +278,6 @@ int module_queue_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	queue_func_t func = NULL;
 
 	ret = 0;
@@ -296,33 +285,9 @@ int module_queue_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_queue = g_slist_remove_link(modules_queue, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_queue;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -334,7 +299,6 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	player_func_t func = NULL;
 
 	ret = 0;
@@ -342,33 +306,9 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, song, status);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_player = g_slist_remove_link(modules_player, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_player;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -379,7 +319,6 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	mixer_func_t func = NULL;
 
 	ret = 0;
@@ -387,33 +326,9 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_mixer = g_slist_remove_link(modules_mixer, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_mixer;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -424,7 +339,6 @@ int module_output_run(const struct mpd_connection *conn)
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	output_func_t func = NULL;
 
 	ret = 0;
@@ -432,33 +346,9 @@ int module_output_run(const struct mpd_connection *conn)
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_output = g_slist_remove_link(modules_output, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_output;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -469,7 +359,6 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	options_func_t func = NULL;
 
 	ret = 0;
@@ -477,33 +366,9 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_options = g_slist_remove_link(modules_options, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_options;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;
@@ -514,7 +379,6 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 	int mret, ret;
 	GSList *walk;
 	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
 	update_func_t func = NULL;
 
 	ret = 0;
@@ -522,33 +386,9 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 		mod = (struct mpdcron_module *)walk->data;
 		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
 			mret = func(conn, status);
-			if (mret == MPDCRON_RUN_RETVAL_SUCCESS)
-				continue;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT)
-				ret = -1;
-			else if (mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
-				return -1;
-			else if (mret == MPDCRON_RUN_RETVAL_UNLOAD) {
-				daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s): module returned %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event),
-						MPDCRON_RUN_RETVAL_UNLOAD);
-				/* Run the close function if there's any */
-				if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-							(gpointer *)&closefunc) && closefunc != NULL)
-					closefunc();
-				modules_update = g_slist_remove_link(modules_update, walk);
-				g_free(mod->path);
-				g_module_close(mod->module);
-				g_free(mod);
-				g_slist_free(walk);
-				walk = modules_update;
-				continue;
-			}
-			else
-				daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
-						mod->user ? "user" : "standard",
-						mod->path, mpd_idle_name(mod->event), mret);
+			ret = module_process_ret(mret, mod, &walk, &modules_database);
+			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+				break;
 		}
 	}
 	return ret;

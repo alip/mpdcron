@@ -150,7 +150,7 @@ static void song_ended(const struct mpd_song *song)
 		return;
 	}
 
-	vlog(LOG_DEBUG, "submitting old song (%s - %s), id: %u, pos: %u",
+	vlog(LOG_DEBUG, "%ssubmitting old song (%s - %s), id: %u, pos: %u",
 			optnd ? "" : SCROBBLER_LOG_PREFIX,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
@@ -234,7 +234,7 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return 0;
+		return MODULE_RETVAL_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY)
 		song_stopped();
@@ -269,7 +269,7 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 		if ((prev = mpd_song_dup(song)) == NULL) {
 			vlog(LOG_ERR, "%smpd_song_dup failed: out of memory",
 					optnd ? "" : SCROBBLER_LOG_PREFIX);
-			return -1;
+			return MODULE_RETVAL_UNLOAD;
 		}
 	}
 	return 0;

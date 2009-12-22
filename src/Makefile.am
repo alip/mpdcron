@@ -3,7 +3,7 @@ AM_CFLAGS= -DGITHEAD=\"$(GITHEAD)\" \
 	   -DLIBDIR=\"$(libdir)\" @MPDCRON_CFLAGS@
 
 bin_PROGRAMS= mpdcron
-noinst_HEADERS= cron-defs.h
+noinst_HEADERS= cron-config.h cron-defs.h
 mpdcron_SOURCES= cron-conf.c cron-env.c cron-event.c cron-hooker.c \
 		   cron-keyfile.c cron-loop.c cron-main.c
 if HAVE_MODULE

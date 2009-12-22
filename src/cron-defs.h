@@ -20,34 +20,11 @@
 #ifndef MPDCRON_GUARD_CRON_DEFS_H
 #define MPDCRON_GUARD_CRON_DEFS_H 1
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
+#include "cron-config.h"
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
-
-/* Configuration */
-#define ENV_HOME_DIR		"MPDCRON_DIR"
-#define ENV_MPD_HOST		"MPD_HOST"
-#define ENV_MPD_PORT		"MPD_PORT"
-#define ENV_MPD_PASSWORD	"MPD_PASSWORD"
-
-#define DOT_MPDCRON			"." PACKAGE
-#define DOT_HOOKS			"hooks"
-#define DOT_MODULES			"modules"
-
-#define MODULE_INIT_FUNC		"mpdcron_init"
-#define MODULE_CLOSE_FUNC		"mpdcron_close"
-#define MODULE_RUN_FUNC			"mpdcron_run"
-
-#define DEFAULT_PID_KILL_WAIT	3
-#define DEFAULT_MPD_RECONNECT	5
-#define DEFAULT_MPD_TIMEOUT	0
-
-#define DEFAULT_DATE_FORMAT		"%Y-%m-%d %H-%M-%S %Z"
-#define DEFAULT_DATE_FORMAT_SIZE	64
 
 extern char *home_path;
 extern char *conf_path;

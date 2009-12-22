@@ -66,17 +66,17 @@ dnl }}}
 
 dnl {{{ --enable-modules
 AC_MSG_CHECKING([whether module support is wanted])
-AC_ARG_ENABLE([modules],
-			  [AS_HELP_STRING([--enable-modules],
-							  [enable support for modules (via GModule)])],
-			  WANT_MODULE="$enableval",
-			  WANT_MODULE="no")
-AC_MSG_RESULT([$WANT_MODULE])
-AM_CONDITIONAL(HAVE_MODULE, test x"$WANT_MODULE" = x"yes")
-if test x"$WANT_MODULE" = x"yes"; then
+AC_ARG_ENABLE([gmodule],
+			  [AS_HELP_STRING([--enable-gmodule],
+							  [enable support for C modules (via GModule)])],
+			  WANT_GMODULE="$enableval",
+			  WANT_GMODULE="no")
+AC_MSG_RESULT([$WANT_GMODULE])
+AM_CONDITIONAL(HAVE_GMODULE, test x"$WANT_GMODULE" = x"yes")
+if test x"$WANT_GMODULE" = x"yes"; then
 	PKG_CHECK_MODULES([gmodule], [gmodule-2.0 >= $GLIB_REQUIRED],,
 					  [AC_MSG_ERROR([mpdcron requires gmodule-$GLIB_REQUIRED or newer for module support])])
-	AC_DEFINE([HAVE_MODULE], 1, [Define for module support])
+	AC_DEFINE([HAVE_GMODULE], 1, [Define for gmodule support])
 fi
 dnl }}}
 
@@ -93,24 +93,28 @@ AC_ARG_WITH([standard-modules],
 			   [standard_modules=""])
 standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`
 AC_MSG_RESULT([$standard_modules])
-if test x"$WANT_MODULE" != x"yes" && test x"$standard_modules" != x""; then
-	AC_MSG_WARN([Module support is disabled, no standard modules will be built!])
-	standard_modules=""
-fi
 STANDARD_MODULES="$standard_modules"
 AC_SUBST([STANDARD_MODULES])
 WANT_NOTIFICATION=no
 WANT_SCROBBLER=no
 for m in $STANDARD_MODULES ; do
 	if test x"$m" = x"notification" ; then
-		# Notification requires notify-send
-		AC_PATH_PROG([NOTIFY_SEND], [notify-send], [WANT_NOTIFICATION=yes],
-						  AC_MSG_ERROR([notification standard module needs notify-send]))
+		if test x"$WANT_GMODULE" != x"yes"; then
+			AC_MSG_WARN([GModule support is disabled, notification module won't be built])
+		else
+			# Notification requires notify-send
+			AC_PATH_PROG([NOTIFY_SEND], [notify-send], [WANT_NOTIFICATION=yes],
+							  AC_MSG_ERROR([notification standard module needs notify-send]))
+		fi
 	fi
 	if test x"$m" = x"scrobbler" ; then
-		# Scrobbler requires curl.
-		PKG_CHECK_MODULES([libcurl], [libcurl], [WANT_SCROBBLER=yes],
-						  AC_MSG_ERROR([scrobbler standard module requires curl]))
+		if test x"$WANT_GMODULE" != x"yes"; then
+			AC_MSG_WARN([GModule support is disabled, scrobbler module won't be built])
+		else
+			# Scrobbler requires curl.
+			PKG_CHECK_MODULES([libcurl], [libcurl], [WANT_SCROBBLER=yes],
+							  AC_MSG_ERROR([scrobbler standard module requires curl]))
+		fi
 	fi
 done
 AM_CONDITIONAL([WANT_NOTIFICATION], test x"$WANT_NOTIFICATION" = x"yes")
@@ -131,9 +135,9 @@ AM_CONFIG_HEADER(config.h)
 AC_OUTPUT(
 		  Makefile
 		  src/Makefile
-		  src/modules/Makefile
-		  src/modules/notification/Makefile
-		  src/modules/scrobbler/Makefile
+		  src/gmodule/Makefile
+		  src/gmodule/notification/Makefile
+		  src/gmodule/scrobbler/Makefile
 		  data/Makefile
 )
 dnl }}}

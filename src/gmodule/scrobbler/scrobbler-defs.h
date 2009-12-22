@@ -28,7 +28,7 @@
 #endif /* !HAVE_CONFIG_H */
 
 #define MPDCRON_EVENT_PLAYER 1
-#include "../module.h"
+#include "../gmodule.h"
 
 #include <stdbool.h>
 #include <stddef.h>

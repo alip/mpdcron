@@ -38,9 +38,9 @@ static int event_database(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	ret = module_database_run(conn, stats);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	mpd_stats_free(stats);
 	hooker_run_hook(name);
 	return ret;
@@ -60,10 +60,10 @@ static int event_stored_playlist(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	/* TODO: Send some data to the module. */
 	ret = module_stored_playlist_run(conn);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	hooker_run_hook(name);
 	return ret;
 }
@@ -83,10 +83,10 @@ static int event_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	/* TODO: Send some data to the module. */
 	ret = module_queue_run(conn);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	hooker_run_hook(name);
 	return ret;
 }
@@ -108,9 +108,9 @@ static int event_player(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	ret = module_player_run(conn, song, status);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	if (song != NULL)
 		mpd_song_free(song);
 	mpd_status_free(status);
@@ -133,9 +133,9 @@ static int event_mixer(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	ret = module_mixer_run(conn, status);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	mpd_status_free(status);
 	hooker_run_hook(name);
 	return ret;
@@ -155,10 +155,10 @@ static int event_output(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	/* TODO: Send some data to the module. */
 	ret = module_output_run(conn);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	hooker_run_hook(name);
 	return ret;
 }
@@ -178,9 +178,9 @@ static int event_options(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	ret = module_options_run(conn, status);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	mpd_status_free(status);
 	hooker_run_hook(name);
 	return ret;
@@ -201,9 +201,9 @@ static int event_update(struct mpd_connection *conn)
 		return -1;
 
 	ret = 0;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	ret = module_update_run(conn, status);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 	mpd_status_free(status);
 	hooker_run_hook(name);
 	return ret;

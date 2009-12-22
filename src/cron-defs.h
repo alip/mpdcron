@@ -29,9 +29,9 @@
 extern char *home_path;
 extern char *conf_path;
 extern char *pid_path;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 extern char *mod_path;
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 
 extern const char *hostname;
 extern const char *port;
@@ -60,7 +60,7 @@ extern int hooker_run_hook(const char *name);
 extern int keyfile_load(int load_modules);
 extern void loop_connect(void);
 extern void loop_disconnect(void);
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 extern int module_load(int event, const char *modname, GKeyFile *config_fd);
 extern void module_close(void);
 extern int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
@@ -72,6 +72,6 @@ extern int module_mixer_run(const struct mpd_connection *conn, const struct mpd_
 extern int module_output_run(const struct mpd_connection *conn);
 extern int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status);
 extern int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status);
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 
 #endif /* !MPDCRON_GUARD_CRON_DEFS_H */

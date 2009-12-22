@@ -46,6 +46,6 @@
 #define DEFAULT_DATE_FORMAT_SIZE	64
 
 #define MPDCRON_INTERNAL 1
-#include "modules/module.h"
+#include "gmodule/gmodule.h"
 
 #endif /* !MPDCRON_GUARD_CRON_CONFIG_H */

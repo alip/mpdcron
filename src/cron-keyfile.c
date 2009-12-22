@@ -28,18 +28,18 @@ int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
 int keyfile_load(
-#ifndef HAVE_MODULE
+#ifndef HAVE_GMODULE
 		G_GNUC_UNUSED
-#endif /* !HAVE_MODULE */
+#endif /* !HAVE_GMODULE */
 		int load_modules)
 {
 	GKeyFile *config_fd;
 	GError *config_err = NULL;
 	char *optstr;
 	char **events;
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	char **modules;
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 
 	config_fd = g_key_file_new();
 	if (!g_key_file_load_from_file(config_fd, conf_path, G_KEY_FILE_NONE, &config_err)) {
@@ -154,7 +154,7 @@ int keyfile_load(
 		g_strfreev(events);
 	}
 
-#ifdef HAVE_MODULE
+#ifdef HAVE_GMODULE
 	if (!load_modules) {
 		g_key_file_free(config_fd);
 		return 0;
@@ -232,7 +232,7 @@ int keyfile_load(
 			g_strfreev(modules);
 		}
 	}
-#endif /* HAVE_MODULE */
+#endif /* HAVE_GMODULE */
 
 	g_key_file_free(config_fd);
 	return 0;

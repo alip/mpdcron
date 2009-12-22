@@ -84,11 +84,11 @@ dnl {{{ standard modules
 ALL_STANDARD_MODULES="notification scrobbler"
 AC_MSG_CHECKING([which standard modules are wanted])
 AC_ARG_WITH([standard-modules],
-			  [--with-standard-modules=foo,bar,...
+			  [AS_HELP_STRING([--with-standard-modules=foo,bar,...
 			   Build the specified standard modules:
 			   all              Build all available standard modules
 			   notification     Build the notification module
-			   scrobbler        Build the scrobbler module],
+			   scrobbler        Build the scrobbler module])],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
 			   [standard_modules=""])
 standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`

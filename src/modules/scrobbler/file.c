@@ -99,5 +99,7 @@ int file_load(GKeyFile *fd, GSList **scrobblers_ptr)
 	}
 
 	proxy = g_key_file_get_string(fd, "scrobbler", "proxy", NULL);
+	if (proxy == NULL && g_getenv("http_proxy"))
+		proxy = g_strdup(g_getenv("http_proxy"));
 	return 0;
 }

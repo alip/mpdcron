@@ -17,6 +17,11 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/* Notes about the module:
+ * - Unloading this module causes a nasty segfault in glib's mainloop.
+ *   So don't ever return MPDCRON_RUN_RETVAL_UNLOAD from mpdcron_run().
+ */
+
 #include "notification-defs.h"
 
 #include <assert.h>
@@ -55,9 +60,8 @@ static void song_continued(void)
 	g_timer_continue(timer);
 }
 
-static int song_changed(const struct mpd_song *song)
+static void song_changed(const struct mpd_song *song)
 {
-	int ret;
 	char *cpath;
 
 	assert(song != NULL);
@@ -79,28 +83,26 @@ static int song_changed(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	ret = mcnotify_send(hints, urgency, timeout, type, cpath,
+	mcnotify_send(hints, urgency, timeout, type, cpath,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			mpd_song_get_uri(song));
 	g_free(cpath);
-	return ret;
 }
 
-static int song_started(const struct mpd_song *song)
+static song_started(const struct mpd_song *song)
 {
-	return song_changed(song);
+	song_changed(song);
 }
 
-static int song_playing(const struct mpd_song *song, unsigned elapsed)
+static song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
 		daemon_log(LOG_DEBUG, "%srepeated song detected", NOTIFICATION_LOG_PREFIX);
-		return song_started(song);
+		song_started(song);
 	}
-	return 0;
 }
 
 int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
@@ -160,14 +162,12 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 	if (song != NULL) {
 		if (mpd_song_get_id(song) != last_id) {
 			/* New song */
-			if (song_started(song) < 0)
-				return MPDCRON_RUN_RETVAL_UNLOAD;
+			song_started(song);
 			last_id = mpd_song_get_id(song);
 		}
 		else {
 			/* Still playing the previous song */
-			if (song_playing(song, mpd_status_get_elapsed_time(status)) < 0)
-				return MPDCRON_RUN_RETVAL_UNLOAD;
+			song_playing(song, mpd_status_get_elapsed_time(status));
 		}
 	}
 

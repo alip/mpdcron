@@ -90,7 +90,7 @@ int mcnotify_init(void)
 	return 0;
 }
 
-int mcnotify_send(char **hints, const char *urgency, const char *timeout,
+void mcnotify_send(char **hints, const char *urgency, const char *timeout,
 		const char *type, const char *cover,
 		const char *artist, const char *title,
 		const char *album, const char *uri)
@@ -137,17 +137,15 @@ int mcnotify_send(char **hints, const char *urgency, const char *timeout,
 						NOTIFICATION_LOG_PREFIX,
 						hints[i]);
 				g_strfreev(tokens);
-				return -1;
+				continue;
 			}
 
 			if (!mcnotify_set_hint_variant(not,
 						tokens[0], tokens[1], tokens[3], &hint_error)) {
-				daemon_log(LOG_ERR, "%ssetting hint variant `%s' failed: %s",
+				daemon_log(LOG_WARNING, "%ssetting hint variant `%s' failed: %s",
 						NOTIFICATION_LOG_PREFIX,
 						hints[i], hint_error->message);
 				g_error_free(hint_error);
-				g_strfreev(tokens);
-				return -1;
 			}
 			g_strfreev(tokens);
 		}
@@ -155,5 +153,4 @@ int mcnotify_send(char **hints, const char *urgency, const char *timeout,
 
 	notify_notification_show(not, NULL);
 	g_object_unref(G_OBJECT(not));
-	return 0;
 }

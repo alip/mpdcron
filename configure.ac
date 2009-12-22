@@ -64,7 +64,7 @@ PKG_CHECK_MODULES([libmpdclient], [libmpdclient >= $LIBMPDCLIENT_REQUIRED],,
 				  [AC_MSG_ERROR([mpdcron requires libmpdclient-$LIBMPDCLIENT_REQUIRED or newer])])
 dnl }}}
 
-dnl {{{ --enable-modules
+dnl {{{ --enable-gmodule
 AC_MSG_CHECKING([whether module support is wanted])
 AC_ARG_ENABLE([gmodule],
 			  [AS_HELP_STRING([--enable-gmodule],
@@ -103,8 +103,12 @@ for m in $STANDARD_MODULES ; do
 			AC_MSG_WARN([GModule support is disabled, notification module won't be built])
 		else
 			# Notification requires notify-send
-			AC_PATH_PROG([NOTIFY_SEND], [notify-send], [WANT_NOTIFICATION=yes],
-							  AC_MSG_ERROR([notification standard module needs notify-send]))
+			AC_CHECK_PROGS(NOTIFY_SEND, notify-send, )
+			if test x"$NOTIFY_SEND" = x; then
+				AC_MSG_ERROR([notification standard module requires notify-send])
+			else
+				WANT_NOTIFICATION=yes
+			fi
 		fi
 	fi
 	if test x"$m" = x"scrobbler" ; then

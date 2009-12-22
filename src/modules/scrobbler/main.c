@@ -272,5 +272,5 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 			return MODULE_RETVAL_UNLOAD;
 		}
 	}
-	return 0;
+	return MODULE_RETVAL_SUCCESS;
 }

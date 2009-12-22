@@ -202,12 +202,53 @@ const struct mpd_status *);
 \f[B]update\f[]: int mpdcron_run(const struct mpd_connection *,
 const struct mpd_status *);
 .PP
-mpdcron_run() function should return zero on success.
-If non-zero is returned mpdcron stops running modules and
-immediately schedules a reconnection to the mpd server.
-.PP
-Modules may also define mpdcron_init() and mpdcron_close()
-functions to initialize and finalize.
+Here are mpdcron_run()'s defined return
+values:
+.PD 0
+.P
+.PD
+
+.PD 0
+.P
+.PD
+enum module_retval
+{
+.PD 0
+.P
+.PD
+MODULE_RETVAL_SUCCESS = 0, /** Success
+**/
+.PD 0
+.P
+.PD
+MODULE_RETVAL_RECONNECT, /** Schedule a
+reconnection to mpd server
+**/
+.PD 0
+.P
+.PD
+MODULE_RETVAL_RECONNECT_NOW, /** Schedule a
+reconnection to mpd server immediately.
+**/
+.PD 0
+.P
+.PD
+MODULE_RETVAL_UNLOAD, /** Unload the module
+**/
+.PD 0
+.P
+.PD
+};
+.PD 0
+.P
+.PD
+
+.PD 0
+.P
+.PD
+Modules may also
+define mpdcron_init() and mpdcron_close() functions to initialize
+and finalize.
 The prototypes are:
 .IP \[bu] 2
 int mpdcron_init(int, GKeyFile *);

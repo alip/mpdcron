@@ -83,9 +83,15 @@ on the event like below:
 - **options**: int mpdcron\_run(const struct mpd\_connection \*, const struct mpd\_status \*);
 - **update**: int mpdcron\_run(const struct mpd\_connection \*, const struct mpd_status \*);
 
-mpdcron\_run() function should return zero on success. If non-zero is returned mpdcron stops running
-modules and immediately schedules a reconnection to the mpd server.
-
+Here are mpdcron\_run()'s defined return values:\
+\
+enum module_retval {\
+MODULE_RETVAL_SUCCESS = 0, /\*\* Success \*\*/\
+MODULE_RETVAL_RECONNECT, /\*\* Schedule a reconnection to mpd server \*\*/\
+MODULE_RETVAL_RECONNECT_NOW, /\*\* Schedule a reconnection to mpd server immediately. \*\*/\
+MODULE_RETVAL_UNLOAD, /\*\* Unload the module \*\*/\
+};\
+\
 Modules may also define mpdcron_init() and mpdcron_close() functions to initialize and finalize.
 The prototypes are:
 

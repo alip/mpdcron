@@ -46,10 +46,10 @@
 #define DEFAULT_DATE_FORMAT_SIZE	64
 
 enum module_retval {
-	MODULE_RETVAL_SUCCESS = 0,
-	MODULE_RETVAL_RECONNECT,
-	MODULE_RETVAL_RECONNECT_NOW,
-	MODULE_RETVAL_UNLOAD,
+	MODULE_RETVAL_SUCCESS = 0, /** Success **/
+	MODULE_RETVAL_RECONNECT, /** Schedule a reconnection to mpd server **/
+	MODULE_RETVAL_RECONNECT_NOW, /** Schedule a reconnection to mpd server immediately. **/
+	MODULE_RETVAL_UNLOAD, /** Unload the module **/
 };
 
 #endif /* !MPDCRON_GUARD_CRON_CONFIG_H */

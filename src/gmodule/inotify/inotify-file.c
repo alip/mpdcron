@@ -84,6 +84,7 @@ static bool load_integer(GKeyFile *fd, const char *name, int *value_r)
 			g_error_free(e);
 			return false;
 		}
+		g_error_free(e);
 	}
 
 	*value_r = value;
@@ -108,6 +109,7 @@ static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 			g_error_free(e);
 			return false;
 		}
+		g_error_free(e);
 	}
 
 	*value_r = value;

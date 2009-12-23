@@ -23,7 +23,8 @@ Configuration file is in standard .ini format.
     # Default is 3 seconds.
     killwait = 3
     [mpd]
-    # Semicolon delimited list of events to wait for. By default mpdcron waits for all events.
+    # Semicolon delimited list of events to wait for.
+    # By default mpdcron waits for all events.
     # Valid events are:
     # database: Song database has been updated.
     # stored_playlist*: A stored playlist has been modified, created, deleted or renamed.

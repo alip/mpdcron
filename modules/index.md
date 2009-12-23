@@ -9,7 +9,7 @@ MPDCRON\_DIR/modules/ where **MPDCRON\_DIR** is ~/.mpdcron by default. Next it
 looks at LIBDIR/mpdcron-VERSION/modules where **LIBDIR** is /usr/lib on most
 systems.
 
-## Configuration
+### Configuration
 To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your configuration file:
 
     [player]

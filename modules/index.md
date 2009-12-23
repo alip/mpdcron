@@ -16,4 +16,9 @@ To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your co
     # modules is a semicolon delimited list of modules to load.
     modules = notification;scrobbler
 
+### Writing Modules
+Check [mpdcron/gmodule.h](/mpdcron/modules/gmodule.html) and
+[example.c](/mpdcron/modules/example.html) to learn how to write
+<tt>mpdcron</tt> modules.
+
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

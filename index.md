@@ -7,6 +7,7 @@ title: mpdcron mpd client
 [mpdcron](/mpdcron) is a cron like daemon for [mpd](http://mpd.wikia.com/).
 
 ### Features
+
 - <tt>mpdcron</tt> uses <tt>mpd</tt>'s idle mode.
 - <tt>mpdcron</tt> calls hooks depending on the event.
 - <tt>mpdcron</tt> sets special environment variables to pass data to the hooks.

@@ -67,8 +67,7 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     [libre.fm]
     url = http://turtle.libre.fm
     username = <libre.fm username here>
-    # Password can be specified in two ways: either bare or in the form
-    # md5:MD5_HASH
+    # Password can be specified in two ways: either bare or in the form md5:MD5_HASH
     password = <libre.fm password here>
 
     [last.fm]

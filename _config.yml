@@ -8,6 +8,6 @@ pygments: true
 lsi: true
 
 # Custom variables
-title: "mpdcron mpd client"
+title: "mpdcron"
 url: http://alip.github.com/mpdcron
 

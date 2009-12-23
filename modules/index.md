@@ -10,7 +10,7 @@ looks at LIBDIR/mpdcron-VERSION/modules where **LIBDIR** is /usr/lib on most
 systems.
 
 ## Configuration
-To load module <tt>notification</tt> <tt>notification</tt> add this to your configuration file:
+To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your configuration file:
 
     [player]
     # modules is a semicolon delimited list of modules to load.

@@ -42,12 +42,13 @@ static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 
 	value = g_key_file_get_string(fd, "scrobbler", name, &e);
 	if (e != NULL) {
-		if (e->code  != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
+		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
 			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
 					SCROBBLER_LOG_PREFIX, name, e->message);
 			g_error_free(e);
 			return false;
 		}
+		g_error_free(e);
 	}
 
 	*value_r = value;
@@ -66,12 +67,13 @@ static bool load_integer(GKeyFile *fd, const char *name, int *value_r)
 
 	value = g_key_file_get_integer(fd, "scrobbler", name, &e);
 	if (e != NULL) {
-		if (e->code  != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
+		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
 			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
 					SCROBBLER_LOG_PREFIX, name, e->message);
 			g_error_free(e);
 			return false;
 		}
+		g_error_free(e);
 	}
 
 	*value_r = value;

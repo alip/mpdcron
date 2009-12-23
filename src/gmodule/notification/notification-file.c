@@ -81,6 +81,7 @@ int file_load(GKeyFile *fd)
 			g_error_free(parse_error);
 			return -1;
 		}
+		g_error_free(parse_error);
 	}
 
 	if (file_config.cover_path == NULL && g_getenv("HOME") != NULL)

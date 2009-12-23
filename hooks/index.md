@@ -22,7 +22,8 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
 
 ### currentsong
 * **MPD\_SONG\_URI**: URI of the song.
-* **MPD\_SONG\_LAST\_MODIFIED**: Time of last modification. (in format: "%Y-%m-%d %H-%M-%S %Z")
+* **MPD\_SONG\_LAST\_MODIFIED**: Time of last modification. 
+  (in format: "%Y-%m-%d %H-%M-%S %Z")
 * **MPD\_SONG\_DURATION**: Duration in seconds of the song.
 * **MPD\_SONG\_POS**: Position of this song in the queue.
 * **MPD\_SONG\_ID**: ID of the song.
@@ -43,7 +44,8 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
 * **MPD\_SONG\_TAG\_MUSICBRAINZ\_ALBUMARTISTID**: Musicbrainz Album artist ID tag of the song.
 * **MPD\_SONG\_TAG\_MUSICBRAINZ\_TRACKID**: Musicbrainz Track ID tag of the song.
 ### stats
-* **MPD\_DATABASE\_UPDATE\_TIME**: A date specifying last update time. (in format: "%Y-%m-%d %H-%M-%S %Z")
+* **MPD\_DATABASE\_UPDATE\_TIME**: A date specifying last update time. 
+  (in format: "%Y-%m-%d %H-%M-%S %Z")
 * **MPD\_DATABASE\_ARTISTS**: Number of artists in the database.
 * **MPD\_DATABASE\_ALBUMS**: Number of albums in the database.
 * **MPD\_DATABASE\_SONGS**: Number of songs in the database.

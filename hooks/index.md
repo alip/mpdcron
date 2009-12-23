@@ -3,6 +3,8 @@ layout: default
 title: Hooks
 ---
 
+## Paths
+
 <tt>mpdcron</tt> executes hooks depending on the event received from
 <tt>mpd</tt>. Hooks are stored under MPDCRON\_DIR/hooks where **MPDCRON\_DIR**
 is ~/.mpdcron by default. Here's a list of hooks and commands run before them: 

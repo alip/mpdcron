@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<title>/usr/src/alip/mpdcron/modules/gmodule.h.html</title>
+<meta name="Generator" content="Vim/7.2">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+</head>
+<body bgcolor="#000000" text="#ffffff"><font face="monospace">
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;1 </font></span><font color="#cd8b00">/* </font><font color="#cd8bff">vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax :</font><font color="#cd8b00">&nbsp;*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;2 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;3 </font></span><font color="#cd8b00">/*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;4 </font></span><font color="#cd8b00">&nbsp;* Copyright (c) 2009 Ali Polatel &lt;alip@exherbo.org&gt;</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;5 </font></span><font color="#cd8b00">&nbsp;*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;6 </font></span><font color="#cd8b00">&nbsp;* This file is part of the mpdcron mpd client. mpdcron is free software;</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;7 </font></span><font color="#cd8b00">&nbsp;* you can redistribute it and/or modify it under the terms of the GNU General</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;8 </font></span><font color="#cd8b00">&nbsp;* Public License version 2, as published by the Free Software Foundation.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;&nbsp;9 </font></span><font color="#cd8b00">&nbsp;*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;10 </font></span><font color="#cd8b00">&nbsp;* mpdcron is distributed in the hope that it will be useful, but WITHOUT ANY</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;11 </font></span><font color="#cd8b00">&nbsp;* WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;12 </font></span><font color="#cd8b00">&nbsp;* FOR A PARTICULAR PURPOSE.&nbsp;&nbsp;See the GNU General Public License for more</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;13 </font></span><font color="#cd8b00">&nbsp;* details.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;14 </font></span><font color="#cd8b00">&nbsp;*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;15 </font></span><font color="#cd8b00">&nbsp;* You should have received a copy of the GNU General Public License along with</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;16 </font></span><font color="#cd8b00">&nbsp;* this program; if not, write to the Free Software Foundation, Inc., 59 Temple</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;17 </font></span><font color="#cd8b00">&nbsp;* Place, Suite 330, Boston, MA&nbsp;&nbsp;02111-1307&nbsp;&nbsp;USA</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;18 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;19 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;20 </font></span><font color="#00cd8b">#ifndef MPDCRON_GUARD_MODULE_H</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;21 </font></span><font color="#00cd8b">#define MPDCRON_GUARD_MODULE_H </font><font color="#ff8b8b">1</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;22 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;23 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">&nbsp;IMPORTANT:</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;24 </font></span><font color="#cd8b00">&nbsp;* Before including this header #define exactly one of the following:</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;25 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_DATABASE</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;26 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_STORED_PLAYLIST</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;27 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_QUEUE</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;28 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_PLAYER</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;29 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_MIXER</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;30 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_OUTPUT</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;31 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_OPTIONS</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;32 </font></span><font color="#cd8b00">&nbsp;* MPDCRON_EVENT_UPDATE</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;33 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;34 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;35 </font></span><font color="#00cd8b">#include </font><span style="background-color: #5c5c5c"><font color="#ffcd8b">&lt;glib.h&gt;</font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;36 </font></span><font color="#00cd8b">#include </font><span style="background-color: #5c5c5c"><font color="#ffcd8b">&lt;mpd/client.h&gt;</font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;37 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;38 </font></span><font color="#ff8bff">enum</font>&nbsp;mpdcron_init_retval {<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;39 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_INIT_RETVAL_SUCCESS = <font color="#ff8b8b">0</font>,<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;40 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_INIT_RETVAL_FAILURE,<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;41 </font></span>};<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;42 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;43 </font></span><font color="#ff8bff">enum</font>&nbsp;mpdcron_run_retval {<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;44 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_RUN_RETVAL_SUCCESS = <font color="#ff8b8b">0</font>, <font color="#cd8b00">/*</font><font color="#cd8b00">* Success *</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;45 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_RUN_RETVAL_RECONNECT, <font color="#cd8b00">/*</font><font color="#cd8b00">* Schedule a reconnection to mpd server *</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;46 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_RUN_RETVAL_RECONNECT_NOW, <font color="#cd8b00">/*</font><font color="#cd8b00">* Schedule a reconnection to mpd server immediately. *</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;47 </font></span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MPDCRON_RUN_RETVAL_UNLOAD, <font color="#cd8b00">/*</font><font color="#cd8b00">* Unload the module *</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;48 </font></span>};<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;49 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;50 </font></span><font color="#00cd8b">#ifndef MPDCRON_INTERNAL</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;51 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;52 </font></span><font color="#cd8b00">&nbsp;* Initialize function. This function is called when the module is loaded.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;53 </font></span><font color="#cd8b00">&nbsp;*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;54 </font></span><font color="#cd8b00">&nbsp;* @param nodaemon Non-zero if --no-daemon option is passed to mpdcron.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;55 </font></span><font color="#cd8b00">&nbsp;* @param fd This file descriptor points to mpdcron's configuration file.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;56 </font></span><font color="#cd8b00">&nbsp;*&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Don't call g_key_file_free() on this!</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;57 </font></span><font color="#cd8b00">&nbsp;* @return @see enum mpdcron_init_retval</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;58 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;59 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_init(<font color="#ff8bff">int</font>&nbsp;nodaemon, <font color="#ff8bff">GKeyFile</font>&nbsp;*fd);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;60 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;61 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;62 </font></span><font color="#cd8b00">&nbsp;* Close function. This function is called when the module is unloaded.</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;63 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;64 </font></span><font color="#ff8bff">void</font>&nbsp;mpdcron_close(<font color="#ff8bff">void</font>);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;65 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;66 </font></span><font color="#00cd8b">#if defined(MPDCRON_EVENT_DATABASE)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;67 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;68 </font></span><font color="#cd8b00">&nbsp;* Run function for database event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;69 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;70 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_stats *stats);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;71 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_STORED_PLAYLIST)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;72 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;73 </font></span><font color="#cd8b00">&nbsp;* Run function for stored playlist event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;74 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;75 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;76 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_QUEUE)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;77 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;78 </font></span><font color="#cd8b00">&nbsp;* Run function for queue event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;79 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;80 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;81 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_PLAYER)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;82 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;83 </font></span><font color="#cd8b00">&nbsp;* Run function for player event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;84 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;85 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_song *song, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_status *status);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;86 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_MIXER)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;87 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;88 </font></span><font color="#cd8b00">&nbsp;* Run function for mixer event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;89 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;90 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_status *status);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;91 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_OUTPUT)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;92 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;93 </font></span><font color="#cd8b00">&nbsp;* Run function for output event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;94 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;95 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;96 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_OPTIONS)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;97 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;98 </font></span><font color="#cd8b00">&nbsp;* Run function for options event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">&nbsp;99 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">100 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_status *status);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">101 </font></span><font color="#00cd8b">#elif defined(MPDCRON_EVENT_UPDATE)</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">102 </font></span><font color="#cd8b00">/*</font><font color="#cd8b00">*</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">103 </font></span><font color="#cd8b00">&nbsp;* Run function for update event</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">104 </font></span><font color="#cd8b00">&nbsp;</font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">105 </font></span><font color="#ff8bff">int</font>&nbsp;mpdcron_run(<font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_connection *conn, <font color="#ff8bff">const</font>&nbsp;<font color="#ff8bff">struct</font>&nbsp;mpd_status *status);<br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">106 </font></span><font color="#00cd8b">#else</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">107 </font></span><font color="#00cd8b">#</font><font color="#cd8b8b">error</font><font color="#00cd8b">&nbsp;None of the required MPDCRON_EVENT_* constants were defined!</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">108 </font></span><font color="#00cd8b">#endif</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">109 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">110 </font></span><font color="#00cd8b">#endif</font>&nbsp;<font color="#cd8b00">/*</font><font color="#cd8b00">&nbsp;!MPDCRON_INTERNAL </font><font color="#cd8b00">*/</font><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">111 </font></span><br>
+<span style="background-color: #2e2e2e"><font color="#8b8bff">112 </font></span><font color="#00cd8b">#endif</font>&nbsp;<font color="#cd8b00">/*</font><font color="#cd8b00">&nbsp;!MPDCRON_GUARD_MODULE_H </font><font color="#cd8b00">*/</font><br>
+</font></body>
+</html>
+
+<!-- vim: set et tw=100 ts=2 sts=2 sw=2 : -->

@@ -17,7 +17,7 @@ To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your co
     modules = notification;scrobbler
 
 ### Writing Modules
-Check [mpdcron/gmodule.h](/mpdcron/modules/gmodule.html) and
+Check [mpdcron/gmodule.h](/mpdcron/modules/gmodule.h.html) and
 [example.c](/mpdcron/modules/example.html) to learn how to write
 <tt>mpdcron</tt> modules.
 

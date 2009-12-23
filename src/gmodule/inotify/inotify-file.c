@@ -218,6 +218,7 @@ static bool load_inotify_list(GKeyFile *fd, int events,
 			g_error_free(e);
 			return false;
 		}
+		g_error_free(e);
 	}
 
 	ndirs = 0;

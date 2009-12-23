@@ -1,6 +1,6 @@
 ---
 layout: default
-title: mpdcron mpd client
+title: Home
 ---
 
 ## About

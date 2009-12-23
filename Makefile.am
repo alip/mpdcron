@@ -24,6 +24,8 @@ doc_conf_hooks_DATA= conf/hooks/database conf/hooks/mixer conf/hooks/options \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash \
 	    conf/hooks/submit.rb
+doc_conf_modulesdir=$(docdir)/modules
+doc_conf_modules_DATA= conf/modules/example.c conf/modules/Makefile
 
 checksum: dist
 	@echo "SHA1 $(PACKAGE)-$(VERSION).tar.bz2"

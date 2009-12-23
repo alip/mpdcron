@@ -156,7 +156,6 @@ int main(int argc, char **argv)
 	if (optnd) {
 		/* Connect and start the main loop */
 		loop_connect();
-		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		cleanup();
 		return EXIT_SUCCESS;

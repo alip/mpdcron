@@ -1,4 +1,7 @@
 SUBDIRS= .
+if WANT_INOTIFY
+SUBDIRS+= inotify
+endif
 if WANT_NOTIFICATION
 SUBDIRS+= notification
 endif

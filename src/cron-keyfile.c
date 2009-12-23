@@ -159,7 +159,15 @@ int keyfile_load(
 		g_key_file_free(config_fd);
 		return 0;
 	}
-	/* Load modules */
+
+	/* Load generic modules */
+	if ((modules = g_key_file_get_string_list(config_fd, "generic", "modules", NULL, NULL)) != NULL) {
+		for (unsigned int i = 0; modules[i] != NULL; i++)
+			module_load(-1, modules[i], config_fd);
+		g_strfreev(modules);
+	}
+
+	/* Load event modules */
 	if (idle | MPD_IDLE_DATABASE) {
 		if ((modules = g_key_file_get_string_list(config_fd,
 						mpd_idle_name(MPD_IDLE_DATABASE), "modules",

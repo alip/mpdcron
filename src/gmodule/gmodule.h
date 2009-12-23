@@ -22,6 +22,7 @@
 
 /* IMPORTANT:
  * Before including this header #define exactly one of the following:
+ * MPDCRON_EVENT_GENERIC
  * MPDCRON_EVENT_DATABASE
  * MPDCRON_EVENT_STORED_PLAYLIST
  * MPDCRON_EVENT_QUEUE
@@ -103,6 +104,8 @@ int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *stat
  * Run function for update event
  */
 int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *status);
+#elif defined(MPDCRON_EVENT_GENERIC)
+/* No mpdcron_run() for generic modules */
 #else
 #error None of the required MPDCRON_EVENT_* constants were defined!
 #endif

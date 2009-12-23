@@ -26,6 +26,7 @@
 #include <mpd/client.h>
 
 struct mpdcron_module {
+	int generic;
 	int event;
 	int user;
 	char *path;
@@ -45,6 +46,7 @@ typedef int (*output_func_t) (const struct mpd_connection *conn);
 typedef int (*options_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
 typedef int (*update_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
 
+static GSList *modules_generic = NULL;
 static GSList *modules_database = NULL;
 static GSList *modules_stored_playlist = NULL;
 static GSList *modules_queue = NULL;
@@ -87,12 +89,14 @@ static char *module_path(const char *modname, int *user_r)
 	return NULL;
 }
 
-static int module_load_one(int event, const char *modname, GKeyFile *config_fd, GSList **list_r)
+static int module_load_one(int generic, int event, const char *modname,
+		GKeyFile *config_fd, GSList **list_r)
 {
 	struct mpdcron_module *mod;
 	initfunc_t initfunc = NULL;
 
 	mod = g_new0(struct mpdcron_module, 1);
+	mod->generic = generic;
 	mod->event = event;
 	if ((mod->path = module_path(modname, &(mod->user))) == NULL) {
 		daemon_log(LOG_WARNING, "Error loading module %s: file not found", modname);
@@ -154,17 +158,20 @@ static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slin
 		case MPDCRON_RUN_RETVAL_RECONNECT:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect (event: %s)",
 					mod->user ? "User" : "Standard",
-					mod->path, mpd_idle_name(mod->event));
+					mod->path,
+					mod->generic ? "generic" : mpd_idle_name(mod->event));
 			return -1;
 		case MPDCRON_RUN_RETVAL_RECONNECT_NOW:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW! (event: %s)",
 					mod->user ? "User" : "Standard",
-					mod->path, mpd_idle_name(mod->event));
+					mod->path,
+					mod->generic ? "generic" : mpd_idle_name(mod->event));
 			return -1;
 		case MPDCRON_RUN_RETVAL_UNLOAD:
 			daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s)",
 					mod->user ? "user" : "standard",
-					mod->path, mpd_idle_name(mod->event));
+					mod->path,
+					mod->generic ? "generic" : mpd_idle_name(mod->event));
 			/* Run the close function if there's any */
 			if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 						(gpointer *)&closefunc) && closefunc != NULL)
@@ -179,50 +186,56 @@ static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slin
 		default:
 			daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
 					mod->user ? "user" : "standard",
-					mod->path, mpd_idle_name(mod->event), ret);
+					mod->path,
+					mod->generic ? "generic" : mpd_idle_name(mod->event),
+					ret);
 			return 0;
 	}
 }
 
 int module_load(int event, const char *modname, GKeyFile *config_fd)
 {
-	GSList **list_ptr = NULL;
+	int generic;
+	GSList **list_r = NULL;
 
+	generic = 0;
 	switch (event) {
 		case MPD_IDLE_DATABASE:
-			list_ptr = &modules_database;
+			list_r = &modules_database;
 			break;
 		case MPD_IDLE_STORED_PLAYLIST:
-			list_ptr = &modules_stored_playlist;
+			list_r = &modules_stored_playlist;
 			break;
 		case MPD_IDLE_QUEUE:
-			list_ptr = &modules_queue;
+			list_r = &modules_queue;
 			break;
 		case MPD_IDLE_PLAYER:
-			list_ptr = &modules_player;
+			list_r = &modules_player;
 			break;
 		case MPD_IDLE_MIXER:
-			list_ptr = &modules_mixer;
+			list_r = &modules_mixer;
 			break;
 		case MPD_IDLE_OUTPUT:
-			list_ptr = &modules_output;
+			list_r = &modules_output;
 			break;
 		case MPD_IDLE_OPTIONS:
-			list_ptr = &modules_options;
+			list_r = &modules_options;
 			break;
 		case MPD_IDLE_UPDATE:
-			list_ptr = &modules_update;
+			list_r = &modules_update;
 			break;
 		default:
-			g_assert_not_reached();
+			generic = 1;
+			list_r = &modules_generic;
 			break;
 	}
 
-	return module_load_one(event, modname, config_fd, list_ptr);
+	return module_load_one(generic, event, modname, config_fd, list_r);
 }
 
 void module_close(void)
 {
+	module_close_list(&modules_generic);
 	module_close_list(&modules_database);
 	module_close_list(&modules_stored_playlist);
 	module_close_list(&modules_queue);

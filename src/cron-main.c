@@ -110,6 +110,11 @@ int main(int argc, char **argv)
 	else
 		g_setenv("MCOPT_DAEMONIZE", "1", 1);
 
+	/* Important! Create the loop before parsing configuration because the
+	 * configuration file loads modules and modules may register events.
+	 */
+	loop = g_main_loop_new(NULL, FALSE);
+
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */
@@ -200,7 +205,6 @@ int main(int argc, char **argv)
 		daemon_retval_send(0);
 		/* Connect and start the main loop */
 		loop_connect();
-		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
 		cleanup();
 		return EXIT_SUCCESS;

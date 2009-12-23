@@ -28,7 +28,7 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
-struct config fileconfig;
+struct config file_config;
 
 static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 {

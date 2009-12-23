@@ -9,24 +9,28 @@ MPDCRON\_DIR/modules/ where **MPDCRON\_DIR** is ~/.mpdcron by default. Next it
 looks at LIBDIR/mpdcron-VERSION/modules where **LIBDIR** is /usr/lib on most
 systems.
 
-### Configuration
+## Configuration
 To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your configuration file:
 
     [player]
     # modules is a semicolon delimited list of modules to load.
     modules = notification;scrobbler
 
-### Writing Modules
+## Writing Modules
 Check [mpdcron/gmodule.h](http://github.com/alip/mpdcron/blob/master/src/gmodule/gmodule.h) and
 [example.c](http://github.com/alip/mpdcron/blob/master/conf/modules/example.c) to learn how to write
 <tt>mpdcron</tt> modules.
 
-### Standard Modules
+## Standard Modules
 Here is a list of <tt>mpdcron</tt>'s standard modules:
 
-#### notification
-This module uses **notify-send** to send notifications about the current playing
-song. Here's an example configuration:
+### notification
+
+#### Features
+- Uses notify-send to send notifications.
+- Can detect repeated songs.
+
+#### Configuration
 
     # mpdcron configuration file
     ...
@@ -48,9 +52,16 @@ song. Here's an example configuration:
     # to pass. Valid types are int, double, string and byte
     hints =
 
-#### scrobbler
+### scrobbler
 This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 [Libre.fm](http://libre.fm). Here's an example configuration:
+
+#### Features
+- Uses [libcurl](http://curl.haxx.se/)
+- last.fm protocol 1.2 (including "now playing")
+- supports seeking, crossfading, repeated songs
+
+#### Configuration
 
     # mpdcron configuration file
     ...

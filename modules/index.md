@@ -21,4 +21,59 @@ Check [mpdcron/gmodule.h](http://github.com/alip/mpdcron/blob/master/src/gmodule
 [example.c](http://github.com/alip/mpdcron/blob/master/conf/modules/example.c) to learn how to write
 <tt>mpdcron</tt> modules.
 
+### Standard Modules
+Here is a list of <tt>mpdcron</tt>'s standard modules:
+
+#### notification
+This module uses **notify-send** to send notifications about the current playing
+song. Here's an example configuration:
+
+    # mpdcron configuration file
+    ...
+    [player]
+    modules = notification
+
+    [notification]
+    # Covers path, defaults to ~/.covers
+    cover_path = /path/to/cover/path
+    # Cover suffix, defaults to jpg
+    cover_suffix = png
+    # Notification timeout in milliseconds.
+    timeout = 50000
+    # Notification type
+    type = mpd
+    # Notification urgency, one of low, normal, critical
+    urgency = normal
+    # Notification hints in format TYPE:NAME:VALUE, specifies basic extra data
+    # to pass. Valid types are int, double, string and byte
+    hints =
+
+#### scrobbler
+This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
+[Libre.fm](http://libre.fm). Here's an example configuration:
+
+    # mpdcron configuration file
+    ...
+    [player]
+    modules = scrobbler
+
+    [scrobbler]
+    # Http proxy to use, the module also respect http_proxy environment
+    # variable.
+    proxy = http://127.0.0.1:8080
+    # Journal interval in seconds
+    journal_interval = 60
+
+    [libre.fm]
+    url = http://turtle.libre.fm
+    username = <libre.fm username here>
+    # Password can be specified in two ways: either bare or in the form
+    # md5:MD5_HASH
+    password = <libre.fm password here>
+
+    [last.fm]
+    url = http://post.audioscrobbler.com
+    username = <last.fm username here>
+    password = <last.fm password here>
+
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

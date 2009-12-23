@@ -1,0 +1,13 @@
+# alip's jekyll config
+# vim: set ft=yaml et ts=2 sts=2 :
+
+# Configuration
+markdown: maruku
+permalink: "/:year/:month/:day/:title"
+pygments: true
+lsi: true
+
+# Custom variables
+title: "mpdcron mpd client"
+url: http://alip.github.com/mpdcron
+

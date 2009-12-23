@@ -21,13 +21,13 @@
 
 #include <glib.h>
 
-char *cover_find(const char *path, const char *suffix, const char *artist, const char *album)
+char *cover_find(const char *artist, const char *album)
 {
 	char *cfile;
 	char *cpath;
 
-	cfile = g_strdup_printf("%s-%s.%s", artist, album, suffix);
-	cpath = g_build_filename(path, cfile, NULL);
+	cfile = g_strdup_printf("%s-%s.%s", artist, album, file_config.cover_suffix);
+	cpath = g_build_filename(file_config.cover_path, cfile, NULL);
 	g_free(cfile);
 
 	if (g_file_test(cpath, G_FILE_TEST_EXISTS))

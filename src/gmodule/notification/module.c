@@ -33,10 +33,7 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-int optnd = 0;
 static bool was_paused;
-static char *cover_path, *cover_suffix, *timeout, *type, *urgency;
-static char **hints;
 static unsigned last_id = -1;
 static GTimer *timer = NULL;
 
@@ -66,15 +63,14 @@ static void song_changed(const struct mpd_song *song)
 	assert(song != NULL);
 	g_timer_start(timer);
 
-	cpath = cover_find(cover_path, cover_suffix,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+	cpath = cover_find(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
 	if (cpath == NULL)
 		daemon_log(LOG_DEBUG, "%sfailed to find cover for album (%s - %s), suffix: %s",
 				NOTIFICATION_LOG_PREFIX,
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-				cover_suffix);
+				file_config.cover_suffix);
 
 	daemon_log(LOG_DEBUG, "%ssending notify for song (%s - %s), id: %u, pos: %u",
 			NOTIFICATION_LOG_PREFIX,
@@ -82,7 +78,7 @@ static void song_changed(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	mcnotify_send(hints, urgency, timeout, type, cpath,
+	notification_send(cpath,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
@@ -104,28 +100,24 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 	}
 }
 
-int mpdcron_init(int nodaemon, G_GNUC_UNUSED GKeyFile *fd)
+int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 {
-	optnd = nodaemon;
 	was_paused = false;
 	last_id = -1;
 
 	/* Parse configuration */
-	if ((cover_path = g_key_file_get_string(fd, "notification", "cover_path", NULL)) == NULL) {
-		if (g_getenv("HOME") != NULL)
-			cover_path = g_build_filename(g_getenv("HOME"), ".covers", NULL);
-	}
-	if ((cover_suffix = g_key_file_get_string(fd, "notification", "cover_suffix", NULL)) == NULL)
-		cover_suffix = g_strdup("jpg");
-	timeout = g_key_file_get_string(fd, "notification", "timeout", NULL);
-	type = g_key_file_get_string(fd, "notification", "type", NULL);
-	urgency = g_key_file_get_string(fd, "notification", "urgency", NULL);
-	hints = g_key_file_get_string_list(fd, "notification", "hints", NULL, NULL);
+	if (file_load(fd) < 0)
+		return MPDCRON_INIT_RETVAL_FAILURE;
 
 	timer = g_timer_new();
-
 	daemon_log(LOG_INFO, "%sinitialized", NOTIFICATION_LOG_PREFIX);
 	return MPDCRON_INIT_RETVAL_SUCCESS;
+}
+
+void mpdcron_close(void)
+{
+	file_cleanup();
+	g_timer_destroy(timer);
 }
 
 int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -164,16 +156,4 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 
 	return MPDCRON_RUN_RETVAL_SUCCESS;
-}
-
-void mpdcron_close(void)
-{
-	g_free(cover_path);
-	g_free(cover_suffix);
-	g_free(timeout);
-	g_free(type);
-	g_free(urgency);
-	g_strfreev(hints);
-	if (timer != NULL)
-		g_timer_destroy(timer);
 }

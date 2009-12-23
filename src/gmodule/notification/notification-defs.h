@@ -31,13 +31,23 @@
 
 #define NOTIFICATION_LOG_PREFIX		"[notification] "
 
-extern int optnd;
+struct config {
+	char *cover_path;
+	char *cover_suffix;
+	char *timeout;
+	char *type;
+	char *urgency;
+	char **hints;
+};
 
-char *cover_find(const char *path, const char *suffix, const char *artist, const char *album);
+extern struct config file_config;
 
-void mcnotify_send(char **hints, const char *urgency, const char *timeout,
-		const char *type, const char *cover,
-		const char *artist, const char *title,
+char *cover_find(const char *artist, const char *album);
+
+int file_load(GKeyFile *fd);
+void file_cleanup(void);
+
+void notification_send(const char *cover, const char *artist, const char *title,
 		const char *album, const char *uri);
 
 #endif /* !MPDCRON_GUARD_NOTIFICATION_DEFS_H */

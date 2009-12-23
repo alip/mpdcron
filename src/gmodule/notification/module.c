@@ -116,6 +116,7 @@ int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 
 void mpdcron_close(void)
 {
+	daemon_log(LOG_INFO, "%sexiting", NOTIFICATION_LOG_PREFIX);
 	file_cleanup();
 	g_timer_destroy(timer);
 }

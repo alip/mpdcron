@@ -90,5 +90,9 @@ void conf_free(void)
 	g_free(pid_path);
 #ifdef HAVE_GMODULE
 	g_free(mod_path);
+	mod_path = NULL;
 #endif /* HAVE_GMODULE */
+	conf_path = NULL;
+	home_path = NULL;
+	pid_path = NULL;
 }

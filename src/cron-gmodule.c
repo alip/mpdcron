@@ -87,7 +87,7 @@ static char *module_path(const char *modname, int *user)
 	return NULL;
 }
 
-static int module_load_one(int event, const char *modname, GKeyFile *config_fd, GSList **list_ptr)
+static int module_load_one(int event, const char *modname, GKeyFile *config_fd, GSList **list_r)
 {
 	struct mpdcron_module *mod;
 	initfunc_t initfunc = NULL;
@@ -112,8 +112,8 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 	if (g_module_symbol(mod->module, MODULE_INIT_FUNC, (gpointer *)&initfunc) && initfunc != NULL) {
 		if (initfunc(optnd, config_fd) == MPDCRON_INIT_RETVAL_FAILURE) {
 			daemon_log(LOG_WARNING,
-					"Skipped loading module `%s': "MODULE_INIT_FUNC"() returned non-zero",
-					mod->path);
+					"Skipped loading module `%s': "MODULE_INIT_FUNC"() returned %d",
+					mod->path, MPDCRON_INIT_RETVAL_FAILURE);
 			g_free(mod->path);
 			g_module_close(mod->module);
 			g_free(mod);
@@ -121,17 +121,17 @@ static int module_load_one(int event, const char *modname, GKeyFile *config_fd, 
 		}
 	}
 	daemon_log(LOG_DEBUG, "Loaded module `%s'", mod->path);
-	*list_ptr = g_slist_prepend(*list_ptr, mod);
+	*list_r = g_slist_prepend(*list_r, mod);
 	return 0;
 }
 
-static void module_close_list(GSList **list)
+static void module_close_list(GSList **list_r)
 {
 	GSList *walk;
 	struct mpdcron_module *mod;
 	closefunc_t closefunc = NULL;
 
-	for (walk = *list; walk != NULL; walk = g_slist_next(walk)) {
+	for (walk = *list_r; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct mpdcron_module *) walk->data;
 		/* Run the close function if there's any */
 		if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC, (gpointer *)&closefunc) && closefunc != NULL)
@@ -140,11 +140,11 @@ static void module_close_list(GSList **list)
 		g_module_close(mod->module);
 		g_free(mod);
 	}
-	g_slist_free(*list);
-	*list = NULL;
+	g_slist_free(*list_r);
+	*list_r = NULL;
 }
 
-static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slink, GSList **slist)
+static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slink_r, GSList **slist_r)
 {
 	closefunc_t closefunc = NULL;
 
@@ -169,12 +169,12 @@ static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slin
 			if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
 						(gpointer *)&closefunc) && closefunc != NULL)
 				closefunc();
-			*slist = g_slist_remove_link(*slist, *slink);
+			*slist_r = g_slist_remove_link(*slist_r, *slink_r);
 			g_free(mod->path);
 			g_module_close(mod->module);
 			g_free(mod);
-			g_slist_free(*slink);
-			*slink = *slist;
+			g_slist_free(*slink_r);
+			*slink_r = *slist_r;
 			return 0;
 		default:
 			daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",

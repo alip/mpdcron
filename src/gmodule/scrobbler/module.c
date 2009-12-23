@@ -178,6 +178,7 @@ int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 
 void mpdcron_close(void)
 {
+	daemon_log(LOG_INFO, "%sexiting", SCROBBLER_LOG_PREFIX);
 	file_cleanup();
 	as_save_cache();
 	as_cleanup();

@@ -20,6 +20,7 @@
 #include "cron-defs.h"
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +36,6 @@
 int optnd = 0;
 GMainLoop *loop = NULL;
 static int optv, optk;
-static int daemonized = 0;
 
 static GOptionEntry options[] = {
 	{"version", 'V', 0, G_OPTION_ARG_NONE, &optv, "Display version", NULL},
@@ -50,16 +50,24 @@ static void about(void)
 
 static void cleanup(void)
 {
-	if (daemonized)
-		daemon_log(LOG_INFO, "Exiting");
+	module_close();
 	conf_free();
-	if (loop != NULL)
+	if (loop != NULL) {
+		g_main_loop_quit(loop);
 		g_main_loop_unref(loop);
+		loop = NULL;
+	}
+}
+
+static void sig_cleanup(G_GNUC_UNUSED int signum)
+{
+	cleanup();
 }
 
 int main(int argc, char **argv)
 {
 	int pid, ret;
+	struct sigaction new_action, old_action;
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
@@ -121,12 +129,31 @@ int main(int argc, char **argv)
 		return EXIT_SUCCESS;
 	}
 
+	/* Signal handling */
+	new_action.sa_handler = sig_cleanup;
+	sigemptyset(&new_action.sa_mask);
+	new_action.sa_flags = 0;
+
+#define HANDLE_SIGNAL(sig)					\
+	do {							\
+		sigaction((sig), NULL, &old_action);		\
+		if (old_action.sa_handler != SIG_IGN)		\
+			sigaction((sig), &new_action, NULL);	\
+	} while (0)
+
+	HANDLE_SIGNAL(SIGABRT);
+	HANDLE_SIGNAL(SIGSEGV);
+	HANDLE_SIGNAL(SIGINT);
+	HANDLE_SIGNAL(SIGTERM);
+
+#undef HANDLE_SIGNAL
+
 	if (optnd) {
 		/* Connect and start the main loop */
-		g_atexit(cleanup);
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
+		cleanup();
 		return EXIT_SUCCESS;
 	}
 
@@ -171,13 +198,11 @@ int main(int argc, char **argv)
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-		/* Register cleanup function */
-		daemonized = 1;
-		g_atexit(cleanup);
 		/* Connect and start the main loop */
 		loop_connect();
 		loop = g_main_loop_new(NULL, FALSE);
 		g_main_loop_run(loop);
+		cleanup();
 		return EXIT_SUCCESS;
 	}
 	return EXIT_SUCCESS;

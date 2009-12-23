@@ -3,12 +3,10 @@ layout: default
 title: Hooks
 ---
 
-## Paths
-
-<tt>mpdcron</tt> executes hooks depending on the event received from
-<tt>mpd</tt>. Hooks are stored under MPDCRON\_DIR/hooks where **MPDCRON\_DIR**
-is ~/.mpdcron by default. Here's a list of hooks and commands run before them: 
- 
+Hooks are executed depending on the event received from <tt>mpd</tt>. Hooks are
+stored under MPDCRON\_DIR/hooks where **MPDCRON\_DIR** is ~/.mpdcron by default.
+Here's a list of hooks and commands run before them:  
+  
 - **hooks/database**: <tt>mpdcron</tt> calls **stats** before this and updates the environment.
 - **hooks/stored\_playlist**: <tt>mpdcron</tt> calls **list\_all\_meta** command and updates the environment.
 - **hooks/playlist**: <tt>mpdcron</tt> calls **list\_queue\_meta** and updates the environment.

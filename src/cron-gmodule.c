@@ -45,16 +45,16 @@ typedef int (*output_func_t) (const struct mpd_connection *conn);
 typedef int (*options_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
 typedef int (*update_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
 
-GSList *modules_database = NULL;
-GSList *modules_stored_playlist = NULL;
-GSList *modules_queue = NULL;
-GSList *modules_player = NULL;
-GSList *modules_mixer = NULL;
-GSList *modules_output = NULL;
-GSList *modules_options = NULL;
-GSList *modules_update = NULL;
+static GSList *modules_database = NULL;
+static GSList *modules_stored_playlist = NULL;
+static GSList *modules_queue = NULL;
+static GSList *modules_player = NULL;
+static GSList *modules_mixer = NULL;
+static GSList *modules_output = NULL;
+static GSList *modules_options = NULL;
+static GSList *modules_update = NULL;
 
-static char *module_path(const char *modname, int *user)
+static char *module_path(const char *modname, int *user_r)
 {
 	char *name, *path;
 
@@ -68,7 +68,7 @@ static char *module_path(const char *modname, int *user)
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
 		daemon_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
 		g_free(name);
-		*user = 1;
+		*user_r = 1;
 		return path;
 	}
 	g_free(path);
@@ -79,7 +79,7 @@ static char *module_path(const char *modname, int *user)
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
 		daemon_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
 		g_free(name);
-		*user = 0;
+		*user_r = 0;
 		return path;
 	}
 	g_free(name);

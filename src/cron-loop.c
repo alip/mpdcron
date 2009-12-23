@@ -50,8 +50,8 @@ static void loop_failure(void)
 static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 {
 	daemon_log(LOG_INFO, "Connecting to `%s' on port %s with timeout %d",
-			hostname, port, timeout);
-	if ((conn = mpd_connection_new(hostname, atoi(port), timeout)) == NULL) {
+			conf.hostname, conf.port, conf.timeout);
+	if ((conn = mpd_connection_new(conf.hostname, atoi(conf.port), conf.timeout)) == NULL) {
 		daemon_log(LOG_ERR, "Error creating mpd connection: out of memory");
 		exit(EXIT_FAILURE);
 	}
@@ -60,9 +60,9 @@ static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 		return TRUE;
 	}
 
-	if (password != NULL) {
+	if (conf.password != NULL) {
 		daemon_log(LOG_INFO, "Sending password");
-		if (!mpd_run_password(conn, password)) {
+		if (!mpd_run_password(conn, conf.password)) {
 			daemon_log(LOG_ERR, "Authentication failed: %s", mpd_connection_get_error_message(conn));
 			mpd_connection_free(conn);
 			conn = NULL;
@@ -138,8 +138,8 @@ static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
 static void loop_schedule_reconnect(void)
 {
 	g_assert(reconnect_sid == 0);
-	daemon_log(LOG_INFO, "Waiting for %d seconds before reconnecting", reconnect);
-	reconnect_sid = g_timeout_add_seconds(reconnect, loop_reconnect, NULL);
+	daemon_log(LOG_INFO, "Waiting for %d seconds before reconnecting", conf.reconnect);
+	reconnect_sid = g_timeout_add_seconds(conf.reconnect, loop_reconnect, NULL);
 }
 
 static void loop_schedule_idle(void)
@@ -150,8 +150,8 @@ static void loop_schedule_idle(void)
 	g_assert(idle_sid == 0);
 	g_assert(conn != NULL);
 
-	daemon_log(LOG_DEBUG, "Sending idle command with mask 0x%x", idle);
-	ret = (idle == 0) ? mpd_send_idle(conn) : mpd_send_idle_mask(conn, idle);
+	daemon_log(LOG_DEBUG, "Sending idle command with mask 0x%x", conf.idle);
+	ret = (conf.idle == 0) ? mpd_send_idle(conn) : mpd_send_idle_mask(conn, conf.idle);
 	if (!ret && mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		loop_failure();
 		loop_schedule_reconnect();

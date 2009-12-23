@@ -42,17 +42,18 @@ int keyfile_load(
 #endif /* HAVE_GMODULE */
 
 	config_fd = g_key_file_new();
-	if (!g_key_file_load_from_file(config_fd, conf_path, G_KEY_FILE_NONE, &config_err)) {
+	if (!g_key_file_load_from_file(config_fd, conf.conf_path, G_KEY_FILE_NONE, &config_err)) {
 		switch (config_err->code) {
 			case G_FILE_ERROR_NOENT:
 			case G_KEY_FILE_ERROR_NOT_FOUND:
-				daemon_log(LOG_DEBUG, "Configuration file `%s' not found, skipping", conf_path);
+				daemon_log(LOG_DEBUG, "Configuration file `%s' not found, skipping",
+						conf.conf_path);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return 0;
 			default:
 				daemon_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
-						conf_path, config_err->message);
+						conf.conf_path, config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -60,8 +61,8 @@ int keyfile_load(
 	}
 
 	/* Get main.pidfile */
-	if (pid_path == NULL)
-		pid_path = g_key_file_get_string(config_fd, "main", "pidfile", NULL);
+	if (conf.pid_path == NULL)
+		conf.pid_path = g_key_file_get_string(config_fd, "main", "pidfile", NULL);
 
 	/* Get main.killwait */
 	config_err = NULL;

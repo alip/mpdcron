@@ -65,7 +65,7 @@ static char *module_path(const char *modname, int *user_r)
 	daemon_log(LOG_DEBUG, "Added module suffix %s -> %s", modname, name);
 
 	/* First check user path */
-	path = g_build_filename(mod_path, name, NULL);
+	path = g_build_filename(conf.mod_path, name, NULL);
 	daemon_log(LOG_DEBUG, "Trying user configured path `%s'", path);
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
 		daemon_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);

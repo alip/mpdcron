@@ -26,21 +26,25 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-extern char *home_path;
-extern char *conf_path;
-extern char *pid_path;
+struct config {
+	char *home_path;
+	char *conf_path;
+	char *pid_path;
 #ifdef HAVE_GMODULE
-extern char *mod_path;
+	char *mod_path;
 #endif /* HAVE_GMODULE */
+	const char *hostname;
+	const char *port;
+	const char *password;
 
-extern const char *hostname;
-extern const char *port;
-extern const char *password;
+	int timeout;
+	int reconnect;
+	int killwait;
 
-extern int timeout;
-extern int reconnect;
-extern int killwait;
-extern enum mpd_idle idle;
+	enum mpd_idle idle;
+};
+
+extern struct config conf;
 
 extern int optnd;
 extern GMainLoop *loop;

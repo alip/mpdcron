@@ -68,8 +68,8 @@ int hooker_run_hook(const char *name)
 	myargv[0] = g_build_filename(DOT_HOOKS, name, NULL);
 	myargv[1] = NULL;
 
-	daemon_log(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], home_path);
-	if (!g_spawn_async(home_path, myargv, NULL,
+	daemon_log(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], conf.home_path);
+	if (!g_spawn_async(conf.home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
 				NULL, NULL, NULL, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)

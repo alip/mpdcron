@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 	}
 
 	if (optk) {
-		if (daemon_pid_file_kill_wait(SIGINT, killwait) < 0) {
+		if (daemon_pid_file_kill_wait(SIGINT, conf.killwait) < 0) {
 			daemon_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
 			cleanup();
 			return EXIT_FAILURE;

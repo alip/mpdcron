@@ -26,38 +26,31 @@
 #include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
-char *home_path = NULL;
-char *conf_path = NULL;
-char *pid_path = NULL;
-#ifdef HAVE_GMODULE
-char *mod_path = NULL;
-#endif /* HAVE_GMODULE */
-
-const char *hostname = NULL;
-const char *port = NULL;
-const char *password = NULL;
+struct config conf;
 
 const char *conf_pid_file_proc(void)
 {
 	char *name;
 
-	if (pid_path)
-		return pid_path;
+	if (conf.pid_path)
+		return conf.pid_path;
 	name = g_strdup_printf("%s.pid", daemon_pid_file_ident);
-	pid_path = g_build_filename(home_path, name, NULL);
+	conf.pid_path = g_build_filename(conf.home_path, name, NULL);
 	g_free(name);
-	return pid_path;
+	return conf.pid_path;
 }
 
 int conf_init(void)
 {
 	char *kfname;
 
+	memset(&conf, 0, sizeof(struct config));
+
 	/* Get home directory */
 	if (g_getenv(ENV_HOME_DIR))
-		home_path = g_strdup(g_getenv(ENV_HOME_DIR));
+		conf.home_path = g_strdup(g_getenv(ENV_HOME_DIR));
 	else if (g_getenv("HOME"))
-		home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
+		conf.home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
 	else {
 		daemon_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
 		return -1;
@@ -65,34 +58,31 @@ int conf_init(void)
 
 	/* Set keyfile path */
 	kfname = g_strdup_printf("%s.conf", daemon_pid_file_ident);
-	conf_path = g_build_filename(home_path, kfname, NULL);
+	conf.conf_path = g_build_filename(conf.home_path, kfname, NULL);
 	g_free(kfname);
 
 #ifdef HAVE_GMODULE
 	/* Set module path */
-	mod_path = g_build_filename(home_path, DOT_MODULES, NULL);
+	conf.mod_path = g_build_filename(conf.home_path, DOT_MODULES, NULL);
 #endif /* HAVE_GMODULE */
 
 	/* Get Mpd host, port, password */
-	if ((hostname = g_getenv(ENV_MPD_HOST)) == NULL)
-		hostname = "localhost";
-	if ((port = g_getenv(ENV_MPD_PORT)) == NULL)
-		port = "6600";
-	password = g_getenv(ENV_MPD_PASSWORD);
+	if ((conf.hostname = g_getenv(ENV_MPD_HOST)) == NULL)
+		conf.hostname = "localhost";
+	if ((conf.port = g_getenv(ENV_MPD_PORT)) == NULL)
+		conf.port = "6600";
+	conf.password = g_getenv(ENV_MPD_PASSWORD);
 
 	return 0;
 }
 
 void conf_free(void)
 {
-	g_free(conf_path);
-	g_free(home_path);
-	g_free(pid_path);
+	g_free(conf.home_path);
+	g_free(conf.conf_path);
+	g_free(conf.pid_path);
 #ifdef HAVE_GMODULE
-	g_free(mod_path);
-	mod_path = NULL;
+	g_free(conf.mod_path);
 #endif /* HAVE_GMODULE */
-	conf_path = NULL;
-	home_path = NULL;
-	pid_path = NULL;
+	memset(&conf, 0, sizeof(struct config));
 }

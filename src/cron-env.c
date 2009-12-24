@@ -285,7 +285,7 @@ int env_list_all_meta(struct mpd_connection *conn)
 	struct mpd_entity *entity;
 
 	g_assert(conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending list_all_meta command to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending list_all_meta command to Mpd server");
 	if (!mpd_send_list_meta(conn, NULL))
 		return -1;
 
@@ -316,7 +316,7 @@ int env_list_queue_meta(struct mpd_connection *conn)
 	struct mpd_song *song;
 
 	g_assert(conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending list_queue_meta command to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending list_queue_meta command to Mpd server");
 	if (!mpd_send_list_queue_meta(conn))
 		return -1;
 
@@ -336,7 +336,7 @@ int env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
 	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 
 	g_assert(conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending stats command to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending stats command to Mpd server");
 	if ((*stats = mpd_run_stats(conn)) == NULL)
 		return -1;
 
@@ -375,7 +375,7 @@ int env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
 int env_status(struct mpd_connection *conn, struct mpd_status **status)
 {
 	g_assert(conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending status command to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending status command to Mpd server");
 	if ((*status = mpd_run_status(conn)) == NULL)
 		return -1;
 
@@ -391,7 +391,7 @@ int env_outputs(struct mpd_connection *conn)
 	struct mpd_output *output;
 
 	g_assert(conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending outputs command to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending outputs command to Mpd server");
 	if (!mpd_send_outputs(conn))
 		return -1;
 
@@ -416,7 +416,7 @@ int env_outputs(struct mpd_connection *conn)
 int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status)
 {
 	g_assert (conn != NULL);
-	daemon_log(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
+	mpdcron_log(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
 	if (!mpd_command_list_begin(conn, true) ||
 	    !mpd_send_status(conn) ||
 	    !mpd_send_current_song(conn) ||

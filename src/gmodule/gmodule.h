@@ -20,23 +20,16 @@
 #ifndef MPDCRON_GUARD_MODULE_H
 #define MPDCRON_GUARD_MODULE_H 1
 
-/* IMPORTANT:
- * Before including this header #define exactly one of the following:
- * MPDCRON_EVENT_GENERIC
- * MPDCRON_EVENT_DATABASE
- * MPDCRON_EVENT_STORED_PLAYLIST
- * MPDCRON_EVENT_QUEUE
- * MPDCRON_EVENT_PLAYER
- * MPDCRON_EVENT_MIXER
- * MPDCRON_EVENT_OUTPUT
- * MPDCRON_EVENT_OPTIONS
- * MPDCRON_EVENT_UPDATE
- */
-
 #include <stdbool.h>
 
 #include <glib.h>
+#include <libdaemon/dlog.h>
 #include <mpd/client.h>
+
+#ifndef MPDCRON_LOG_PREFIX
+#define MPDCRON_LOG_PREFIX ""
+#endif /* !MPDCRON_LOG_PREFIX */
+#define mpdcron_log(level, ...) daemon_log((level), MPDCRON_LOG_PREFIX __VA_ARGS__)
 
 enum mpdcron_init_retval {
 	MPDCRON_INIT_SUCCESS = 0,

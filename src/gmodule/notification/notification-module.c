@@ -68,14 +68,12 @@ static void song_changed(const struct mpd_song *song)
 	cpath = cover_find(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
 	if (cpath == NULL)
-		daemon_log(LOG_DEBUG, "%sfailed to find cover for album (%s - %s), suffix: %s",
-				NOTIFICATION_LOG_PREFIX,
+		mpdcron_log(LOG_DEBUG, "Failed to find cover for album (%s - %s), suffix: %s",
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 				file_config.cover_suffix);
 
-	daemon_log(LOG_DEBUG, "%ssending notify for song (%s - %s), id: %u, pos: %u",
-			NOTIFICATION_LOG_PREFIX,
+	mpdcron_log(LOG_DEBUG, "Sending notify for song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -90,7 +88,7 @@ static void song_changed(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)
 			? mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)
 			: "Unknown");
-	notification_send(cpath, summary, body);
+	notify_send(cpath, summary, body);
 	g_free(body);
 	g_free(cpath);
 }
@@ -104,7 +102,7 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
-		daemon_log(LOG_DEBUG, "%srepeated song detected", NOTIFICATION_LOG_PREFIX);
+		mpdcron_log(LOG_DEBUG, "Repeated song detected");
 		song_started(song);
 	}
 }
@@ -119,13 +117,13 @@ static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 		return MPDCRON_INIT_FAILURE;
 
 	timer = g_timer_new();
-	daemon_log(LOG_INFO, "%sinitialized", NOTIFICATION_LOG_PREFIX);
+	mpdcron_log(LOG_INFO, "Initialized");
 	return MPDCRON_INIT_SUCCESS;
 }
 
 static void destroy(void)
 {
-	daemon_log(LOG_INFO, "%sexiting", NOTIFICATION_LOG_PREFIX);
+	mpdcron_log(LOG_INFO, "Exiting");
 	file_cleanup();
 	g_timer_destroy(timer);
 }
@@ -165,7 +163,7 @@ static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
 			ctime(&t),
 			db_play_time);
 
-	notification_send(NULL, summary, body);
+	notify_send(NULL, summary, body);
 	g_free(play_time);
 	g_free(uptime);
 	g_free(db_play_time);
@@ -227,7 +225,7 @@ static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
 		return MPDCRON_EVENT_SUCCESS;
 
 	summary = g_strdup_printf("Mpd Volume: %d%%", mpd_status_get_volume(status));
-	notification_send(NULL, summary, "");
+	notify_send(NULL, summary, "");
 	g_free(summary);
 	return MPDCRON_EVENT_SUCCESS;
 }
@@ -252,7 +250,7 @@ static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
 			mpd_status_get_single(status) ? "on" : "off",
 			mpd_status_get_consume(status) ? "on" : "off",
 			mpd_status_get_crossfade(status));
-	notification_send(NULL, "Mpd Options have changed!", body);
+	notify_send(NULL, "Mpd Options have changed!", body);
 	g_free(body);
 	return MPDCRON_EVENT_SUCCESS;
 }
@@ -269,7 +267,7 @@ static int event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	summary = g_strdup_printf("Mpd Update ID: %u",
 			mpd_status_get_update_id(status));
-	notification_send(NULL, summary, "");
+	notify_send(NULL, summary, "");
 	return MPDCRON_EVENT_SUCCESS;
 }
 

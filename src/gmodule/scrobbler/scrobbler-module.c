@@ -64,16 +64,14 @@ static void song_changed(const struct mpd_song *song)
 
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		daemon_log(LOG_INFO, "%snew song detected with tags missing (%s)",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_INFO, "New song detected with tags missing (%s)",
 				mpd_song_get_uri(song));
 		g_timer_start(timer);
 		return;
 	}
 	g_timer_start(timer);
 
-	daemon_log(LOG_DEBUG, "%snew song detected (%s - %s), id: %u, pos: %u",
-			SCROBBLER_LOG_PREFIX,
+	mpdcron_log(LOG_DEBUG, "New song detected (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -100,22 +98,19 @@ static void song_ended(const struct mpd_song *song)
 
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		daemon_log(LOG_INFO, "%ssong (%s) has missing tags, skipping",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_INFO, "Song (%s) has missing tags, skipping",
 				mpd_song_get_uri(song));
 		return;
 	}
 	else if (!played_long_enough(elapsed, mpd_song_get_duration(song))) {
-		daemon_log(LOG_INFO, "%ssong (%s - %s), id: %u, pos: %u not played long enough, skipping",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_INFO, "Song (%s - %s), id: %u, pos: %u not played long enough, skipping",
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 				mpd_song_get_id(song), mpd_song_get_pos(song));
 		return;
 	}
 
-	daemon_log(LOG_DEBUG, "%ssubmitting old song (%s - %s), id: %u, pos: %u",
-			SCROBBLER_LOG_PREFIX,
+	mpdcron_log(LOG_DEBUG, "Submitting old song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -137,7 +132,7 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	int prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (song_repeated(song, elapsed, prev_elapsed)) {
-		daemon_log(LOG_DEBUG, "%srepeated song detected", SCROBBLER_LOG_PREFIX);
+		mpdcron_log(LOG_DEBUG, "Repeated song detected");
 		song_ended(song);
 		song_started(song);
 	}
@@ -179,7 +174,7 @@ static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 
 static void destroy(void)
 {
-	daemon_log(LOG_INFO, "%sexiting", SCROBBLER_LOG_PREFIX);
+	mpdcron_log(LOG_INFO, "Exiting");
 	file_cleanup();
 	as_save_cache();
 	as_cleanup();
@@ -233,8 +228,7 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 	if (song != NULL) {
 		if ((prev = mpd_song_dup(song)) == NULL) {
-			daemon_log(LOG_ERR, "%smpd_song_dup failed: out of memory",
-					SCROBBLER_LOG_PREFIX);
+			mpdcron_log(LOG_ERR, "mpd_song_dup failed: out of memory");
 			return MPDCRON_EVENT_UNLOAD;
 		}
 	}

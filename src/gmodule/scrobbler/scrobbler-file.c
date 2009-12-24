@@ -43,8 +43,8 @@ static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 	value = g_key_file_get_string(fd, "scrobbler", name, &e);
 	if (e != NULL) {
 		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
-					SCROBBLER_LOG_PREFIX, name, e->message);
+			mpdcron_log(LOG_ERR, "Failed to load scrobbler.%s: %s",
+					name, e->message);
 			g_error_free(e);
 			return false;
 		}
@@ -68,8 +68,8 @@ static bool load_integer(GKeyFile *fd, const char *name, int *value_r)
 	value = g_key_file_get_integer(fd, "scrobbler", name, &e);
 	if (e != NULL) {
 		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			daemon_log(LOG_ERR, "%sfailed to load scrobbler.%s: %s",
-					SCROBBLER_LOG_PREFIX, name, e->message);
+			mpdcron_log(LOG_ERR, "Failed to load scrobbler.%s: %s",
+					name, e->message);
 			g_error_free(e);
 			return false;
 		}
@@ -88,8 +88,8 @@ static bool load_unsigned(GKeyFile *fd, const char *name, unsigned *value_r)
 		return false;
 
 	if (value < 0) {
-		daemon_log(LOG_ERR, "%ssetting scrobbler.%s must not be negative",
-				SCROBBLER_LOG_PREFIX, name);
+		mpdcron_log(LOG_ERR, "Setting scrobbler.%s must not be negative",
+				name);
 		return false;
 	}
 
@@ -109,8 +109,7 @@ static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 	scrobbler->name = g_strdup(grp);
 	scrobbler->url = g_key_file_get_string(fd, grp, "url", &cerr);
 	if (cerr != NULL) {
-		daemon_log(LOG_ERR, "%serror while reading url from group %s: %s",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_ERR, "Error while reading url from group %s: %s",
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -118,8 +117,7 @@ static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 	}
 	scrobbler->username = g_key_file_get_string(fd, grp, "username", &cerr);
 	if (cerr != NULL) {
-		daemon_log(LOG_ERR, "%serror while reading username from group %s: %s",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_ERR, "Error while reading username from group %s: %s",
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -127,8 +125,7 @@ static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 	}
 	scrobbler->password = g_key_file_get_string(fd, grp, "password", &cerr);
 	if (cerr != NULL) {
-		daemon_log(LOG_ERR, "%serror while reading password from group %s: %s",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_ERR, "Error while reading password from group %s: %s",
 				grp, cerr->message);
 		g_free(scrobbler);
 		g_error_free(cerr);
@@ -185,9 +182,7 @@ int file_load(GKeyFile *fd)
 	}
 
 	if (s == 0) {
-		daemon_log(LOG_ERR,
-			"%sneither last.fm nor libre.fm group defined",
-			SCROBBLER_LOG_PREFIX);
+		mpdcron_log(LOG_ERR, "Neither last.fm nor libre.fm group defined");
 		return -1;
 	}
 

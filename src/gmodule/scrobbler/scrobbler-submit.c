@@ -206,7 +206,7 @@ static void scrobbler_increase_interval(struct scrobbler *scrobbler)
 	if (scrobbler->interval > 60 * 60 * 2)
 		scrobbler->interval = 60 * 60 * 2;
 
-	daemon_log(LOG_WARNING, "[%s] waiting %u seconds before trying again",
+	mpdcron_log(LOG_WARNING, "[%s] waiting %u seconds before trying again",
 			scrobbler->config->name, scrobbler->interval);
 }
 
@@ -214,23 +214,23 @@ static as_submitting scrobbler_parse_submit_response(const char *scrobbler_name,
 				const char *line, size_t length)
 {
 	if (length == sizeof(OK) - 1 && memcmp(line, OK, length) == 0) {
-		daemon_log(LOG_INFO, "[%s] OK", scrobbler_name);
+		mpdcron_log(LOG_INFO, "[%s] OK", scrobbler_name);
 
 		return AS_SUBMIT_OK;
 	} else if (length == sizeof(BADSESSION) - 1 && memcmp(line, BADSESSION, length) == 0) {
-		daemon_log(LOG_WARNING, "[%s] invalid session", scrobbler_name);
+		mpdcron_log(LOG_WARNING, "[%s] invalid session", scrobbler_name);
 
 		return AS_SUBMIT_HANDSHAKE;
 	} else if (length == sizeof(FAILED) - 1 &&
 		   memcmp(line, FAILED, length) == 0) {
 		if (length > strlen(FAILED))
-			daemon_log(LOG_WARNING, "[%s] submission rejected: %.*s",
+			mpdcron_log(LOG_WARNING, "[%s] submission rejected: %.*s",
 					scrobbler_name, (int)(length - strlen(FAILED)),
 					line + strlen(FAILED));
 		else
-			daemon_log(LOG_WARNING, "[%s] submission rejected", scrobbler_name);
+			mpdcron_log(LOG_WARNING, "[%s] submission rejected", scrobbler_name);
 	} else {
-		daemon_log(LOG_WARNING, "[%s] unknown response: %.*s",
+		mpdcron_log(LOG_WARNING, "[%s] unknown response: %.*s",
 				scrobbler_name, (int)length, line);
 	}
 
@@ -247,24 +247,24 @@ scrobbler_parse_handshake_response(struct scrobbler *scrobbler, const char *line
 	/* FIXME: some code duplication between this
 	   and as_parse_submit_response. */
 	if (!strncmp(line, OK, strlen(OK))) {
-		daemon_log(LOG_INFO, "[%s] handshake successful",
+		mpdcron_log(LOG_INFO, "[%s] handshake successful",
 				scrobbler->config->name);
 		return true;
 	} else if (!strncmp(line, BANNED, strlen(BANNED))) {
-		daemon_log(LOG_WARNING, "[%s] handshake failed, we're banned (%s)",
+		mpdcron_log(LOG_WARNING, "[%s] handshake failed, we're banned (%s)",
 				scrobbler->config->name, line);
 	} else if (!strncmp(line, BADAUTH, strlen(BADAUTH))) {
-		daemon_log(LOG_WARNING, "[%s] handshake failed, "
+		mpdcron_log(LOG_WARNING, "[%s] handshake failed, "
 				"username or password incorrect (%s)",
 				scrobbler->config->name, line);
 	} else if (!strncmp(line, BADTIME, strlen(BADTIME))) {
-		daemon_log(LOG_WARNING, "[%s] handshake failed, clock not synchronized (%s)",
+		mpdcron_log(LOG_WARNING, "[%s] handshake failed, clock not synchronized (%s)",
 				scrobbler->config->name, line);
 	} else if (!strncmp(line, FAILED, strlen(FAILED))) {
-		daemon_log(LOG_WARNING, "[%s] handshake failed (%s)",
+		mpdcron_log(LOG_WARNING, "[%s] handshake failed (%s)",
 				scrobbler->config->name, line);
 	} else {
-		daemon_log(LOG_WARNING, "[%s] error parsing handshake response (%s)",
+		mpdcron_log(LOG_WARNING, "[%s] error parsing handshake response (%s)",
 				scrobbler->config->name, line);
 	}
 
@@ -299,7 +299,7 @@ static void scrobbler_handshake_callback(size_t length, const char *response, vo
 	scrobbler->state = SCROBBLER_STATE_NOTHING;
 
 	if (!length) {
-		daemon_log(LOG_WARNING, "[%s] handshake timed out", scrobbler->config->name);
+		mpdcron_log(LOG_WARNING, "[%s] handshake timed out", scrobbler->config->name);
 		scrobbler_increase_interval(scrobbler);
 		scrobbler_schedule_handshake(scrobbler);
 		return;
@@ -315,15 +315,15 @@ static void scrobbler_handshake_callback(size_t length, const char *response, vo
 	}
 
 	scrobbler->session = next_line(&response, end);
-	daemon_log(LOG_DEBUG, "[%s] session: %s",
+	mpdcron_log(LOG_DEBUG, "[%s] session: %s",
 		scrobbler->config->name, scrobbler->session);
 
 	scrobbler->nowplay_url = next_line(&response, end);
-	daemon_log(LOG_DEBUG, "[%s] now playing url: %s",
+	mpdcron_log(LOG_DEBUG, "[%s] now playing url: %s",
 		scrobbler->config->name, scrobbler->nowplay_url);
 
 	scrobbler->submit_url = next_line(&response, end);
-	daemon_log(LOG_DEBUG, "[%s] submit url: %s",
+	mpdcron_log(LOG_DEBUG, "[%s] submit url: %s",
 		scrobbler->config->name, scrobbler->submit_url);
 
 	if (*scrobbler->nowplay_url == 0 || *scrobbler->submit_url == 0) {
@@ -370,7 +370,7 @@ scrobbler_submit_callback(size_t length, const char *response, void *data)
 
 	if (!length) {
 		scrobbler->pending = 0;
-		daemon_log(LOG_WARNING, "[%s] submit timed out", scrobbler->config->name);
+		mpdcron_log(LOG_WARNING, "[%s] submit timed out", scrobbler->config->name);
 		scrobbler_increase_interval(scrobbler);
 		scrobbler_schedule_submit(scrobbler);
 		return;
@@ -508,9 +508,9 @@ static void scrobbler_send_now_playing(struct scrobbler *scrobbler, const char *
 	add_var(post_data, "n", "");
 	add_var(post_data, "m", mbid);
 
-	daemon_log(LOG_INFO, "[%s] sending 'now playing' notification", scrobbler->config->name);
-	daemon_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
-	daemon_log(LOG_DEBUG, "[%s] url: %s", scrobbler->config->name, scrobbler->nowplay_url);
+	mpdcron_log(LOG_INFO, "[%s] sending 'now playing' notification", scrobbler->config->name);
+	mpdcron_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
+	mpdcron_log(LOG_DEBUG, "[%s] url: %s", scrobbler->config->name, scrobbler->nowplay_url);
 
 	http_client_request(scrobbler->nowplay_url, post_data->str, scrobbler_submit_callback, scrobbler);
 
@@ -597,10 +597,10 @@ scrobbler_submit(struct scrobbler *scrobbler)
 		count++;
 	}
 
-	daemon_log(LOG_INFO, "[%s] submitting %i song%s",
+	mpdcron_log(LOG_INFO, "[%s] submitting %i song%s",
 			scrobbler->config->name, count, count == 1 ? "" : "s");
-	daemon_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
-	daemon_log(LOG_DEBUG, "[%s] url: %s",
+	mpdcron_log(LOG_DEBUG, "[%s] post data: %s", scrobbler->config->name, post_data->str);
+	mpdcron_log(LOG_DEBUG, "[%s] url: %s",
 		scrobbler->config->name, scrobbler->submit_url);
 
 	scrobbler->pending = count;
@@ -636,17 +636,15 @@ as_songchange(const char *file, const char *artist, const char *track,
 	   everything else is mandatory.
 	 */
 	if (!(artist && strlen(artist))) {
-		daemon_log(LOG_WARNING, "%sempty artist, not submitting; "
+		mpdcron_log(LOG_WARNING, "empty artist, not submitting; "
 				"please check the tags on %s",
-				SCROBBLER_LOG_PREFIX,
 				file);
 		return;
 	}
 
 	if (!(track && strlen(track))) {
-		daemon_log(LOG_WARNING, "%sempty title, not submitting; "
+		mpdcron_log(LOG_WARNING, "empty title, not submitting; "
 				"please check the tags on %s",
-				SCROBBLER_LOG_PREFIX,
 				file);
 		return;
 	}
@@ -659,8 +657,7 @@ as_songchange(const char *file, const char *artist, const char *track,
 	record.time = time2 ? g_strdup(time2) : as_timestamp();
 	record.source = strstr(file, "://") == NULL ? "P" : "R";
 
-	daemon_log(LOG_INFO, "%s%s, songchange: %s - %s (%i)\n",
-			SCROBBLER_LOG_PREFIX,
+	mpdcron_log(LOG_INFO, "%s, songchange: %s - %s (%i)\n",
 			record.time, record.artist,
 			record.track, record.length);
 
@@ -678,8 +675,7 @@ static void scrobbler_new_callback(gpointer data, G_GNUC_UNUSED gpointer user_da
 		journal_read(config->journal, scrobbler->queue);
 
 		queue_length = g_queue_get_length(scrobbler->queue);
-		daemon_log(LOG_INFO, "%sloaded %i song%s from %s",
-				SCROBBLER_LOG_PREFIX,
+		mpdcron_log(LOG_INFO, "Loaded %i song%s from %s",
 				queue_length, queue_length == 1 ? "" : "s",
 				config->journal);
 	}
@@ -690,8 +686,7 @@ static void scrobbler_new_callback(gpointer data, G_GNUC_UNUSED gpointer user_da
 
 void as_init(GSList *scrobbler_configs)
 {
-	daemon_log(LOG_INFO, "%sstarting mpdcron/scrobbler (" AS_CLIENT_ID " " AS_CLIENT_VERSION ")",
-			SCROBBLER_LOG_PREFIX);
+	mpdcron_log(LOG_INFO, "Starting mpdcron/scrobbler ("AS_CLIENT_ID" "AS_CLIENT_VERSION")");
 
 	g_slist_foreach(scrobbler_configs, scrobbler_new_callback, NULL);
 }
@@ -728,7 +723,7 @@ static void scrobbler_save_callback(gpointer data, G_GNUC_UNUSED gpointer user_d
 
 	if (journal_write(scrobbler->config->journal, scrobbler->queue)) {
 		guint queue_length = g_queue_get_length(scrobbler->queue);
-		daemon_log(LOG_INFO, "[%s] saved %i song%s to %s",
+		mpdcron_log(LOG_INFO, "[%s] saved %i song%s to %s",
 				scrobbler->config->name,
 				queue_length, queue_length == 1 ? "" : "s",
 				scrobbler->config->journal);

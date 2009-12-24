@@ -25,7 +25,7 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
-void notification_send(const char *icon, const char *summary, const char *body)
+void notify_send(const char *icon, const char *summary, const char *body)
 {
 	int i, j, len;
 	char **myargv;
@@ -53,8 +53,7 @@ void notification_send(const char *icon, const char *summary, const char *body)
 	myargv[i] = NULL;
 
 	if (!g_spawn_async(NULL, myargv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &serr)) {
-			daemon_log(LOG_WARNING, "%sfailed to execute notify-send: %s",
-					NOTIFICATION_LOG_PREFIX,
+			mpdcron_log(LOG_WARNING, "Failed to execute notify-send: %s",
 					serr->message);
 			g_error_free(serr);
 	}

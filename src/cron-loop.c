@@ -41,7 +41,7 @@ static void loop_failure(void)
 
 	g_assert(conn != NULL);
 	msg = g_strescape(mpd_connection_get_error_message(conn), NULL);
-	daemon_log(LOG_WARNING, "Mpd error: %s", msg);
+	mpdcron_log(LOG_WARNING, "Mpd error: %s", msg);
 	g_free(msg);
 	mpd_connection_free(conn);
 	conn = NULL;
@@ -49,10 +49,10 @@ static void loop_failure(void)
 
 static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 {
-	daemon_log(LOG_INFO, "Connecting to `%s' on port %s with timeout %d",
+	mpdcron_log(LOG_INFO, "Connecting to `%s' on port %s with timeout %d",
 			conf.hostname, conf.port, conf.timeout);
 	if ((conn = mpd_connection_new(conf.hostname, atoi(conf.port), conf.timeout)) == NULL) {
-		daemon_log(LOG_ERR, "Error creating mpd connection: out of memory");
+		mpdcron_log(LOG_ERR, "Error creating mpd connection: out of memory");
 		exit(EXIT_FAILURE);
 	}
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
@@ -61,9 +61,9 @@ static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 	}
 
 	if (conf.password != NULL) {
-		daemon_log(LOG_INFO, "Sending password");
+		mpdcron_log(LOG_INFO, "Sending password");
 		if (!mpd_run_password(conn, conf.password)) {
-			daemon_log(LOG_ERR, "Authentication failed: %s", mpd_connection_get_error_message(conn));
+			mpdcron_log(LOG_ERR, "Authentication failed: %s", mpd_connection_get_error_message(conn));
 			mpd_connection_free(conn);
 			conn = NULL;
 			exit(EXIT_FAILURE);
@@ -71,13 +71,13 @@ static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 	}
 
 	if ((version = mpd_connection_get_server_version(conn)) != NULL) {
-		daemon_log(LOG_INFO, "Connected to Mpd server, running version %d.%d.%d",
+		mpdcron_log(LOG_INFO, "Connected to Mpd server, running version %d.%d.%d",
 				version[0], version[1], version[2]);
 		if (mpd_connection_cmp_server_version(conn, 0, 14, 0) < 0)
-			daemon_log(LOG_WARNING, "Mpd version 0.14.0 is required for idle command");
+			mpdcron_log(LOG_WARNING, "Mpd version 0.14.0 is required for idle command");
 	}
 	else
-		daemon_log(LOG_INFO, "Connected to Mpd server, running version unknown");
+		mpdcron_log(LOG_INFO, "Connected to Mpd server, running version unknown");
 
 	loop_schedule_idle();
 	reconnect_sid = 0;
@@ -101,7 +101,7 @@ static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
 		/* Check whether idle command is supported */
 		if (mpd_connection_get_error(conn) == MPD_ERROR_SERVER &&
 		    mpd_connection_get_server_error(conn) == MPD_SERVER_ERROR_UNKNOWN_CMD) {
-			daemon_log(LOG_ERR, "Idle command not supported by Mpd");
+			mpdcron_log(LOG_ERR, "Idle command not supported by Mpd");
 			mpd_connection_free(conn);
 			conn = NULL;
 			exit(EXIT_FAILURE);
@@ -138,7 +138,7 @@ static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
 static void loop_schedule_reconnect(void)
 {
 	g_assert(reconnect_sid == 0);
-	daemon_log(LOG_INFO, "Waiting for %d seconds before reconnecting", conf.reconnect);
+	mpdcron_log(LOG_INFO, "Waiting for %d seconds before reconnecting", conf.reconnect);
 	reconnect_sid = g_timeout_add_seconds(conf.reconnect, loop_reconnect, NULL);
 }
 
@@ -150,7 +150,7 @@ static void loop_schedule_idle(void)
 	g_assert(idle_sid == 0);
 	g_assert(conn != NULL);
 
-	daemon_log(LOG_DEBUG, "Sending idle command with mask 0x%x", conf.idle);
+	mpdcron_log(LOG_DEBUG, "Sending idle command with mask 0x%x", conf.idle);
 	ret = (conf.idle == 0) ? mpd_send_idle(conn) : mpd_send_idle_mask(conn, conf.idle);
 	if (!ret && mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		loop_failure();

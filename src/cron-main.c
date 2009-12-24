@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 
 	if (optk) {
 		if (daemon_pid_file_kill_wait(SIGINT, conf.killwait) < 0) {
-			daemon_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
+			mpdcron_log(LOG_WARNING, "Failed to kill daemon: %s", strerror(errno));
 			cleanup();
 			return EXIT_FAILURE;
 		}
@@ -162,14 +162,14 @@ int main(int argc, char **argv)
 
 	/* Daemonize */
 	if ((pid = daemon_pid_file_is_running()) > 0) {
-		daemon_log(LOG_ERR, "Daemon already running on PID %u", pid);
+		mpdcron_log(LOG_ERR, "Daemon already running on PID %u", pid);
 		return EXIT_FAILURE;
 	}
 
 	daemon_retval_init();
 	pid = daemon_fork();
 	if (pid < 0) {
-		daemon_log(LOG_ERR, "Failed to fork: %s", strerror(errno));
+		mpdcron_log(LOG_ERR, "Failed to fork: %s", strerror(errno));
 		daemon_retval_done();
 		return EXIT_FAILURE;
 	}
@@ -177,24 +177,24 @@ int main(int argc, char **argv)
 		cleanup();
 
 		if ((ret = daemon_retval_wait(2)) < 0) {
-			daemon_log(LOG_ERR, "Could not receive return value from daemon process: %s",
+			mpdcron_log(LOG_ERR, "Could not receive return value from daemon process: %s",
 					strerror(errno));
 			return 255;
 		}
 
-		daemon_log((ret != 0) ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value", ret);
+		mpdcron_log((ret != 0) ? LOG_ERR : LOG_INFO, "Daemon returned %i as return value", ret);
 		return ret;
 	}
 	else { /* Daemon */
 		if (daemon_close_all(-1) < 0) {
-			daemon_log(LOG_ERR, "Failed to close all file descriptors: %s",
+			mpdcron_log(LOG_ERR, "Failed to close all file descriptors: %s",
 					strerror(errno));
 			daemon_retval_send(1);
 			return EXIT_FAILURE;
 		}
 
 		if (daemon_pid_file_create() < 0) {
-			daemon_log(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
+			mpdcron_log(LOG_ERR, "Failed to create PID file: %s", strerror(errno));
 			daemon_retval_send(2);
 			return EXIT_FAILURE;
 		}

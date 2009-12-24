@@ -24,12 +24,10 @@
 #include "config.h"
 #endif /* !HAVE_CONFIG_H */
 
-#define MPDCRON_EVENT_PLAYER 1
+#define MPDCRON_LOG_PREFIX	"[notification] "
 #include "../gmodule.h"
 
 #include <glib.h>
-
-#define NOTIFICATION_LOG_PREFIX		"[notification] "
 
 struct config {
 	int events;
@@ -50,6 +48,6 @@ char *dhms(unsigned long t);
 int file_load(GKeyFile *fd);
 void file_cleanup(void);
 
-void notification_send(const char *icon, const char *summary, const char *body);
+void notify_send(const char *icon, const char *summary, const char *body);
 
 #endif /* !MPDCRON_GUARD_NOTIFICATION_DEFS_H */

@@ -43,8 +43,8 @@ static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 	value = g_key_file_get_string(fd, "notification", name, &e);
 	if (e != NULL) {
 		if (e->code  != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			daemon_log(LOG_ERR, "%sfailed to load notification.%s: %s",
-					NOTIFICATION_LOG_PREFIX, name, e->message);
+			mpdcron_log(LOG_ERR, "Failed to load notification.%s: %s",
+					name, e->message);
 			g_error_free(e);
 			return false;
 		}
@@ -78,8 +78,8 @@ int file_load(GKeyFile *fd)
 	file_config.hints = g_key_file_get_string_list(fd, "notification", "hints", NULL, &parse_error);
 	if (parse_error != NULL) {
 		if (parse_error->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			daemon_log(LOG_ERR, "%sfailed to load notification.hints: %s",
-					NOTIFICATION_LOG_PREFIX, parse_error->message);
+			mpdcron_log(LOG_ERR, "Failed to load notification.hints: %s",
+					parse_error->message);
 			g_error_free(parse_error);
 			return -1;
 		}
@@ -90,8 +90,8 @@ int file_load(GKeyFile *fd)
 	values = g_key_file_get_string_list(fd, "notification", "events", NULL, &parse_error);
 	if (parse_error != NULL) {
 		if (parse_error->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			daemon_log(LOG_ERR, "%sfailed to load notification.events: %s",
-					NOTIFICATION_LOG_PREFIX, parse_error->message);
+			mpdcron_log(LOG_ERR, "Failed to load notification.events: %s",
+					parse_error->message);
 			g_error_free(parse_error);
 			return -1;
 		}
@@ -101,13 +101,13 @@ int file_load(GKeyFile *fd)
 	if (values != NULL) {
 		for (unsigned int i = 0; values[i] != NULL; i++) {
 			if ((event = mpd_idle_name_parse(values[i])) < 0)
-				daemon_log(LOG_WARNING, "%sinvalid value `%s' in notification.events",
-						NOTIFICATION_LOG_PREFIX, values[i]);
+				mpdcron_log(LOG_WARNING, "Invalid value `%s' in notification.events",
+						values[i]);
 			else if (event == MPD_IDLE_STORED_PLAYLIST ||
 					event == MPD_IDLE_QUEUE ||
 					event == MPD_IDLE_OUTPUT)
-				daemon_log(LOG_WARNING, "%sevent `%s' not supported as a notification event",
-						NOTIFICATION_LOG_PREFIX, values[i]);
+				mpdcron_log(LOG_WARNING, "Event `%s' not supported as a notification event",
+						values[i]);
 			else
 				file_config.events |= event;
 		}

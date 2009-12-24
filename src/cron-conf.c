@@ -52,7 +52,7 @@ int conf_init(void)
 	else if (g_getenv("HOME"))
 		conf.home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
 	else {
-		daemon_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
+		mpdcron_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
 		return -1;
 	}
 

@@ -46,13 +46,13 @@ int keyfile_load(
 		switch (config_err->code) {
 			case G_FILE_ERROR_NOENT:
 			case G_KEY_FILE_ERROR_NOT_FOUND:
-				daemon_log(LOG_DEBUG, "Configuration file `%s' not found, skipping",
+				mpdcron_log(LOG_DEBUG, "Configuration file `%s' not found, skipping",
 						conf.conf_path);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return 0;
 			default:
-				daemon_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
+				mpdcron_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
 						conf.conf_path, config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
@@ -70,7 +70,7 @@ int keyfile_load(
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				daemon_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
+				mpdcron_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -83,7 +83,7 @@ int keyfile_load(
 	}
 
 	if (killwait <= 0) {
-		daemon_log(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
+		mpdcron_log(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
 		killwait = DEFAULT_PID_KILL_WAIT;
 	}
 
@@ -93,7 +93,7 @@ int keyfile_load(
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				daemon_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
+				mpdcron_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -106,7 +106,7 @@ int keyfile_load(
 	}
 
 	if (reconnect <= 0) {
-		daemon_log(LOG_WARNING, "reconnect %s zero, adjusting to default %d",
+		mpdcron_log(LOG_WARNING, "reconnect %s zero, adjusting to default %d",
 				(reconnect == 0) ? "equal to" : "smaller than",
 				DEFAULT_MPD_RECONNECT);
 		reconnect = DEFAULT_MPD_RECONNECT;
@@ -122,7 +122,7 @@ int keyfile_load(
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				daemon_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
+				mpdcron_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(config_fd);
 				return -1;
@@ -135,7 +135,7 @@ int keyfile_load(
 	}
 
 	if (timeout < 0) {
-		daemon_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
+		mpdcron_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
 		timeout = DEFAULT_MPD_TIMEOUT;
 	}
 
@@ -148,7 +148,7 @@ int keyfile_load(
 		for (unsigned int i = 0; events[i] != NULL; i++) {
 			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
 			if (parsed == 0)
-				daemon_log(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
+				mpdcron_log(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
 			else
 				idle |= parsed;
 		}

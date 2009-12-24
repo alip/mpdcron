@@ -17,39 +17,27 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MPDCRON_GUARD_NOTIFICATION_DEFS_H
-#define MPDCRON_GUARD_NOTIFICATION_DEFS_H 1
+#include "notification-defs.h"
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* !HAVE_CONFIG_H */
+char *dhms(unsigned long t)
+{
+	int days, hours, mins, secs;
 
-#define MPDCRON_EVENT_PLAYER 1
-#include "../gmodule.h"
+#define SECSPERDAY 86400
+#define SECSPERHOUR 3600
+#define SECSPERMIN 60
 
-#include <glib.h>
+	days = t / SECSPERDAY;
+	t %= SECSPERDAY;
+	hours = t / SECSPERHOUR;
+	t %= SECSPERHOUR;
+	mins = t / SECSPERMIN;
+	t %= SECSPERMIN;
+	secs = t;
 
-#define NOTIFICATION_LOG_PREFIX		"[notification] "
+#undef SECSPERDAY
+#undef SECSPERHOUR
+#undef SECSPERMIN
 
-struct config {
-	int events;
-	char *cover_path;
-	char *cover_suffix;
-	char *timeout;
-	char *type;
-	char *urgency;
-	char **hints;
-};
-
-extern struct config file_config;
-
-char *cover_find(const char *artist, const char *album);
-
-char *dhms(unsigned long t);
-
-int file_load(GKeyFile *fd);
-void file_cleanup(void);
-
-void notification_send(const char *icon, const char *summary, const char *body);
-
-#endif /* !MPDCRON_GUARD_NOTIFICATION_DEFS_H */
+	return g_strdup_printf("%d days, %d:%02d:%02d", days, hours, mins, secs);
+}

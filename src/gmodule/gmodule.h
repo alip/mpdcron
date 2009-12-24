@@ -54,12 +54,6 @@ struct mpdcron_module {
 	/** Name of the module */
 	const char *name;
 
-	/** Set this to true, if the module is a generic module. */
-	bool generic;
-
-	/** List of events the module supports (for non-generic modules) */
-	int events;
-
 	/** Initialization function */
 	int (*init) (int, GKeyFile *);
 

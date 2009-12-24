@@ -25,8 +25,7 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
-void notification_send(const char *cover, const char *artist, const char *title,
-		const char *album, const char *uri)
+void notification_send(const char *icon, const char *summary, const char *body)
 {
 	int i, j, len;
 	char **myargv;
@@ -42,12 +41,10 @@ void notification_send(const char *cover, const char *artist, const char *title,
 		myargv[i++] = g_strdup_printf("--expire-time=%s", file_config.timeout);
 	if (file_config.type != NULL)
 		myargv[i++] = g_strdup_printf("--category=%s", file_config.type);
-	if (cover != NULL)
-		myargv[i++] = g_strdup_printf("--icon=%s", cover);
-	myargv[i++] = g_strdup(title ? title : uri);
-	myargv[i++] = g_strdup_printf("by %s - %s",
-			artist ? artist : "Unknown",
-			album ? album : "Unknown");
+	if (icon != NULL)
+		myargv[i++] = g_strdup_printf("--icon=%s", icon);
+	myargv[i++] = g_strdup(summary);
+	myargv[i++] = g_strdup(body);
 
 	if (file_config.hints != NULL) {
 		for (j = 0; file_config.hints[j] != NULL; j++)

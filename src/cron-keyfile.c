@@ -161,86 +161,13 @@ int keyfile_load(
 		return 0;
 	}
 
-	/* Load generic modules */
-	if ((modules = g_key_file_get_string_list(config_fd, "generic", "modules", NULL, NULL)) != NULL) {
+	/* Load modules */
+	if ((modules = g_key_file_get_string_list(config_fd, "main", "modules", NULL, NULL)) != NULL) {
 		for (unsigned int i = 0; modules[i] != NULL; i++)
-			module_load(-1, modules[i], config_fd);
+			module_load(modules[i], config_fd);
 		g_strfreev(modules);
 	}
 
-	/* Load event modules */
-	if (idle | MPD_IDLE_DATABASE) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_DATABASE), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_DATABASE, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_STORED_PLAYLIST) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_STORED_PLAYLIST), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_STORED_PLAYLIST, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_QUEUE) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_QUEUE), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_QUEUE, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_PLAYER) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_PLAYER), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_PLAYER, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_MIXER) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_MIXER), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_MIXER, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_OUTPUT) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_OUTPUT), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_OUTPUT, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_OPTIONS) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_OPTIONS), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_OPTIONS, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
-	if (idle | MPD_IDLE_UPDATE) {
-		if ((modules = g_key_file_get_string_list(config_fd,
-						mpd_idle_name(MPD_IDLE_UPDATE), "modules",
-						NULL, NULL)) != NULL) {
-			for (unsigned int i = 0; modules[i] != NULL; i++)
-				module_load(MPD_IDLE_UPDATE, modules[i], config_fd);
-			g_strfreev(modules);
-		}
-	}
 #endif /* HAVE_GMODULE */
 
 	g_key_file_free(config_fd);

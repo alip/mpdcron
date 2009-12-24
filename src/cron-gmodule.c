@@ -27,8 +27,6 @@
 #include <mpd/client.h>
 
 struct module_data {
-	bool generic;
-	int event;
 	int user;
 	char *path;
 	GModule *module;
@@ -70,12 +68,11 @@ static char *module_path(const char *modname, int *user_r)
 	return NULL;
 }
 
-static int module_init_one(int event, const char *modname, GKeyFile *config_fd)
+static int module_init_one(const char *modname, GKeyFile *config_fd)
 {
 	struct module_data *mod;
 
 	mod = g_new0(struct module_data, 1);
-	mod->event = event;
 	if ((mod->path = module_path(modname, &(mod->user))) == NULL) {
 		daemon_log(LOG_WARNING, "Error loading module %s: file not found",
 				modname);
@@ -98,24 +95,6 @@ static int module_init_one(int event, const char *modname, GKeyFile *config_fd)
 		return -1;
 	}
 
-	/* Check if the module supports the given event */
-	if (mod->event < 0 && !(mod->data->generic)) {
-		daemon_log(LOG_WARNING, "Error loading module `%s': not a generic module",
-				mod->path);
-		g_module_close(mod->module);
-		g_free(mod->path);
-		g_free(mod);
-		return -1;
-	}
-	else if ((mod->data->events | mod->event) == 0) {
-		daemon_log(LOG_WARNING, "Error loading module `%s': no support for event %s",
-				mod->path, mpd_idle_name(event));
-		g_module_close(mod->module);
-		g_free(mod->path);
-		g_free(mod);
-		return -1;
-	}
-
 	/* Run the init() function if there's any. */
 	if (mod->data->init != NULL) {
 		if ((mod->data->init)(optnd, config_fd) == MPDCRON_INIT_FAILURE) {
@@ -128,9 +107,7 @@ static int module_init_one(int event, const char *modname, GKeyFile *config_fd)
 			return -1;
 		}
 	}
-	daemon_log(LOG_DEBUG, "Loaded module `%s' (name: %s) for event %s", mod->path,
-			mod->data->name,
-			(mod->event < 0) ? "generic" : mpd_idle_name(mod->event));
+	daemon_log(LOG_DEBUG, "Loaded module `%s'", mod->path);
 	modules = g_slist_prepend(modules, mod);
 	return 0;
 }
@@ -154,40 +131,36 @@ static int module_process_ret(int ret, struct module_data *mod, GSList **slink_r
 		case MPDCRON_RUN_SUCCESS:
 			return 0;
 		case MPDCRON_RUN_RECONNECT:
-			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect (event: %s)",
+			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect",
 					mod->user ? "User" : "Standard",
-					mod->path,
-					mod->generic ? "generic" : mpd_idle_name(mod->event));
+					mod->path);
 			return -1;
 		case MPDCRON_RUN_RECONNECT_NOW:
-			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW! (event: %s)",
+			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW!",
 					mod->user ? "User" : "Standard",
-					mod->path,
-					mod->generic ? "generic" : mpd_idle_name(mod->event));
+					mod->path);
 			return -1;
 		case MPDCRON_RUN_UNLOAD:
-			daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s)",
+			daemon_log(LOG_INFO, "Unloading %s module `%s'",
 					mod->user ? "user" : "standard",
-					mod->path,
-					mod->generic ? "generic" : mpd_idle_name(mod->event));
+					mod->path);
 			*slist_r = g_slist_remove_link(*slist_r, *slink_r);
 			module_destroy_one(mod, NULL);
 			g_slist_free(*slink_r);
 			*slink_r = *slist_r;
 			return 0;
 		default:
-			daemon_log(LOG_WARNING, "Unknown return from %s module `%s' (event: %s): %d",
+			daemon_log(LOG_WARNING, "Unknown return from %s module `%s': %d",
 					mod->user ? "user" : "standard",
 					mod->path,
-					mod->generic ? "generic" : mpd_idle_name(mod->event),
 					ret);
 			return 0;
 	}
 }
 
-int module_load(int event, const char *modname, GKeyFile *config_fd)
+int module_load(const char *modname, GKeyFile *config_fd)
 {
-	return module_init_one(event, modname, config_fd);
+	return module_init_one(modname, config_fd);
 }
 
 void module_close(void)
@@ -206,12 +179,12 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_DATABASE) {
-			mret = (mod->data->event_database)(conn,stats);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_database == NULL)
+			continue;
+		mret = (mod->data->event_database)(conn,stats);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -225,12 +198,12 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_STORED_PLAYLIST) {
-			mret = (mod->data->event_stored_playlist)(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_stored_playlist == NULL)
+			continue;
+		mret = (mod->data->event_stored_playlist)(conn);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -244,12 +217,12 @@ int module_queue_run(const struct mpd_connection *conn)
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_QUEUE) {
-			mret = (mod->data->event_queue)(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_queue == NULL)
+			continue;
+		mret = (mod->data->event_queue)(conn);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -264,12 +237,12 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_PLAYER) {
-			mret = (mod->data->event_player)(conn, song, status);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_queue == NULL)
+			continue;
+		mret = (mod->data->event_player)(conn, song, status);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -283,12 +256,12 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_MIXER) {
-			mret = (mod->data->event_mixer)(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_mixer == NULL)
+			continue;
+		mret = (mod->data->event_mixer)(conn, status);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -302,12 +275,12 @@ int module_output_run(const struct mpd_connection *conn)
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_OUTPUT) {
-			mret = (mod->data->event_output)(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_output == NULL)
+			continue;
+		mret = (mod->data->event_output)(conn);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -321,12 +294,12 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_OPTIONS) {
-			mret = (mod->data->event_options)(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_options == NULL)
+			continue;
+		mret = (mod->data->event_options)(conn, status);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }
@@ -340,12 +313,12 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->events | MPD_IDLE_UPDATE) {
-			mret = (mod->data->event_update)(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules);
-			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
-				break;
-		}
+		if (mod->data->event_update == NULL)
+			continue;
+		mret = (mod->data->event_update)(conn, status);
+		ret = module_process_ret(mret, mod, &walk, &modules);
+		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+			break;
 	}
 	return ret;
 }

@@ -57,6 +57,8 @@ static bool load_string(GKeyFile *fd, const char *name, char **value_r)
 
 int file_load(GKeyFile *fd)
 {
+	int event;
+	char **values;
 	GError *parse_error;
 
 	memset(&file_config, 0, sizeof(struct config));
@@ -83,6 +85,38 @@ int file_load(GKeyFile *fd)
 		}
 		g_error_free(parse_error);
 	}
+
+	parse_error = NULL;
+	values = g_key_file_get_string_list(fd, "notification", "events", NULL, &parse_error);
+	if (parse_error != NULL) {
+		if (parse_error->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
+			daemon_log(LOG_ERR, "%sfailed to load notification.events: %s",
+					NOTIFICATION_LOG_PREFIX, parse_error->message);
+			g_error_free(parse_error);
+			return -1;
+		}
+		g_error_free(parse_error);
+	}
+
+	if (values != NULL) {
+		for (unsigned int i = 0; values[i] != NULL; i++) {
+			if ((event = mpd_idle_name_parse(values[i])) < 0)
+				daemon_log(LOG_WARNING, "%sinvalid value `%s' in notification.events",
+						NOTIFICATION_LOG_PREFIX, values[i]);
+			else if (event == MPD_IDLE_STORED_PLAYLIST ||
+					event == MPD_IDLE_QUEUE ||
+					event == MPD_IDLE_OUTPUT)
+				daemon_log(LOG_WARNING, "%sevent `%s' not supported as a notification event",
+						NOTIFICATION_LOG_PREFIX, values[i]);
+			else
+				file_config.events |= event;
+		}
+		g_strfreev(values);
+	}
+
+	if (file_config.events == 0)
+		file_config.events = MPD_IDLE_DATABASE | MPD_IDLE_PLAYER |
+			MPD_IDLE_MIXER | MPD_IDLE_OPTIONS | MPD_IDLE_UPDATE;
 
 	if (file_config.cover_path == NULL && g_getenv("HOME") != NULL)
 		file_config.cover_path = g_build_filename(g_getenv("HOME"), ".covers", NULL);

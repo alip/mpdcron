@@ -65,7 +65,7 @@ extern int keyfile_load(int load_modules);
 extern void loop_connect(void);
 extern void loop_disconnect(void);
 #ifdef HAVE_GMODULE
-extern int module_load(int event, const char *modname, GKeyFile *config_fd);
+extern int module_load(const char *modname, GKeyFile *config_fd);
 extern void module_close(void);
 extern int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
 extern int module_stored_playlist_run(const struct mpd_connection *conn);

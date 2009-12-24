@@ -242,8 +242,6 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 struct mpdcron_module module = {
 	.name = "Scrobbler",
-	.generic = false,
-	.events = MPD_IDLE_PLAYER,
 	.init = init,
 	.destroy = destroy,
 	.event_player = event_player,

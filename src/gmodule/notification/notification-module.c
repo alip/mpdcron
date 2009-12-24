@@ -28,6 +28,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <time.h>
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
@@ -58,7 +59,8 @@ static void song_continued(void)
 
 static void song_changed(const struct mpd_song *song)
 {
-	char *cpath;
+	const char *summary;
+	char *cpath, *body;
 
 	assert(song != NULL);
 	g_timer_start(timer);
@@ -78,11 +80,18 @@ static void song_changed(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	notification_send(cpath,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-			mpd_song_get_uri(song));
+	summary = mpd_song_get_tag(song, MPD_TAG_TITLE, 0)
+		? mpd_song_get_tag(song, MPD_TAG_TITLE, 0)
+		: mpd_song_get_uri(song);
+	body = g_strdup_printf("by %s - %s",
+			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)
+			? mpd_song_get_tag(song, MPD_TAG_ARTIST, 0)
+			: "Unknown",
+			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)
+			? mpd_song_get_tag(song, MPD_TAG_ALBUM, 0)
+			: "Unknown");
+	notification_send(cpath, summary, body);
+	g_free(body);
 	g_free(cpath);
 }
 
@@ -121,10 +130,58 @@ static void destroy(void)
 	g_timer_destroy(timer);
 }
 
+static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
+		const struct mpd_stats *stats)
+{
+	time_t t;
+	const char *summary;
+	char *play_time, *uptime, *db_play_time;
+	char *body;
+
+	g_assert(stats != NULL);
+
+	if ((file_config.events | MPD_IDLE_DATABASE) == 0)
+		return MPDCRON_RUN_SUCCESS;
+
+	play_time = dhms(mpd_stats_get_play_time(stats));
+	uptime = dhms(mpd_stats_get_uptime(stats));
+	db_play_time = dhms(mpd_stats_get_db_play_time(stats));
+	t = mpd_stats_get_db_update_time(stats);
+
+	summary = "Mpd Database has been updated";
+	body = g_strdup_printf("Artists: %u\n"
+			"Albums: %u\n"
+			"Songs: %u\n"
+			"\n"
+			"Play Time: %s\n"
+			"Uptime: %s\n"
+			"DB Updated: %s"
+			"DB Play Time: %s",
+			mpd_stats_get_number_of_artists(stats),
+			mpd_stats_get_number_of_albums(stats),
+			mpd_stats_get_number_of_songs(stats),
+			play_time,
+			uptime,
+			ctime(&t),
+			db_play_time);
+
+	notification_send(NULL, summary, body);
+	g_free(play_time);
+	g_free(uptime);
+	g_free(db_play_time);
+	g_free(body);
+	return MPDCRON_RUN_SUCCESS;
+}
+
 static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_song *song, const struct mpd_status *status)
 {
 	enum mpd_state state;
+
+	g_assert(status != NULL);
+
+	if ((file_config.events | MPD_IDLE_PLAYER) == 0)
+		return MPDCRON_RUN_SUCCESS;
 
 	state = mpd_status_get_state(status);
 	assert(song != NULL || state != MPD_STATE_PLAY);
@@ -159,11 +216,70 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	return MPDCRON_RUN_SUCCESS;
 }
 
+static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
+		const struct mpd_status *status)
+{
+	char *summary;
+
+	g_assert(status != NULL);
+
+	if ((file_config.events | MPD_IDLE_MIXER) == 0)
+		return MPDCRON_RUN_SUCCESS;
+
+	summary = g_strdup_printf("Mpd Volume: %d%%", mpd_status_get_volume(status));
+	notification_send(NULL, summary, "");
+	g_free(summary);
+	return MPDCRON_RUN_SUCCESS;
+}
+
+static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
+		const struct mpd_status *status)
+{
+	char *body;
+
+	g_assert(status != NULL);
+
+	if ((file_config.events | MPD_IDLE_OPTIONS) == 0)
+		return MPDCRON_RUN_SUCCESS;
+
+	body = g_strdup_printf("Repeat: %s\n"
+			"Random: %s\n"
+			"Single: %s\n"
+			"Consume: %s\n"
+			"Crossfade: %u",
+			mpd_status_get_repeat(status) ? "on" : "off",
+			mpd_status_get_random(status) ? "on" : "off",
+			mpd_status_get_single(status) ? "on" : "off",
+			mpd_status_get_consume(status) ? "on" : "off",
+			mpd_status_get_crossfade(status));
+	notification_send(NULL, "Mpd Options have changed!", body);
+	g_free(body);
+	return MPDCRON_RUN_SUCCESS;
+}
+
+static int event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
+		const struct mpd_status *status)
+{
+	char *summary;
+
+	g_assert(status != NULL);
+
+	if ((file_config.events | MPD_IDLE_UPDATE) == 0)
+		return MPDCRON_RUN_SUCCESS;
+
+	summary = g_strdup_printf("Mpd Update ID: %u",
+			mpd_status_get_update_id(status));
+	notification_send(NULL, summary, "");
+	return MPDCRON_RUN_SUCCESS;
+}
+
 struct mpdcron_module module = {
 	.name = "Notification",
-	.generic = false,
-	.events = MPD_IDLE_PLAYER,
 	.init = init,
 	.destroy = destroy,
+	.event_database = event_database,
 	.event_player = event_player,
+	.event_mixer = event_mixer,
+	.event_options = event_options,
+	.event_update = event_update,
 };

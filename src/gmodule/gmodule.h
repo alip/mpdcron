@@ -27,7 +27,7 @@
 #include <mpd/client.h>
 
 #ifndef MPDCRON_MODULE
-#define module_log(level, ...) daemon_log(level, __VA_ARGS__)
+#define mpdcron_log(level, ...) daemon_log(level, __VA_ARGS__)
 #else
 #define mpdcron_log(level, ...) daemon_log((level), "[" MPDCRON_MODULE "] " __VA_ARGS__)
 #endif /* !MPDCRON_MODULE */

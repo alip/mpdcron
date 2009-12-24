@@ -161,22 +161,22 @@ static void song_stopped(void)
 }
 
 /* Module functions */
-int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
+static int init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 {
 	/* Parse configuration */
 	if (file_load(fd) < 0)
-		return MPDCRON_INIT_RETVAL_FAILURE;
+		return MPDCRON_INIT_FAILURE;
 	if (http_client_init() < 0)
-		return MPDCRON_INIT_RETVAL_FAILURE;
+		return MPDCRON_INIT_FAILURE;
 	as_init(file_config.scrobblers);
 
 	timer = g_timer_new();
 	save_source_id = g_timeout_add_seconds(file_config.journal_interval, timer_save_journal, NULL);
 
-	return MPDCRON_INIT_RETVAL_SUCCESS;
+	return MPDCRON_INIT_SUCCESS;
 }
 
-void mpdcron_close(void)
+static void destroy(void)
 {
 	daemon_log(LOG_INFO, "%sexiting", SCROBBLER_LOG_PREFIX);
 	file_cleanup();
@@ -189,7 +189,7 @@ void mpdcron_close(void)
 		mpd_song_free(prev);
 }
 
-int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_song *song, const struct mpd_status *status)
 {
 	enum mpd_state state;
@@ -199,7 +199,7 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MPDCRON_RUN_RETVAL_SUCCESS;
+		return MPDCRON_RUN_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY)
 		song_stopped();
@@ -234,8 +234,17 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 		if ((prev = mpd_song_dup(song)) == NULL) {
 			daemon_log(LOG_ERR, "%smpd_song_dup failed: out of memory",
 					SCROBBLER_LOG_PREFIX);
-			return MPDCRON_RUN_RETVAL_UNLOAD;
+			return MPDCRON_RUN_UNLOAD;
 		}
 	}
-	return MPDCRON_RUN_RETVAL_SUCCESS;
+	return MPDCRON_RUN_SUCCESS;
 }
+
+struct mpdcron_module module = {
+	.name = "Scrobbler",
+	.generic = false,
+	.events = MPD_IDLE_PLAYER,
+	.init = init,
+	.destroy = destroy,
+	.event_player = event_player,
+};

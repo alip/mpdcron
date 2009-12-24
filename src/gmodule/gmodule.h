@@ -33,83 +33,67 @@
  * MPDCRON_EVENT_UPDATE
  */
 
+#include <stdbool.h>
+
 #include <glib.h>
 #include <mpd/client.h>
 
 enum mpdcron_init_retval {
-	MPDCRON_INIT_RETVAL_SUCCESS = 0,
-	MPDCRON_INIT_RETVAL_FAILURE,
+	MPDCRON_INIT_SUCCESS = 0,
+	MPDCRON_INIT_FAILURE,
 };
 
 enum mpdcron_run_retval {
-	MPDCRON_RUN_RETVAL_SUCCESS = 0, /** Success **/
-	MPDCRON_RUN_RETVAL_RECONNECT, /** Schedule a reconnection to mpd server **/
-	MPDCRON_RUN_RETVAL_RECONNECT_NOW, /** Schedule a reconnection to mpd server immediately. **/
-	MPDCRON_RUN_RETVAL_UNLOAD, /** Unload the module **/
+	MPDCRON_RUN_SUCCESS = 0, /** Success **/
+	MPDCRON_RUN_RECONNECT, /** Schedule a reconnection to mpd server **/
+	MPDCRON_RUN_RECONNECT_NOW, /** Schedule a reconnection to mpd server immediately. **/
+	MPDCRON_RUN_UNLOAD, /** Unload the module **/
+};
+
+struct mpdcron_module {
+	/** Name of the module */
+	const char *name;
+
+	/** Set this to true, if the module is a generic module. */
+	bool generic;
+
+	/** List of events the module supports (for non-generic modules) */
+	int events;
+
+	/** Initialization function */
+	int (*init) (int, GKeyFile *);
+
+	/** Cleanup function */
+	void (*destroy) (void);
+
+	/** Function for database event */
+	int (*event_database) (const struct mpd_connection *conn, const struct mpd_stats *);
+
+	/** Function for stored playlist event */
+	int (*event_stored_playlist) (const struct mpd_connection *);
+
+	/** Function for queue event */
+	int (*event_queue) (const struct mpd_connection *);
+
+	/** Function for player event */
+	int (*event_player) (const struct mpd_connection *, const struct mpd_song *,
+			const struct mpd_status *);
+
+	/** Function for mixer event */
+	int (*event_mixer) (const struct mpd_connection *, const struct mpd_status *);
+
+	/** Function for output event */
+	int (*event_output) (const struct mpd_connection *);
+
+	/** Function for options event */
+	int (*event_options) (const struct mpd_connection *, const struct mpd_status *);
+
+	/** Function for update event */
+	int (*event_update) (const struct mpd_connection *, const struct mpd_status *);
 };
 
 #ifndef MPDCRON_INTERNAL
-/**
- * Initialize function. This function is called when the module is loaded.
- *
- * @param nodaemon Non-zero if --no-daemon option is passed to mpdcron.
- * @param fd This file descriptor points to mpdcron's configuration file.
- *           Don't call g_key_file_free() on this!
- * @return @see enum mpdcron_init_retval
- */
-int mpdcron_init(int nodaemon, GKeyFile *fd);
-
-/**
- * Close function. This function is called when the module is unloaded.
- */
-void mpdcron_close(void);
-
-#if defined(MPDCRON_EVENT_DATABASE)
-/**
- * Run function for database event
- */
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
-#elif defined(MPDCRON_EVENT_STORED_PLAYLIST)
-/**
- * Run function for stored playlist event
- */
-int mpdcron_run(const struct mpd_connection *conn);
-#elif defined(MPDCRON_EVENT_QUEUE)
-/**
- * Run function for queue event
- */
-int mpdcron_run(const struct mpd_connection *conn);
-#elif defined(MPDCRON_EVENT_PLAYER)
-/**
- * Run function for player event
- */
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_song *song, const struct mpd_status *status);
-#elif defined(MPDCRON_EVENT_MIXER)
-/**
- * Run function for mixer event
- */
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *status);
-#elif defined(MPDCRON_EVENT_OUTPUT)
-/**
- * Run function for output event
- */
-int mpdcron_run(const struct mpd_connection *conn);
-#elif defined(MPDCRON_EVENT_OPTIONS)
-/**
- * Run function for options event
- */
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *status);
-#elif defined(MPDCRON_EVENT_UPDATE)
-/**
- * Run function for update event
- */
-int mpdcron_run(const struct mpd_connection *conn, const struct mpd_status *status);
-#elif defined(MPDCRON_EVENT_GENERIC)
-/* No mpdcron_run() for generic modules */
-#else
-#error None of the required MPDCRON_EVENT_* constants were defined!
-#endif
-
+extern struct mpdcron_module module;
 #endif /* !MPDCRON_INTERNAL */
 
 #endif /* !MPDCRON_GUARD_MODULE_H */

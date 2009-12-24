@@ -100,28 +100,28 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 	}
 }
 
-int mpdcron_init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
+static int init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
 {
 	was_paused = false;
 	last_id = -1;
 
 	/* Parse configuration */
 	if (file_load(fd) < 0)
-		return MPDCRON_INIT_RETVAL_FAILURE;
+		return MPDCRON_INIT_FAILURE;
 
 	timer = g_timer_new();
 	daemon_log(LOG_INFO, "%sinitialized", NOTIFICATION_LOG_PREFIX);
-	return MPDCRON_INIT_RETVAL_SUCCESS;
+	return MPDCRON_INIT_SUCCESS;
 }
 
-void mpdcron_close(void)
+static void destroy(void)
 {
 	daemon_log(LOG_INFO, "%sexiting", NOTIFICATION_LOG_PREFIX);
 	file_cleanup();
 	g_timer_destroy(timer);
 }
 
-int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_song *song, const struct mpd_status *status)
 {
 	enum mpd_state state;
@@ -131,11 +131,11 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MPDCRON_RUN_RETVAL_SUCCESS;
+		return MPDCRON_RUN_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY) {
 		song_stopped();
-		return MPDCRON_RUN_RETVAL_SUCCESS;
+		return MPDCRON_RUN_SUCCESS;
 	}
 
 	if (was_paused) {
@@ -156,5 +156,14 @@ int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn,
 		}
 	}
 
-	return MPDCRON_RUN_RETVAL_SUCCESS;
+	return MPDCRON_RUN_SUCCESS;
 }
+
+struct mpdcron_module module = {
+	.name = "Notification",
+	.generic = false,
+	.events = MPD_IDLE_PLAYER,
+	.init = init,
+	.destroy = destroy,
+	.event_player = event_player,
+};

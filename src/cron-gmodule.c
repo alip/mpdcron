@@ -19,42 +19,23 @@
 
 #include "cron-defs.h"
 
+#include <stdbool.h>
 #include <string.h>
 
 #include <glib.h>
 #include <gmodule.h>
 #include <mpd/client.h>
 
-struct mpdcron_module {
-	int generic;
+struct module_data {
+	bool generic;
 	int event;
 	int user;
 	char *path;
 	GModule *module;
+	struct mpdcron_module *data;
 };
 
-typedef int (*initfunc_t) (int, GKeyFile *);
-typedef void (*closefunc_t) (void);
-
-typedef int (*database_func_t) (const struct mpd_connection *conn, const struct mpd_stats *stats);
-typedef int (*stored_playlist_func_t) (const struct mpd_connection *conn);
-typedef int (*queue_func_t) (const struct mpd_connection *conn);
-typedef int (*player_func_t) (const struct mpd_connection *conn, const struct mpd_song *song,
-		const struct mpd_status *status);
-typedef int (*mixer_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
-typedef int (*output_func_t) (const struct mpd_connection *conn);
-typedef int (*options_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
-typedef int (*update_func_t) (const struct mpd_connection *conn, const struct mpd_status *status);
-
-static GSList *modules_generic = NULL;
-static GSList *modules_database = NULL;
-static GSList *modules_stored_playlist = NULL;
-static GSList *modules_queue = NULL;
-static GSList *modules_player = NULL;
-static GSList *modules_mixer = NULL;
-static GSList *modules_output = NULL;
-static GSList *modules_options = NULL;
-static GSList *modules_update = NULL;
+static GSList *modules = NULL;
 
 static char *module_path(const char *modname, int *user_r)
 {
@@ -89,97 +70,108 @@ static char *module_path(const char *modname, int *user_r)
 	return NULL;
 }
 
-static int module_load_one(int generic, int event, const char *modname,
-		GKeyFile *config_fd, GSList **list_r)
+static int module_init_one(int event, const char *modname, GKeyFile *config_fd)
 {
-	struct mpdcron_module *mod;
-	initfunc_t initfunc = NULL;
+	struct module_data *mod;
 
-	mod = g_new0(struct mpdcron_module, 1);
-	mod->generic = generic;
+	mod = g_new0(struct module_data, 1);
 	mod->event = event;
 	if ((mod->path = module_path(modname, &(mod->user))) == NULL) {
-		daemon_log(LOG_WARNING, "Error loading module %s: file not found", modname);
+		daemon_log(LOG_WARNING, "Error loading module %s: file not found",
+				modname);
 		g_free(mod);
 		return -1;
 	}
-	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL) {
-		daemon_log(LOG_WARNING, "Error loading module `%s': %s", mod->path, g_module_error());
+	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LOCAL)) == NULL) {
+		daemon_log(LOG_WARNING, "Error loading module `%s': %s",
+				mod->path, g_module_error());
+		g_free(mod->path);
+		g_free(mod);
+		return -1;
+	}
+	if (!g_module_symbol(mod->module, "module", (gpointer *)&mod->data) || mod->data == NULL) {
+		daemon_log(LOG_WARNING, "Error loading module `%s': no module structure",
+				mod->path);
+		g_module_close(mod->module);
 		g_free(mod->path);
 		g_free(mod);
 		return -1;
 	}
 
-	/* Check for mpdcron_init() function, execute it and if it returns
-	 * non-zero skip loading the module.
-	 */
-	if (g_module_symbol(mod->module, MODULE_INIT_FUNC, (gpointer *)&initfunc) && initfunc != NULL) {
-		if (initfunc(optnd, config_fd) == MPDCRON_INIT_RETVAL_FAILURE) {
+	/* Check if the module supports the given event */
+	if (mod->event < 0 && !(mod->data->generic)) {
+		daemon_log(LOG_WARNING, "Error loading module `%s': not a generic module",
+				mod->path);
+		g_module_close(mod->module);
+		g_free(mod->path);
+		g_free(mod);
+		return -1;
+	}
+	else if ((mod->data->events | mod->event) == 0) {
+		daemon_log(LOG_WARNING, "Error loading module `%s': no support for event %s",
+				mod->path, mpd_idle_name(event));
+		g_module_close(mod->module);
+		g_free(mod->path);
+		g_free(mod);
+		return -1;
+	}
+
+	/* Run the init() function if there's any. */
+	if (mod->data->init != NULL) {
+		if ((mod->data->init)(optnd, config_fd) == MPDCRON_INIT_FAILURE) {
 			daemon_log(LOG_WARNING,
-					"Skipped loading module `%s': "MODULE_INIT_FUNC"() returned %d",
-					mod->path, MPDCRON_INIT_RETVAL_FAILURE);
+					"Skipped loading module `%s': init() returned %d",
+					mod->path, MPDCRON_INIT_FAILURE);
 			g_free(mod->path);
 			g_module_close(mod->module);
 			g_free(mod);
 			return -1;
 		}
 	}
-	daemon_log(LOG_DEBUG, "Loaded module `%s'", mod->path);
-	*list_r = g_slist_prepend(*list_r, mod);
+	daemon_log(LOG_DEBUG, "Loaded module `%s' (name: %s) for event %s", mod->path,
+			mod->data->name,
+			(mod->event < 0) ? "generic" : mpd_idle_name(mod->event));
+	modules = g_slist_prepend(modules, mod);
 	return 0;
 }
 
-static void module_close_list(GSList **list_r)
+static void module_destroy_one(gpointer data, G_GNUC_UNUSED gpointer userdata)
 {
-	GSList *walk;
-	struct mpdcron_module *mod;
-	closefunc_t closefunc = NULL;
+	struct module_data *mod;
 
-	for (walk = *list_r; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *) walk->data;
-		/* Run the close function if there's any */
-		if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC, (gpointer *)&closefunc) && closefunc != NULL)
-			closefunc();
-		g_free(mod->path);
-		g_module_close(mod->module);
-		g_free(mod);
-	}
-	g_slist_free(*list_r);
-	*list_r = NULL;
+	mod = (struct module_data *)data;
+	/* Run the destroy function if there's any */
+	if (mod->data->destroy != NULL)
+		(mod->data->destroy)();
+	g_free(mod->path);
+	g_module_close(mod->module);
+	g_free(mod);
 }
 
-static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slink_r, GSList **slist_r)
+static int module_process_ret(int ret, struct module_data *mod, GSList **slink_r, GSList **slist_r)
 {
-	closefunc_t closefunc = NULL;
-
 	switch (ret) {
-		case MPDCRON_RUN_RETVAL_SUCCESS:
+		case MPDCRON_RUN_SUCCESS:
 			return 0;
-		case MPDCRON_RUN_RETVAL_RECONNECT:
+		case MPDCRON_RUN_RECONNECT:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect (event: %s)",
 					mod->user ? "User" : "Standard",
 					mod->path,
 					mod->generic ? "generic" : mpd_idle_name(mod->event));
 			return -1;
-		case MPDCRON_RUN_RETVAL_RECONNECT_NOW:
+		case MPDCRON_RUN_RECONNECT_NOW:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW! (event: %s)",
 					mod->user ? "User" : "Standard",
 					mod->path,
 					mod->generic ? "generic" : mpd_idle_name(mod->event));
 			return -1;
-		case MPDCRON_RUN_RETVAL_UNLOAD:
+		case MPDCRON_RUN_UNLOAD:
 			daemon_log(LOG_INFO, "Unloading %s module `%s' (event: %s)",
 					mod->user ? "user" : "standard",
 					mod->path,
 					mod->generic ? "generic" : mpd_idle_name(mod->event));
-			/* Run the close function if there's any */
-			if (g_module_symbol(mod->module, MODULE_CLOSE_FUNC,
-						(gpointer *)&closefunc) && closefunc != NULL)
-				closefunc();
 			*slist_r = g_slist_remove_link(*slist_r, *slink_r);
-			g_free(mod->path);
-			g_module_close(mod->module);
-			g_free(mod);
+			module_destroy_one(mod, NULL);
 			g_slist_free(*slink_r);
 			*slink_r = *slist_r;
 			return 0;
@@ -195,71 +187,29 @@ static int module_process_ret(int ret, struct mpdcron_module *mod, GSList **slin
 
 int module_load(int event, const char *modname, GKeyFile *config_fd)
 {
-	int generic;
-	GSList **list_r = NULL;
-
-	generic = 0;
-	switch (event) {
-		case MPD_IDLE_DATABASE:
-			list_r = &modules_database;
-			break;
-		case MPD_IDLE_STORED_PLAYLIST:
-			list_r = &modules_stored_playlist;
-			break;
-		case MPD_IDLE_QUEUE:
-			list_r = &modules_queue;
-			break;
-		case MPD_IDLE_PLAYER:
-			list_r = &modules_player;
-			break;
-		case MPD_IDLE_MIXER:
-			list_r = &modules_mixer;
-			break;
-		case MPD_IDLE_OUTPUT:
-			list_r = &modules_output;
-			break;
-		case MPD_IDLE_OPTIONS:
-			list_r = &modules_options;
-			break;
-		case MPD_IDLE_UPDATE:
-			list_r = &modules_update;
-			break;
-		default:
-			generic = 1;
-			list_r = &modules_generic;
-			break;
-	}
-
-	return module_load_one(generic, event, modname, config_fd, list_r);
+	return module_init_one(event, modname, config_fd);
 }
 
 void module_close(void)
 {
-	module_close_list(&modules_generic);
-	module_close_list(&modules_database);
-	module_close_list(&modules_stored_playlist);
-	module_close_list(&modules_queue);
-	module_close_list(&modules_player);
-	module_close_list(&modules_mixer);
-	module_close_list(&modules_output);
-	module_close_list(&modules_options);
-	module_close_list(&modules_update);
+	g_slist_foreach(modules, module_destroy_one, NULL);
+	g_slist_free(modules);
+	modules = NULL;
 }
 
 int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats)
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	database_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_database; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn, stats);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_DATABASE) {
+			mret = (mod->data->event_database)(conn,stats);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -270,16 +220,15 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	stored_playlist_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_stored_playlist; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_STORED_PLAYLIST) {
+			mret = (mod->data->event_stored_playlist)(conn);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -290,16 +239,15 @@ int module_queue_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	queue_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_queue; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_QUEUE) {
+			mret = (mod->data->event_queue)(conn);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -311,16 +259,15 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	player_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_player; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn, song, status);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_PLAYER) {
+			mret = (mod->data->event_player)(conn, song, status);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -331,16 +278,15 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	mixer_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_mixer; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_MIXER) {
+			mret = (mod->data->event_mixer)(conn, status);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -351,16 +297,15 @@ int module_output_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	output_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_output; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_OUTPUT) {
+			mret = (mod->data->event_output)(conn);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -371,16 +316,15 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	options_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_options; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_OPTIONS) {
+			mret = (mod->data->event_options)(conn, status);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}
@@ -391,16 +335,15 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 {
 	int mret, ret;
 	GSList *walk;
-	struct mpdcron_module *mod;
-	update_func_t func = NULL;
+	struct module_data *mod;
 
 	ret = 0;
-	for (walk = modules_update; walk != NULL; walk = g_slist_next(walk)) {
-		mod = (struct mpdcron_module *)walk->data;
-		if (g_module_symbol(mod->module, MODULE_RUN_FUNC, (gpointer *)&func) && func != NULL) {
-			mret = func(conn, status);
-			ret = module_process_ret(mret, mod, &walk, &modules_database);
-			if (ret < 0 && mret == MPDCRON_RUN_RETVAL_RECONNECT_NOW)
+	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
+		mod = (struct module_data *)walk->data;
+		if (mod->data->events | MPD_IDLE_UPDATE) {
+			mret = (mod->data->event_update)(conn, status);
+			ret = module_process_ret(mret, mod, &walk, &modules);
+			if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
 				break;
 		}
 	}

@@ -22,7 +22,6 @@
 
 #include "scrobbler-defs.h"
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -61,7 +60,8 @@ static bool song_repeated(const struct mpd_song *song, int elapsed, int prev_ela
 
 static void song_changed(const struct mpd_song *song)
 {
-	assert(song != NULL);
+	g_assert(song != NULL);
+
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
 		daemon_log(LOG_INFO, "%snew song detected with tags missing (%s)",
@@ -94,7 +94,8 @@ static void song_ended(const struct mpd_song *song)
 {
 	int elapsed;
 
-	assert(song != NULL);
+	g_assert(song != NULL);
+
 	elapsed = g_timer_elapsed(timer, NULL);
 
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
@@ -195,7 +196,7 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	enum mpd_state state;
 
 	state = mpd_status_get_state(status);
-	assert(song != NULL || state != MPD_STATE_PLAY);
+	g_assert(song != NULL || state != MPD_STATE_PLAY);
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();

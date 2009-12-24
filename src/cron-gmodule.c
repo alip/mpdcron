@@ -237,7 +237,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	ret = 0;
 	for (walk = modules; walk != NULL; walk = g_slist_next(walk)) {
 		mod = (struct module_data *)walk->data;
-		if (mod->data->event_queue == NULL)
+		if (mod->data->event_player == NULL)
 			continue;
 		mret = (mod->data->event_player)(conn, song, status);
 		ret = module_process_ret(mret, mod, &walk, &modules);

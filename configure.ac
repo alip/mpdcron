@@ -81,7 +81,7 @@ fi
 dnl }}}
 
 dnl {{{ standard modules
-ALL_STANDARD_MODULES="inotify notification scrobbler"
+ALL_STANDARD_MODULES="notification scrobbler"
 AC_MSG_CHECKING([which standard modules are wanted])
 AC_ARG_WITH([standard-modules],
 			  [AS_HELP_STRING([--with-standard-modules=foo,bar,...
@@ -96,26 +96,9 @@ standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULE
 AC_MSG_RESULT([$standard_modules])
 STANDARD_MODULES="$standard_modules"
 AC_SUBST([STANDARD_MODULES])
-WANT_INOTIFY=no
 WANT_NOTIFICATION=no
 WANT_SCROBBLER=no
 for m in $STANDARD_MODULES ; do
-	if test x"$m" = x"inotify" ; then
-		if test x"$WANT_GMODULE" != x"yes"; then
-			AC_MSG_WARN([GModule support is disabled, inotify module won't be built])
-		else
-			# inotify module requires sys/inotify.h
-			AC_CHECK_HEADER([sys/inotify.h], [WANT_INOTIFY=yes],
-							AC_MSG_ERROR([inotify module requires sys/inotify.h]))
-			AC_MSG_CHECKING([whether sys/inotify.h works])
-			AC_RUN_IFELSE(
-						  AC_LANG_PROGRAM([[#include <sys/inotify.h>]],
-										  [[return (-1 == inotify_init());]]),
-						  [WANT_INOTIFY=yes],
-						  AC_MSG_ERROR([inotify module requires a working sys/inotify.h]))
-			AC_MSG_RESULT([yes])
-		fi
-	fi
 	if test x"$m" = x"notification" ; then
 		if test x"$WANT_GMODULE" != x"yes"; then
 			AC_MSG_WARN([GModule support is disabled, notification module won't be built])
@@ -139,7 +122,6 @@ for m in $STANDARD_MODULES ; do
 		fi
 	fi
 done
-AM_CONDITIONAL([WANT_INOTIFY], test x"$WANT_INOTIFY" = x"yes")
 AM_CONDITIONAL([WANT_NOTIFICATION], test x"$WANT_NOTIFICATION" = x"yes")
 AM_CONDITIONAL([WANT_SCROBBLER], test x"$WANT_SCROBBLER" = x"yes")
 dnl }}}
@@ -159,7 +141,6 @@ AC_OUTPUT(
 		  Makefile
 		  src/Makefile
 		  src/gmodule/Makefile
-		  src/gmodule/inotify/Makefile
 		  src/gmodule/notification/Makefile
 		  src/gmodule/scrobbler/Makefile
 		  data/Makefile

@@ -24,7 +24,7 @@
 #include "config.h"
 #endif /* !HAVE_CONFIG_H */
 
-#define MPDCRON_LOG_PREFIX	"[notification] "
+#define MPDCRON_MODULE		"notification"
 #include "../gmodule.h"
 
 #include <glib.h>

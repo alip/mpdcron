@@ -26,10 +26,11 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-#ifndef MPDCRON_LOG_PREFIX
-#define MPDCRON_LOG_PREFIX ""
-#endif /* !MPDCRON_LOG_PREFIX */
-#define mpdcron_log(level, ...) daemon_log((level), MPDCRON_LOG_PREFIX __VA_ARGS__)
+#ifndef MPDCRON_MODULE
+#define module_log(level, ...) daemon_log(level, __VA_ARGS__)
+#else
+#define mpdcron_log(level, ...) daemon_log((level), "[" MPDCRON_MODULE "] " __VA_ARGS__)
+#endif /* !MPDCRON_MODULE */
 
 enum mpdcron_init_retval {
 	MPDCRON_INIT_SUCCESS = 0,

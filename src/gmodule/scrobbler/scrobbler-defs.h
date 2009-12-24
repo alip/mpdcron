@@ -27,7 +27,7 @@
 #include "config.h"
 #endif /* !HAVE_CONFIG_H */
 
-#define LOG_PREFIX "[scrobbler] "
+#define MPDCRON_MODULE		"scrobbler"
 #include "../gmodule.h"
 
 #include <stdbool.h>

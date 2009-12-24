@@ -28,74 +28,9 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
+#include "../utils.h"
+
 struct config file_config;
-
-static bool load_string(GKeyFile *fd, const char *name, char **value_r)
-{
-	char *value;
-	GError *e = NULL;
-
-	if (*value_r != NULL) {
-		/* already set */
-		return true;
-	}
-
-	value = g_key_file_get_string(fd, "scrobbler", name, &e);
-	if (e != NULL) {
-		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			mpdcron_log(LOG_ERR, "Failed to load scrobbler.%s: %s",
-					name, e->message);
-			g_error_free(e);
-			return false;
-		}
-		g_error_free(e);
-	}
-
-	*value_r = value;
-	return true;
-}
-
-static bool load_integer(GKeyFile *fd, const char *name, int *value_r)
-{
-	int value;
-	GError *e = NULL;
-
-	if (*value_r != -1) {
-		/* already set */
-		return true;
-	}
-
-	value = g_key_file_get_integer(fd, "scrobbler", name, &e);
-	if (e != NULL) {
-		if (e->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			mpdcron_log(LOG_ERR, "Failed to load scrobbler.%s: %s",
-					name, e->message);
-			g_error_free(e);
-			return false;
-		}
-		g_error_free(e);
-	}
-
-	*value_r = value;
-	return true;
-}
-
-static bool load_unsigned(GKeyFile *fd, const char *name, unsigned *value_r)
-{
-	int value = -1;
-
-	if (!load_integer(fd, name, &value))
-		return false;
-
-	if (value < 0) {
-		mpdcron_log(LOG_ERR, "Setting scrobbler.%s must not be negative",
-				name);
-		return false;
-	}
-
-	*value_r = (unsigned)value;
-	return true;
-}
 
 static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 {
@@ -167,9 +102,9 @@ int file_load(GKeyFile *fd)
 	memset(&file_config, 0, sizeof(struct config));
 	file_config.journal_interval = -1;
 
-	if (!load_string(fd, "proxy", &file_config.proxy))
+	if (!load_string(fd, MPDCRON_MODULE, "proxy", false, &file_config.proxy))
 		return -1;
-	if (!load_unsigned(fd, "journal_interval", &file_config.journal_interval))
+	if (!load_unsigned(fd, MPDCRON_MODULE, "journal_interval", false, &file_config.journal_interval))
 		return -1;
 
 	if ((scrobbler = load_scrobbler(fd, "libre.fm")) != NULL) {

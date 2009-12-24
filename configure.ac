@@ -87,7 +87,6 @@ AC_ARG_WITH([standard-modules],
 			  [AS_HELP_STRING([--with-standard-modules=foo,bar,...
 			   Build the specified standard modules:
 			   all              Build all available standard modules
-			   inotify          Build the inotify module
 			   notification     Build the notification module
 			   scrobbler        Build the scrobbler module])],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],

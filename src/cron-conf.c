@@ -26,7 +26,7 @@
 #include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
-struct config conf;
+struct mpdcron_config conf;
 
 const char *conf_pid_file_proc(void)
 {
@@ -44,7 +44,7 @@ int conf_init(void)
 {
 	char *kfname;
 
-	memset(&conf, 0, sizeof(struct config));
+	memset(&conf, 0, sizeof(struct mpdcron_config));
 
 	/* Get home directory */
 	if (g_getenv(ENV_HOME_DIR))
@@ -84,5 +84,5 @@ void conf_free(void)
 #ifdef HAVE_GMODULE
 	g_free(conf.mod_path);
 #endif /* HAVE_GMODULE */
-	memset(&conf, 0, sizeof(struct config));
+	memset(&conf, 0, sizeof(struct mpdcron_config));
 }

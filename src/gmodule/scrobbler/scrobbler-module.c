@@ -162,7 +162,7 @@ static void song_stopped(void)
 }
 
 /* Module functions */
-static int init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
+static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	/* Parse configuration */
 	if (file_load(fd) < 0)

@@ -97,7 +97,7 @@ static int module_init_one(const char *modname, GKeyFile *config_fd)
 
 	/* Run the init() function if there's any. */
 	if (mod->data->init != NULL) {
-		if ((mod->data->init)(optnd, config_fd) == MPDCRON_INIT_FAILURE) {
+		if ((mod->data->init)(&conf, config_fd) == MPDCRON_INIT_FAILURE) {
 			daemon_log(LOG_WARNING,
 					"Skipped loading module `%s': init() returned %d",
 					mod->path, MPDCRON_INIT_FAILURE);

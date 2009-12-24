@@ -50,12 +50,29 @@ enum mpdcron_event_retval {
 	MPDCRON_EVENT_UNLOAD, /** Unload the module **/
 };
 
+struct mpdcron_config {
+	char *home_path;
+	char *conf_path;
+	char *pid_path;
+	char *mod_path;
+	const char *hostname;
+	const char *port;
+	const char *password;
+
+	int no_daemon;
+	int timeout;
+	int reconnect;
+	int killwait;
+
+	enum mpd_idle idle;
+};
+
 struct mpdcron_module {
 	/** Name of the module */
 	const char *name;
 
 	/** Initialization function */
-	int (*init) (int, GKeyFile *);
+	int (*init) (const struct mpdcron_config *, GKeyFile *);
 
 	/** Cleanup function */
 	void (*destroy) (void);

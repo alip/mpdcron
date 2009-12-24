@@ -33,14 +33,13 @@
 
 #include <mpd/client.h>
 
-int optnd = 0;
 GMainLoop *loop = NULL;
 static int optv, optk;
 
 static GOptionEntry options[] = {
 	{"version", 'V', 0, G_OPTION_ARG_NONE, &optv, "Display version", NULL},
 	{"kill", 'k', 0, G_OPTION_ARG_NONE, &optk, "Kill daemon", NULL},
-	{"no-daemon", 'n', 0, G_OPTION_ARG_NONE, &optnd, "Don't detach from console", NULL},
+	{"no-daemon", 'n', 0, G_OPTION_ARG_NONE, &conf.no_daemon, "Don't detach from console", NULL},
 };
 
 static void about(void)
@@ -95,7 +94,7 @@ int main(int argc, char **argv)
 	}
 
 #ifdef DAEMON_SET_VERBOSITY_AVAILABLE
-	if (optnd)
+	if (conf.no_daemon)
 		daemon_set_verbosity(LOG_DEBUG);
 #endif /* DAEMON_SET_VERBOSITY_AVAILABLE */
 
@@ -105,7 +104,7 @@ int main(int argc, char **argv)
 	g_setenv("MPDCRON_GITHEAD", GITHEAD, 1);
 
 	/* Command line options to environment variables */
-	if (optnd)
+	if (conf.no_daemon)
 		g_unsetenv("MCOPT_DAEMONIZE");
 	else
 		g_setenv("MCOPT_DAEMONIZE", "1", 1);
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
 
 #undef HANDLE_SIGNAL
 
-	if (optnd) {
+	if (conf.no_daemon) {
 		/* Connect and start the main loop */
 		loop_connect();
 		g_main_loop_run(loop);

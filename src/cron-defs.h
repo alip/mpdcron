@@ -26,27 +26,7 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-struct config {
-	char *home_path;
-	char *conf_path;
-	char *pid_path;
-#ifdef HAVE_GMODULE
-	char *mod_path;
-#endif /* HAVE_GMODULE */
-	const char *hostname;
-	const char *port;
-	const char *password;
-
-	int timeout;
-	int reconnect;
-	int killwait;
-
-	enum mpd_idle idle;
-};
-
-extern struct config conf;
-
-extern int optnd;
+extern struct mpdcron_config conf;
 extern GMainLoop *loop;
 
 extern const char *conf_pid_file_proc(void);

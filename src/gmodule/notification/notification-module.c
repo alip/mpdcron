@@ -109,7 +109,7 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 	}
 }
 
-static int init(G_GNUC_UNUSED int nodaemon, GKeyFile *fd)
+static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	was_paused = false;
 	last_id = -1;

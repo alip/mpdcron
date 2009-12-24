@@ -128,19 +128,19 @@ static void module_destroy_one(gpointer data, G_GNUC_UNUSED gpointer userdata)
 static int module_process_ret(int ret, struct module_data *mod, GSList **slink_r, GSList **slist_r)
 {
 	switch (ret) {
-		case MPDCRON_RUN_SUCCESS:
+		case MPDCRON_EVENT_SUCCESS:
 			return 0;
-		case MPDCRON_RUN_RECONNECT:
+		case MPDCRON_EVENT_RECONNECT:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect",
 					mod->user ? "User" : "Standard",
 					mod->path);
 			return -1;
-		case MPDCRON_RUN_RECONNECT_NOW:
+		case MPDCRON_EVENT_RECONNECT_NOW:
 			daemon_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW!",
 					mod->user ? "User" : "Standard",
 					mod->path);
 			return -1;
-		case MPDCRON_RUN_UNLOAD:
+		case MPDCRON_EVENT_UNLOAD:
 			daemon_log(LOG_INFO, "Unloading %s module `%s'",
 					mod->user ? "user" : "standard",
 					mod->path);
@@ -183,7 +183,7 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 			continue;
 		mret = (mod->data->event_database)(conn,stats);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -202,7 +202,7 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 			continue;
 		mret = (mod->data->event_stored_playlist)(conn);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -221,7 +221,7 @@ int module_queue_run(const struct mpd_connection *conn)
 			continue;
 		mret = (mod->data->event_queue)(conn);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -241,7 +241,7 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 			continue;
 		mret = (mod->data->event_player)(conn, song, status);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -260,7 +260,7 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 			continue;
 		mret = (mod->data->event_mixer)(conn, status);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -279,7 +279,7 @@ int module_output_run(const struct mpd_connection *conn)
 			continue;
 		mret = (mod->data->event_output)(conn);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -298,7 +298,7 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 			continue;
 		mret = (mod->data->event_options)(conn, status);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;
@@ -317,7 +317,7 @@ int module_update_run(const struct mpd_connection *conn, const struct mpd_status
 			continue;
 		mret = (mod->data->event_update)(conn, status);
 		ret = module_process_ret(mret, mod, &walk, &modules);
-		if (ret < 0 && mret == MPDCRON_RUN_RECONNECT_NOW)
+		if (ret < 0 && mret == MPDCRON_EVENT_RECONNECT_NOW)
 			break;
 	}
 	return ret;

@@ -141,7 +141,7 @@ static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_assert(stats != NULL);
 
 	if ((file_config.events | MPD_IDLE_DATABASE) == 0)
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 
 	play_time = dhms(mpd_stats_get_play_time(stats));
 	uptime = dhms(mpd_stats_get_uptime(stats));
@@ -170,7 +170,7 @@ static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_free(uptime);
 	g_free(db_play_time);
 	g_free(body);
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -181,18 +181,18 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_assert(status != NULL);
 
 	if ((file_config.events | MPD_IDLE_PLAYER) == 0)
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 
 	state = mpd_status_get_state(status);
 	assert(song != NULL || state != MPD_STATE_PLAY);
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY) {
 		song_stopped();
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 	}
 
 	if (was_paused) {
@@ -213,7 +213,7 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		}
 	}
 
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -224,12 +224,12 @@ static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_assert(status != NULL);
 
 	if ((file_config.events | MPD_IDLE_MIXER) == 0)
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 
 	summary = g_strdup_printf("Mpd Volume: %d%%", mpd_status_get_volume(status));
 	notification_send(NULL, summary, "");
 	g_free(summary);
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -240,7 +240,7 @@ static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_assert(status != NULL);
 
 	if ((file_config.events | MPD_IDLE_OPTIONS) == 0)
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 
 	body = g_strdup_printf("Repeat: %s\n"
 			"Random: %s\n"
@@ -254,7 +254,7 @@ static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
 			mpd_status_get_crossfade(status));
 	notification_send(NULL, "Mpd Options have changed!", body);
 	g_free(body);
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 static int event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
@@ -265,12 +265,12 @@ static int event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
 	g_assert(status != NULL);
 
 	if ((file_config.events | MPD_IDLE_UPDATE) == 0)
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 
 	summary = g_strdup_printf("Mpd Update ID: %u",
 			mpd_status_get_update_id(status));
 	notification_send(NULL, summary, "");
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 struct mpdcron_module module = {

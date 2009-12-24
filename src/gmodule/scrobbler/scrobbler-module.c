@@ -200,7 +200,7 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (state == MPD_STATE_PAUSE) {
 		song_paused();
-		return MPDCRON_RUN_SUCCESS;
+		return MPDCRON_EVENT_SUCCESS;
 	}
 	else if (state != MPD_STATE_PLAY)
 		song_stopped();
@@ -235,10 +235,10 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		if ((prev = mpd_song_dup(song)) == NULL) {
 			daemon_log(LOG_ERR, "%smpd_song_dup failed: out of memory",
 					SCROBBLER_LOG_PREFIX);
-			return MPDCRON_RUN_UNLOAD;
+			return MPDCRON_EVENT_UNLOAD;
 		}
 	}
-	return MPDCRON_RUN_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }
 
 struct mpdcron_module module = {

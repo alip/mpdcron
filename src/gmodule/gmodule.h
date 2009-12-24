@@ -43,11 +43,11 @@ enum mpdcron_init_retval {
 	MPDCRON_INIT_FAILURE,
 };
 
-enum mpdcron_run_retval {
-	MPDCRON_RUN_SUCCESS = 0, /** Success **/
-	MPDCRON_RUN_RECONNECT, /** Schedule a reconnection to mpd server **/
-	MPDCRON_RUN_RECONNECT_NOW, /** Schedule a reconnection to mpd server immediately. **/
-	MPDCRON_RUN_UNLOAD, /** Unload the module **/
+enum mpdcron_event_retval {
+	MPDCRON_EVENT_SUCCESS = 0, /** Success **/
+	MPDCRON_EVENT_RECONNECT, /** Schedule a reconnection to mpd server **/
+	MPDCRON_EVENT_RECONNECT_NOW, /** Schedule a reconnection to mpd server immediately. **/
+	MPDCRON_EVENT_UNLOAD, /** Unload the module **/
 };
 
 struct mpdcron_module {

@@ -103,7 +103,7 @@ static int module_load_one(int generic, int event, const char *modname,
 		g_free(mod);
 		return -1;
 	}
-	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LAZY)) == NULL) {
+	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL)) == NULL) {
 		daemon_log(LOG_WARNING, "Error loading module `%s': %s", mod->path, g_module_error());
 		g_free(mod->path);
 		g_free(mod);

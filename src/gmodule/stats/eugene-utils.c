@@ -50,13 +50,13 @@ void load_paths(void)
 			case G_FILE_ERROR_NOENT:
 			case G_KEY_FILE_ERROR_NOT_FOUND:
 				eulog(LOG_DEBUG, "Configuration file `%s' not found, skipping",
-						euconfig.confpath);
+					euconfig.confpath);
 				g_error_free(config_err);
 				g_key_file_free(cfd);
 				break;
 			default:
 				eulog(LOG_ERR, "Failed to parse configuration file `%s': %s",
-						euconfig.confpath, config_err->message);
+					euconfig.confpath, config_err->message);
 				g_error_free(config_err);
 				g_key_file_free(cfd);
 				exit(1);
@@ -69,4 +69,46 @@ void load_paths(void)
 
 	if (euconfig.dbpath == NULL)
 		euconfig.dbpath = g_build_filename(euconfig.homepath, "stats.db", NULL);
+}
+
+struct mpd_song *load_current_song(void)
+{
+	struct mpd_connection *conn;
+	struct mpd_song *song;
+
+	if ((conn = mpd_connection_new(euconfig.hostname, atoi(euconfig.port), 0)) == NULL) {
+		eulog(LOG_ERR, "Error creating mpd connection: out of memory");
+		return NULL;
+	}
+
+	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
+		eulog(LOG_ERR, "Failed to connect to Mpd: %s",
+			mpd_connection_get_error_message(conn));
+		mpd_connection_free(conn);
+		return NULL;
+	}
+
+	if (euconfig.password != NULL) {
+		if (!mpd_run_password(conn, euconfig.password)) {
+			eulog(LOG_ERR, "Authentication failed: %s",
+				mpd_connection_get_error_message(conn));
+			mpd_connection_free(conn);
+			return NULL;
+		}
+	}
+
+	if ((song = mpd_run_current_song(conn)) == NULL) {
+		if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
+			eulog(LOG_ERR, "Failed to get current song: %s",
+				mpd_connection_get_error_message(conn));
+			mpd_connection_free(conn);
+			return NULL;
+		}
+		eulog(LOG_WARNING, "No song playing at the moment");
+		mpd_connection_free(conn);
+		return NULL;
+	}
+
+	mpd_connection_free(conn);
+	return song;
 }

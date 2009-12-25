@@ -53,20 +53,21 @@ static void usage(FILE *outf, int exitval)
 {
 	fprintf(outf, ""
 "eugene -- mpdcron statistics client\n"
-"eugene [OPTIONS] command [OPTIONS]\n"
+"eugene COMMAND [OPTIONS]\n"
 "\n"
 "Options:\n"
 "-h, --help    Display help and exit\n"
 "-V, --version Display version and exit\n"
-"Applets:\n"
+"Commands:\n"
 "update        Update database\n"
-"love-song     Love song\n"
+"love          Love song\n"
+"hate          Hate song\n"
 "\n"
-"See eugene APPLET --help for more information\n");
+"See eugene COMMAND --help for more information\n");
 	exit(exitval);
 }
 
-static int run_applet(const char *name, int argc, char **argv)
+static int run_cmd(const char *name, int argc, char **argv)
 {
 	/* Parse common data */
 	memset(&euconfig, 0, sizeof(struct eu_config));
@@ -78,9 +79,11 @@ static int run_applet(const char *name, int argc, char **argv)
 	euconfig.password = g_getenv("MPD_PASSWORD");
 
 	if (strncmp(name, "update", 7) == 0)
-		return applet_update(argc, argv);
-	else if (strncmp(name, "love-song", 10) == 0)
-		return applet_love_song(argc, argv);
+		return cmd_update(argc, argv);
+	else if (strncmp(name, "love", 10) == 0)
+		return cmd_love_song(argc, argv);
+	else if (strncmp(name, "hate", 10) == 0)
+		return cmd_hate_song(argc, argv);
 	fprintf(stderr, "eugene: Unknown command `%s'\n", name);
 	usage(stderr, 1);
 }
@@ -89,12 +92,12 @@ int main(int argc, char **argv)
 {
 	if (argc < 2)
 		usage(stderr, 1);
-	else if (strncmp(argv[1], "-h", 3) == 0 || strncmp(argv[1], "--help", 7) == 0)
+	else if (strncmp(argv[1], "help", 4) == 0)
 		usage(stdout, 0);
-	else if (strncmp(argv[1], "-V", 3) == 0 || strncmp(argv[1], "--version", 10) == 0) {
+	else if (strncmp(argv[1], "version", 8) == 0) {
 		about();
 		return 0;
 	}
 
-	return run_applet(argv[1], argc - 1, argv + 1);
+	return run_cmd(argv[1], argc - 1, argv + 1);
 }

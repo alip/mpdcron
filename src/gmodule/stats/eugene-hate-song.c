@@ -36,36 +36,36 @@ static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"debug", 'D', 0, G_OPTION_ARG_NONE, &optd, "Be even more verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"current", 'c', 0, G_OPTION_ARG_NONE, &optc, "Love current playing song", NULL},
-	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Love song with the given uri", NULL},
+	{"current", 'c', 0, G_OPTION_ARG_NONE, &optc, "Hate current playing song", NULL},
+	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Hate song with the given uri", NULL},
 	{"pattern", 'p', 0, G_OPTION_ARG_NONE, &optp, "Treat string as pattern for --uri", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Hate songs matching the given expression", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
 
-static int love_current(void)
+static int hate_current(void)
 {
 	int ret;
 	struct mpd_song *song;
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_love(euconfig.dbpath, song);
+	ret = db_hate(euconfig.dbpath, song);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
 
-int cmd_love_song(int argc, char **argv)
+int cmd_hate_song(int argc, char **argv)
 {
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-love-song");
-	g_option_context_set_summary(ctx, "eugene-love-song-"VERSION GITHEAD" - love command");
+	g_option_context_add_main_entries(ctx, options, "eugene-hate-song");
+	g_option_context_set_summary(ctx, "eugene-hate-song-"VERSION GITHEAD" - hate command");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
-		g_printerr("eugene-love-song: option parsing failed: %s\n", parse_err->message);
+		g_printerr("eugene-hate-song: option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
 		return -1;
@@ -84,12 +84,12 @@ int cmd_love_song(int argc, char **argv)
 		return -1;
 
 	if (optc)
-		return love_current();
+		return hate_current();
 	else if (uri != NULL)
-		return db_love_uri(euconfig.dbpath, uri, optp,
+		return db_hate_uri(euconfig.dbpath, uri, optp,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else if (expr != NULL)
-		return db_love_expr(euconfig.dbpath, expr,
+		return db_hate_expr(euconfig.dbpath, expr,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 
 	fprintf(stderr, "Neither --current nor --uri nor --expr specified\n");

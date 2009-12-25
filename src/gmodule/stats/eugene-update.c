@@ -84,7 +84,7 @@ static int run_update(const char *path)
 	return nsongs;
 }
 
-int applet_update(int argc, char **argv)
+int cmd_update(int argc, char **argv)
 {
 	int ret;
 	GOptionContext *ctx;
@@ -92,7 +92,7 @@ int applet_update(int argc, char **argv)
 
 	ctx = g_option_context_new("-- [OPTIONS]");
 	g_option_context_add_main_entries(ctx, options, "eugene-update");
-	g_option_context_set_summary(ctx, "eugene-update-"VERSION GITHEAD" - update applet");
+	g_option_context_set_summary(ctx, "eugene-update-"VERSION GITHEAD" - update command");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
 		g_printerr("eugene-update: option parsing failed: %s\n", parse_err->message);

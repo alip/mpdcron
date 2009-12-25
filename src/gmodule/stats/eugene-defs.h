@@ -49,4 +49,5 @@ extern int cmd_hate_song(int argc, char **argv);
 extern int cmd_love_song(int argc, char **argv);
 extern int cmd_kill_song(int argc, char **argv);
 extern int cmd_unkill_song(int argc, char **argv);
+extern int cmd_rate_song(int argc, char **argv);
 #endif /* !MPDCRON_GUARD_STATS_CLIENT_DEFS_H */

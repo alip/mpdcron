@@ -50,7 +50,7 @@ static int hate_current(void)
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_hate(euconfig.dbpath, song);
+	ret = db_love(euconfig.dbpath, song, false);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
@@ -86,10 +86,10 @@ int cmd_hate_song(int argc, char **argv)
 	if (optc)
 		return hate_current();
 	else if (uri != NULL)
-		return db_hate_uri(euconfig.dbpath, uri, optp,
+		return db_love_uri(euconfig.dbpath, uri, false, optp,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else if (expr != NULL)
-		return db_hate_expr(euconfig.dbpath, expr,
+		return db_love_expr(euconfig.dbpath, expr, false,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 
 	fprintf(stderr, "Neither --current nor --uri nor --expr specified\n");

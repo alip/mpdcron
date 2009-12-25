@@ -32,12 +32,9 @@ extern char *dbpath;
 
 bool db_init(const char *path);
 bool db_process(const char *path, const struct mpd_song *song, bool increment);
-bool db_love(const char *path, const struct mpd_song *song);
-bool db_love_uri(const char *path, const char *uri, int isexpr, int wantcount);
-bool db_love_expr(const char *path, const char *expr, int wantcount);
-bool db_hate(const char *path, const struct mpd_song *song);
-bool db_hate_uri(const char *path, const char *uri, int isexpr, int wantcount);
-bool db_hate_expr(const char *path, const char *expr, int wantcount);
+bool db_love(const char *path, const struct mpd_song *song, bool love);
+bool db_love_uri(const char *path, const char *uri, bool love, bool isexpr, bool wantcount);
+bool db_love_expr(const char *path, const char *expr, bool love, bool wantcount);
 
 int file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);

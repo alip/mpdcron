@@ -35,35 +35,35 @@ static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"debug", 'D', 0, G_OPTION_ARG_NONE, &optd, "Be even more verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Hate song with the given uri", NULL},
+	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Unkill song with the given uri", NULL},
 	{"pattern", 'p', 0, G_OPTION_ARG_NONE, &optp, "Treat string as pattern for --uri", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Hate songs matching the given expression", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Unkill songs matching the given expression", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
 
-static int hate_current(void)
+static int unkill_current(void)
 {
 	int ret;
 	struct mpd_song *song;
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_lovesong(euconfig.dbpath, song, false);
+	ret = db_killsong(euconfig.dbpath, song, false);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
 
-int cmd_hate_song(int argc, char **argv)
+int cmd_unkill_song(int argc, char **argv)
 {
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-hate");
-	g_option_context_set_summary(ctx, "eugene-hate-"VERSION GITHEAD" - Hate song");
+	g_option_context_add_main_entries(ctx, options, "eugene-unkill");
+	g_option_context_set_summary(ctx, "eugene-unkill-"VERSION GITHEAD" - Unkill song");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
-		g_printerr("eugene-hate: option parsing failed: %s\n", parse_err->message);
+		g_printerr("eugene-unkill: option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
 		return -1;
@@ -82,11 +82,11 @@ int cmd_hate_song(int argc, char **argv)
 		return -1;
 
 	if (uri != NULL)
-		return db_lovesong_uri(euconfig.dbpath, uri, false, optp,
+		return db_killsong_uri(euconfig.dbpath, uri, false, optp,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else if (expr != NULL)
-		return db_lovesong_expr(euconfig.dbpath, expr, false,
+		return db_killsong_expr(euconfig.dbpath, expr, false,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else
-		return hate_current();
+		return unkill_current();
 }

@@ -59,11 +59,11 @@ int cmd_love_song(int argc, char **argv)
 	GError *parse_err = NULL;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-love-song");
-	g_option_context_set_summary(ctx, "eugene-love-song-"VERSION GITHEAD" - love command");
+	g_option_context_add_main_entries(ctx, options, "eugene-love");
+	g_option_context_set_summary(ctx, "eugene-love-"VERSION GITHEAD" - Love song");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
-		g_printerr("eugene-love-song: option parsing failed: %s\n", parse_err->message);
+		g_printerr("eugene-love: option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
 		return -1;

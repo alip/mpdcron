@@ -55,13 +55,13 @@ static void usage(FILE *outf, int exitval)
 "eugene -- mpdcron statistics client\n"
 "eugene COMMAND [OPTIONS]\n"
 "\n"
-"Options:\n"
-"-h, --help    Display help and exit\n"
-"-V, --version Display version and exit\n"
 "Commands:\n"
-"update        Update database\n"
+"help          Display help and exit\n"
+"version       Display version and exit\n"
+"update        Create/Update database\n"
 "love          Love song\n"
 "hate          Hate song\n"
+"kill          Kill song\n"
 "\n"
 "See eugene COMMAND --help for more information\n");
 	exit(exitval);
@@ -84,6 +84,10 @@ static int run_cmd(const char *name, int argc, char **argv)
 		return cmd_love_song(argc, argv);
 	else if (strncmp(name, "hate", 10) == 0)
 		return cmd_hate_song(argc, argv);
+	else if (strncmp(name, "kill", 5) == 0)
+		return cmd_kill_song(argc, argv);
+	else if (strncmp(name, "unkill", 7) == 0)
+		return cmd_unkill_song(argc, argv);
 	fprintf(stderr, "eugene: Unknown command `%s'\n", name);
 	usage(stderr, 1);
 }

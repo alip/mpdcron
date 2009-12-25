@@ -90,12 +90,12 @@ int cmd_update(int argc, char **argv)
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
-	ctx = g_option_context_new("-- [OPTIONS]");
+	ctx = g_option_context_new("[PATH ...]");
 	g_option_context_add_main_entries(ctx, options, "eugene-update");
 	g_option_context_set_summary(ctx, "eugene-update-"VERSION GITHEAD" - Create/Update database");
 
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
-		g_printerr("eugene-update: option parsing failed: %s\n", parse_err->message);
+		g_printerr("Option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
 		return -1;

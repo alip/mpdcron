@@ -769,10 +769,10 @@ bool db_lovesong_uri(const char *path, const char *uri, bool love, bool isexpr, 
 	}
 	g_free(stmt);
 	sqlite3_close(db);
-	mpdcron_log(LOG_INFO, "%sd %d song%s %s",
+	mpdcron_log(LOG_NOTICE, "%sd %d song%s %s",
 			love ? "Love" : "Hate",
 			count,
-			isexpr ? "s matching expression" : "s",
+			isexpr ? "s matching expression" : "s with the name",
 			uri);
 	return true;
 }
@@ -901,7 +901,7 @@ bool db_killsong_uri(const char *path, const char *uri, bool kkill, bool isexpr,
 	}
 	g_free(stmt);
 	sqlite3_close(db);
-	mpdcron_log(LOG_INFO, "%sed %d song%s %s",
+	mpdcron_log(LOG_NOTICE, "%sed %d song%s %s",
 			kkill ? "Kill" : "Unkill",
 			count,
 			isexpr ? "s matching expression" : "s",
@@ -1060,7 +1060,7 @@ bool db_ratesong_uri(const char *path, const char *uri, long rating,
 	}
 	g_free(stmt);
 	sqlite3_close(db);
-	mpdcron_log(LOG_INFO, "Rated %d song%s %s",
+	mpdcron_log(LOG_NOTICE, "Rated %d song%s %s",
 			count,
 			isexpr ? "s matching expression" : "s",
 			uri);

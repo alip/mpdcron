@@ -25,18 +25,12 @@
 #include <glib.h>
 #include <mpd/client.h>
 
-static int optd = 0;
-static int optp = 0;
 static int optv = 0;
-static char *uri = NULL;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
-	{"debug", 'D', 0, G_OPTION_ARG_NONE, &optd, "Be even more verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Kill song with the given uri", NULL},
-	{"pattern", 'p', 0, G_OPTION_ARG_NONE, &optp, "Treat string as pattern for --uri", NULL},
 	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Kill songs matching the given expression", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
@@ -61,7 +55,14 @@ int cmd_kill_song(int argc, char **argv)
 	ctx = g_option_context_new("");
 	g_option_context_add_main_entries(ctx, options, "eugene-kill");
 	g_option_context_set_summary(ctx, "eugene-kill-"VERSION GITHEAD" - kill songs");
-
+	g_option_context_set_description(ctx, ""
+"Examples:\n"
+"# Kill the current playing song\n"
+"$> eugene kill\n"
+"# Kill all the songs whose rating is smaller than 0\n"
+"$> eugene kill --expr \"rating < 0\"\n"
+"For more information about the expression syntax, see:\n"
+"http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
 		g_printerr("eugene-kill-song: option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
@@ -71,8 +72,6 @@ int cmd_kill_song(int argc, char **argv)
 	g_option_context_free(ctx);
 
 	if (optv)
-		euconfig.verbosity = LOG_INFO;
-	if (optd)
 		euconfig.verbosity = LOG_DEBUG;
 
 	if (euconfig.dbpath == NULL)
@@ -81,12 +80,9 @@ int cmd_kill_song(int argc, char **argv)
 	if (!db_init(euconfig.dbpath))
 		return -1;
 
-	if (uri != NULL)
-		return db_killsong_uri(euconfig.dbpath, uri, true, optp,
-				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
-	else if (expr != NULL)
+	if (expr != NULL)
 		return db_killsong_expr(euconfig.dbpath, expr, true,
-				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
+				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 	else
 		return kill_current();
 }

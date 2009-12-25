@@ -29,18 +29,12 @@
 
 static int opta = 0;
 static int opts = 0;
-static int optd = 0;
-static int optp = 0;
 static int optv = 0;
-static char *uri = NULL;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
-	{"debug", 'D', 0, G_OPTION_ARG_NONE, &optd, "Be even more verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Love song with the given uri", NULL},
-	{"pattern", 'p', 0, G_OPTION_ARG_NONE, &optp, "Treat string as pattern for --uri", NULL},
 	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
 	{"add", 'a', 0, G_OPTION_ARG_NONE, &opta, "Add the given rating, instead of setting", NULL},
 	{"substract", 's', 0, G_OPTION_ARG_NONE, &opts, "Substract the given rating, instead of setting", NULL},
@@ -67,10 +61,21 @@ int cmd_rate_song(int argc, char **argv)
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
-	ctx = g_option_context_new("");
+	ctx = g_option_context_new("RATING");
 	g_option_context_add_main_entries(ctx, options, "eugene-rate");
 	g_option_context_set_summary(ctx, "eugene-rate-"VERSION GITHEAD" - Rate song");
-
+	g_option_context_set_description(ctx, ""
+"Examples:\n"
+"# Rate the current playing song:"
+"$> eugene rate 10\n"
+"# Rate 0 all songs which are killed:\n"
+"$> eugene rate --expr \"kill > 0\"\n"
+"# Rate +5 all songs which are loved:\n"
+"$> eugene rate --add --expr \"love > 0\" 5\n"
+"# Rate -5 all songs which are hated:\n"
+"$> eugene rate --substract --expr \"love < 0\" 5\n"
+"For more information about the expression syntax, see:\n"
+"http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
 		g_printerr("Option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
@@ -97,8 +102,6 @@ int cmd_rate_song(int argc, char **argv)
 	}
 
 	if (optv)
-		euconfig.verbosity = LOG_INFO;
-	if (optd)
 		euconfig.verbosity = LOG_DEBUG;
 	if (opta && opts) {
 		g_printerr("--add and --substract are mutually exclusive options\n");
@@ -113,11 +116,7 @@ int cmd_rate_song(int argc, char **argv)
 	if (!db_init(euconfig.dbpath))
 		return -1;
 
-	if (uri != NULL)
-		return db_ratesong_uri(euconfig.dbpath, uri, rating, optp,
-				(opta || opts),
-				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
-	else if (expr != NULL)
+	if (expr != NULL)
 		return db_ratesong_expr(euconfig.dbpath, expr, rating,
 				(opta || opts),
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;

@@ -48,7 +48,7 @@ static int rate_current(int rating, bool add)
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_ratesong(euconfig.dbpath, song, rating, add,
+	ret = db_rate_song(euconfig.dbpath, song, rating, add,
 			(euconfig.verbosity > LOG_NOTICE));
 	mpd_song_free(song);
 	return ret ? 0 : 1;
@@ -117,7 +117,7 @@ int cmd_rate_song(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_ratesong_expr(euconfig.dbpath, expr, rating,
+		return db_rate_song_expr(euconfig.dbpath, expr, rating,
 				(opta || opts),
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else

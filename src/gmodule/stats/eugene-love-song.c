@@ -42,7 +42,7 @@ static int love_current(void)
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_lovesong(euconfig.dbpath, song, true);
+	ret = db_love_song(euconfig.dbpath, song, true);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
@@ -81,7 +81,7 @@ int cmd_love_song(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_lovesong_expr(euconfig.dbpath, expr, true,
+		return db_love_song_expr(euconfig.dbpath, expr, true,
 				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 	else
 		return love_current();

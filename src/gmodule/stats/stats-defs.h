@@ -32,15 +32,18 @@ extern char *dbpath;
 
 bool db_init(const char *path);
 bool db_process(const char *path, const struct mpd_song *song, bool increment);
-bool db_lovesong(const char *path, const struct mpd_song *song, bool love);
-bool db_lovesong_uri(const char *path, const char *uri, bool love, bool isexpr, bool wantcount);
-bool db_lovesong_expr(const char *path, const char *expr, bool love, bool wantcount);
-bool db_killsong(const char *path, const struct mpd_song *song, bool kkill);
-bool db_killsong_uri(const char *path, const char *uri, bool kkill, bool isexpr, bool wantcount);
-bool db_killsong_expr(const char *path, const char *expr, bool kkill, bool wantcount);
-bool db_ratesong(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_ratesong_uri(const char *path, const char *uri, long rating, bool isexpr, bool add, bool wantcount);
-bool db_ratesong_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
+bool db_love_artist(const char *path, const struct mpd_song *song, bool love);
+bool db_love_artist_expr(const char *path, const char *expr, bool love);
+bool db_love_album(const char *path, const struct mpd_song *song, bool love);
+bool db_love_album_expr(const char *path, const char *expr, bool love);
+bool db_love_genre(const char *path, const struct mpd_song *song, bool love);
+bool db_love_genre_expr(const char *path, const char *expr, bool love);
+bool db_love_song(const char *path, const struct mpd_song *song, bool love);
+bool db_love_song_expr(const char *path, const char *expr, bool love, bool wantcount);
+bool db_kill_song(const char *path, const struct mpd_song *song, bool kkill);
+bool db_kill_song_expr(const char *path, const char *expr, bool kkill, bool wantcount);
+bool db_rate_song(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
+bool db_rate_song_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
 
 int file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);

@@ -42,7 +42,7 @@ static int unkill_current(void)
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_killsong(euconfig.dbpath, song, false);
+	ret = db_kill_song(euconfig.dbpath, song, false);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
@@ -81,7 +81,7 @@ int cmd_unkill_song(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_killsong_expr(euconfig.dbpath, expr, false,
+		return db_kill_song_expr(euconfig.dbpath, expr, false,
 				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 	else
 		return unkill_current();

@@ -25,7 +25,6 @@
 #include <glib.h>
 #include <mpd/client.h>
 
-static int optc = 0;
 static int optd = 0;
 static int optp = 0;
 static int optv = 0;
@@ -36,7 +35,6 @@ static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"debug", 'D', 0, G_OPTION_ARG_NONE, &optd, "Be even more verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"current", 'c', 0, G_OPTION_ARG_NONE, &optc, "Love current playing song", NULL},
 	{"uri", 'u', 0, G_OPTION_ARG_STRING, &uri, "Love song with the given uri", NULL},
 	{"pattern", 'p', 0, G_OPTION_ARG_NONE, &optp, "Treat string as pattern for --uri", NULL},
 	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
@@ -83,15 +81,12 @@ int cmd_love_song(int argc, char **argv)
 	if (!db_init(euconfig.dbpath))
 		return -1;
 
-	if (optc)
-		return love_current();
-	else if (uri != NULL)
+	if (uri != NULL)
 		return db_love_uri(euconfig.dbpath, uri, true, optp,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
 	else if (expr != NULL)
 		return db_love_expr(euconfig.dbpath, expr, true,
 				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
-
-	fprintf(stderr, "Neither --current nor --uri nor --expr specified\n");
-	return -1;
+	else
+		return love_current();
 }

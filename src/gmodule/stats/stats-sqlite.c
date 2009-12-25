@@ -642,10 +642,12 @@ bool db_love(const char *path, const struct mpd_song *song, bool love)
 	sqlite3_close(db);
 	g_free(expr);
 
-	mpdcron_log(LOG_INFO, "%sd song (%s - %s)",
+	mpdcron_log(LOG_NOTICE, "%sd current playing song (%s - %s), id: %u, pos: %u",
 			love ? "Love" : "Hate",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0));
+			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			mpd_song_get_id(song),
+			mpd_song_get_pos(song));
 	return true;
 }
 

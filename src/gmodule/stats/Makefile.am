@@ -19,7 +19,7 @@ bin_PROGRAMS= eugene
 eugene_CFLAGS= $(AM_CFLAGS)
 # Another hack to make log functions work without linking to libdaemon.
 # See gmodule.h
-eugene_CFLAGS+= -D"mpdcron_log(level, ...)=eulog((level), __VA_ARGS__)"
+eugene_CFLAGS+= -DCAREFUL_WITH_THAT_AXE=1 -D"mpdcron_log(level, ...)=eulog((level), __VA_ARGS__)"
 eugene_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 eugene_SOURCES= stats-sqlite.c \
 		eugene-hate-song.c eugene-love-song.c \

@@ -17,7 +17,9 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifdef CAREFUL_WITH_THAT_AXE
 #include "eugene-defs.h"
+#endif /* CAREFUL_WITH_THAT_AXE */
 #include "stats-defs.h"
 
 #include <stdbool.h>

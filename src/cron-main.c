@@ -40,6 +40,7 @@ static GOptionEntry options[] = {
 	{"version", 'V', 0, G_OPTION_ARG_NONE, &optv, "Display version", NULL},
 	{"kill", 'k', 0, G_OPTION_ARG_NONE, &optk, "Kill daemon", NULL},
 	{"no-daemon", 'n', 0, G_OPTION_ARG_NONE, &conf.no_daemon, "Don't detach from console", NULL},
+	{NULL, 0, 0, 0, NULL, NULL, NULL},
 };
 
 static void about(void)

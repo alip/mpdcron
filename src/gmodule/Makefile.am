@@ -5,6 +5,9 @@ endif
 if WANT_SCROBBLER
 SUBDIRS+= scrobbler
 endif
+if WANT_STATS
+SUBDIRS+= stats
+endif
 
 noinst_HEADERS= utils.h
 

@@ -42,8 +42,6 @@ const char *conf_pid_file_proc(void)
 
 int conf_init(void)
 {
-	char *kfname;
-
 	memset(&conf, 0, sizeof(struct mpdcron_config));
 
 	/* Get home directory */
@@ -57,9 +55,7 @@ int conf_init(void)
 	}
 
 	/* Set keyfile path */
-	kfname = g_strdup_printf("%s.conf", daemon_pid_file_ident);
-	conf.conf_path = g_build_filename(conf.home_path, kfname, NULL);
-	g_free(kfname);
+	conf.conf_path = g_build_filename(conf.home_path, PACKAGE".conf", NULL);
 
 #ifdef HAVE_GMODULE
 	/* Set module path */

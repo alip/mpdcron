@@ -81,14 +81,15 @@ fi
 dnl }}}
 
 dnl {{{ standard modules
-ALL_STANDARD_MODULES="notification scrobbler"
+ALL_STANDARD_MODULES="notification scrobbler stats"
 AC_MSG_CHECKING([which standard modules are wanted])
 AC_ARG_WITH([standard-modules],
 			  [AS_HELP_STRING([--with-standard-modules=foo,bar,...
 			   Build the specified standard modules:
 			   all              Build all available standard modules
 			   notification     Build the notification module
-			   scrobbler        Build the scrobbler module])],
+			   scrobbler        Build the scrobbler module
+			   stats            Build the stats module])],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
 			   [standard_modules=""])
 standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`
@@ -97,6 +98,7 @@ STANDARD_MODULES="$standard_modules"
 AC_SUBST([STANDARD_MODULES])
 WANT_NOTIFICATION=no
 WANT_SCROBBLER=no
+WANT_STATS=no
 for m in $STANDARD_MODULES ; do
 	if test x"$m" = x"notification" ; then
 		if test x"$WANT_GMODULE" != x"yes"; then
@@ -120,9 +122,19 @@ for m in $STANDARD_MODULES ; do
 							  AC_MSG_ERROR([scrobbler standard module requires curl]))
 		fi
 	fi
+	if test x"$m" = x"stats" ; then
+		if test x"$WANT_GMODULE" != x"yes"; then
+			AC_MSG_WARN([GModule support is disabled, stats module won't be built])
+		else
+			# Scrobbler requires curl.
+			PKG_CHECK_MODULES([sqlite], [sqlite3], [WANT_STATS=yes],
+							  AC_MSG_ERROR([stats standard module requires sqlite]))
+		fi
+	fi
 done
 AM_CONDITIONAL([WANT_NOTIFICATION], test x"$WANT_NOTIFICATION" = x"yes")
 AM_CONDITIONAL([WANT_SCROBBLER], test x"$WANT_SCROBBLER" = x"yes")
+AM_CONDITIONAL([WANT_STATS], test x"$WANT_STATS" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS
@@ -142,6 +154,7 @@ AC_OUTPUT(
 		  src/gmodule/Makefile
 		  src/gmodule/notification/Makefile
 		  src/gmodule/scrobbler/Makefile
+		  src/gmodule/stats/Makefile
 		  data/Makefile
 )
 dnl }}}

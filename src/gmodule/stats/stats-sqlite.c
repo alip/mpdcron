@@ -618,7 +618,7 @@ bool db_process(const char *path, const struct mpd_song *song, bool increment)
 	return ret;
 }
 
-bool db_love(const char *path, const struct mpd_song *song, bool love)
+bool db_lovesong(const char *path, const struct mpd_song *song, bool love)
 {
 	char *errmsg, *expr;
 	sqlite3 *db;
@@ -651,7 +651,7 @@ bool db_love(const char *path, const struct mpd_song *song, bool love)
 	return true;
 }
 
-bool db_love_uri(const char *path, const char *uri, bool love, bool isexpr, bool wantcount)
+bool db_lovesong_uri(const char *path, const char *uri, bool love, bool isexpr, bool wantcount)
 {
 	int count = 0;
 	char *errmsg, *stmt;
@@ -703,7 +703,7 @@ bool db_love_uri(const char *path, const char *uri, bool love, bool isexpr, bool
 	return true;
 }
 
-bool db_love_expr(const char *path, const char *expr, bool love, bool wantcount)
+bool db_lovesong_expr(const char *path, const char *expr, bool love, bool wantcount)
 {
 	int count = 0;
 	char *errmsg, *stmt;

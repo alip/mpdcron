@@ -38,3 +38,4 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 
 src/mpdcron
+src/gmodule/stats/eugene

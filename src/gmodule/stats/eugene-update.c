@@ -113,13 +113,13 @@ int cmd_update(int argc, char **argv)
 
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {
-			eulog(LOG_DEBUG, "Updating %s", argv[i]);
+			eulog(LOG_NOTICE, "Updating %s", argv[i]);
 			if ((ret = run_update(argv[i])) < 0)
 				break;
 		}
 	}
 	else {
-		eulog(LOG_DEBUG, "Updating /");
+		eulog(LOG_NOTICE, "Updating /");
 		ret = run_update(NULL);
 	}
 

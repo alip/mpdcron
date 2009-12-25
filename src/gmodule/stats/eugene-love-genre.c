@@ -77,7 +77,8 @@ int cmd_love_genre(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_love_genre_expr(euconfig.dbpath, expr, true) ? 0 : 1;
+		return db_love_genre_expr(euconfig.dbpath, expr, true,
+				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 	else
 		return love_current();
 }

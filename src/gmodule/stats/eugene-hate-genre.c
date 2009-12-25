@@ -77,7 +77,8 @@ int cmd_hate_genre(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_love_genre_expr(euconfig.dbpath, expr, false) ? 0 : 1;
+		return db_love_genre_expr(euconfig.dbpath, expr, false,
+				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 	else
 		return hate_current();
 }

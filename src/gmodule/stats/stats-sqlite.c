@@ -196,7 +196,22 @@ static int cb_check_entry(void *pArg, G_GNUC_UNUSED int argc,
 	return SQLITE_OK;
 }
 
-static int cb_love_count_matches(void *pArg, int argc,
+static int cb_generic_love_count_matches(void *pArg, int argc,
+		char **argv, G_GNUC_UNUSED char **columnName)
+{
+	unsigned *id = (unsigned *) pArg;
+
+	g_assert(argc == 2);
+
+	mpdcron_log(LOG_DEBUG, "name='%s' love=%s",
+			argv[0] ? argv[0] : "NULL",
+			argv[1] ? argv[1] : "NULL");
+
+	*id += 1;
+	return SQLITE_OK;
+}
+
+static int cb_song_love_count_matches(void *pArg, int argc,
 		char **argv, G_GNUC_UNUSED char **columnName)
 {
 	unsigned *id = (unsigned *) pArg;
@@ -211,7 +226,7 @@ static int cb_love_count_matches(void *pArg, int argc,
 	return SQLITE_OK;
 }
 
-static int cb_kill_count_matches(void *pArg, int argc,
+static int cb_song_kill_count_matches(void *pArg, int argc,
 		char **argv, G_GNUC_UNUSED char **columnName)
 {
 	unsigned *id = (unsigned *) pArg;
@@ -226,7 +241,7 @@ static int cb_kill_count_matches(void *pArg, int argc,
 	return SQLITE_OK;
 }
 
-static int cb_rating_count_matches(void *pArg, int argc,
+static int cb_song_rating_count_matches(void *pArg, int argc,
 		char **argv, G_GNUC_UNUSED char **columnName)
 {
 	unsigned *id = (unsigned *) pArg;
@@ -638,6 +653,57 @@ static inline bool db_select_song(sqlite3 *db,
 	return db_select_entry(db, "SONG", elem, expr, callback, data, errmsg_r);
 }
 
+static bool db_select_artist_name(sqlite3 *db,
+		const char *elem, const char *name,
+		bool like,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	bool ret;
+	char *expr;
+
+	expr = make_expr(name, like);
+	ret = db_select_artist(db, elem, expr, callback, data, errmsg_r);
+	g_free(expr);
+
+	return ret;
+}
+
+static bool db_select_album_name(sqlite3 *db,
+		const char *elem, const char *name,
+		bool like,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	bool ret;
+	char *expr;
+
+	expr = make_expr(name, like);
+	ret = db_select_album(db, elem, expr, callback, data, errmsg_r);
+	g_free(expr);
+
+	return ret;
+}
+
+static bool db_select_genre_name(sqlite3 *db,
+		const char *elem, const char *name,
+		bool like,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	bool ret;
+	char *expr;
+
+	expr = make_expr(name, like);
+	ret = db_select_genre(db, elem, expr, callback, data, errmsg_r);
+	g_free(expr);
+
+	return ret;
+}
+
 static bool db_select_song_uri(sqlite3 *db,
 		const char *elem, const char *uri,
 		const char *artist, const char *title,
@@ -656,7 +722,36 @@ static bool db_select_song_uri(sqlite3 *db,
 	return ret;
 }
 
-static bool db_select_song_song(sqlite3 *db, const char *elem,
+G_GNUC_UNUSED
+static bool db_select_artist_song(sqlite3 *db, const char *elem,
+		const struct mpd_song *song,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	int id;
+
+	if (!check_tags(song, false, false)) {
+		/* No tags, ignore... */
+		return true;
+	}
+
+	/* Check if the artist is already in the database.
+	 * Add her if she doesn't exist.
+	 */
+	if ((id = db_has_artist(db,
+			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0))) < -1)
+		return false;
+	else if (id == -1 && !db_insert(db, song, false))
+		return false;
+
+	return db_select_artist_name(db, elem,
+			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+			false, callback, data, errmsg_r);
+}
+
+G_GNUC_UNUSED
+static bool db_select_album_song(sqlite3 *db, const char *elem,
 		const struct mpd_song *song,
 		int (*callback)(void *, int, char **, char **),
 		void *data,
@@ -670,6 +765,61 @@ static bool db_select_song_song(sqlite3 *db, const char *elem,
 	}
 
 	/* Check if the album is already in the database.
+	 * Add it if it doesn't exist.
+	 */
+	if ((id = db_has_album(db,
+			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0))) < -1)
+		return false;
+	else if (id == -1 && !db_insert(db, song, false))
+		return false;
+
+	return db_select_album_name(db, elem,
+			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
+			false, callback, data, errmsg_r);
+}
+
+G_GNUC_UNUSED
+static bool db_select_genre_song(sqlite3 *db, const char *elem,
+		const struct mpd_song *song,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	int id;
+
+	if (!check_tags(song, false, false)) {
+		/* No tags, ignore... */
+		return true;
+	}
+
+	/* Check if the genre is already in the database.
+	 * Add it if it doesn't exist.
+	 */
+	if ((id = db_has_genre(db,
+			mpd_song_get_tag(song, MPD_TAG_GENRE, 0))) < -1)
+		return false;
+	else if (id == -1 && !db_insert(db, song, false))
+		return false;
+
+	return db_select_genre_name(db, elem,
+			mpd_song_get_tag(song, MPD_TAG_GENRE, 0),
+			false, callback, data, errmsg_r);
+}
+
+static bool db_select_song_song(sqlite3 *db, const char *elem,
+		const struct mpd_song *song,
+		int (*callback)(void *, int, char **, char **),
+		void *data,
+		char **errmsg_r)
+{
+	int id;
+
+	if (!check_tags(song, false, false)) {
+		/* No tags, ignore... */
+		return true;
+	}
+
+	/* Check if the song is already in the database.
 	 * Add it if it doesn't exist.
 	 */
 	if ((id = db_has_song(db,
@@ -761,7 +911,7 @@ static bool db_update_artist_song(sqlite3 *db, const char *stmt,
 	}
 
 	/* Check if the artist is already in the database.
-	 * Add it if she doesn't exist.
+	 * Add her if she doesn't exist.
 	 */
 	if ((id = db_has_artist(db,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0))) < -1)
@@ -941,15 +1091,12 @@ bool db_love_artist(const char *path, const struct mpd_song *song, bool love)
 	}
 	g_free(stmt);
 	sqlite3_close(db);
-
-	mpdcron_log(LOG_NOTICE, "%sd current artist (%s)",
-			love ? "Love" : "Hate",
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
 	return true;
 }
 
-bool db_love_artist_expr(const char *path, const char *expr, bool love)
+bool db_love_artist_expr(const char *path, const char *expr, bool love, bool wantcount)
 {
+	int count = 0;
 	char *errmsg, *stmt;
 	sqlite3 *db;
 
@@ -968,7 +1115,29 @@ bool db_love_artist_expr(const char *path, const char *expr, bool love)
 		return false;
 	}
 	g_free(stmt);
+
+	if (!wantcount) {
+		sqlite3_close(db);
+		return true;
+	}
+
+	if (!db_select_artist(db, "name, love", expr,
+				cb_generic_love_count_matches, &count, &errmsg)) {
+		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
+		sqlite3_free(errmsg);
+		sqlite3_close(db);
+		return false;
+	}
 	sqlite3_close(db);
+
+	if (count == 0) {
+		mpdcron_log(LOG_WARNING, "Expression %s didn't match anything", expr);
+		return false;
+	}
+
+	mpdcron_log(LOG_NOTICE, "%sd %d songs matching expression %s",
+			love ? "Love" : "Hate",
+			count, expr);
 	return true;
 }
 
@@ -1000,8 +1169,9 @@ bool db_love_album(const char *path, const struct mpd_song *song, bool love)
 	return true;
 }
 
-bool db_love_album_expr(const char *path, const char *expr, bool love)
+bool db_love_album_expr(const char *path, const char *expr, bool love, bool wantcount)
 {
+	int count = 0;
 	char *errmsg, *stmt;
 	sqlite3 *db;
 
@@ -1020,7 +1190,29 @@ bool db_love_album_expr(const char *path, const char *expr, bool love)
 		return false;
 	}
 	g_free(stmt);
+
+	if (!wantcount) {
+		sqlite3_close(db);
+		return true;
+	}
+
+	if (!db_select_album(db, "name, love", expr,
+				cb_generic_love_count_matches, &count, &errmsg)) {
+		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
+		sqlite3_free(errmsg);
+		sqlite3_close(db);
+		return false;
+	}
 	sqlite3_close(db);
+
+	if (count == 0) {
+		mpdcron_log(LOG_WARNING, "Expression %s didn't match anything", expr);
+		return false;
+	}
+
+	mpdcron_log(LOG_NOTICE, "%sd %d songs matching expression %s",
+			love ? "Love" : "Hate",
+			count, expr);
 	return true;
 }
 
@@ -1052,8 +1244,9 @@ bool db_love_genre(const char *path, const struct mpd_song *song, bool love)
 	return true;
 }
 
-bool db_love_genre_expr(const char *path, const char *expr, bool love)
+bool db_love_genre_expr(const char *path, const char *expr, bool love, bool wantcount)
 {
+	int count = 0;
 	char *errmsg, *stmt;
 	sqlite3 *db;
 
@@ -1072,7 +1265,29 @@ bool db_love_genre_expr(const char *path, const char *expr, bool love)
 		return false;
 	}
 	g_free(stmt);
+
+	if (!wantcount) {
+		sqlite3_close(db);
+		return true;
+	}
+
+	if (!db_select_genre(db, "name, love", expr,
+				cb_generic_love_count_matches, &count, &errmsg)) {
+		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
+		sqlite3_free(errmsg);
+		sqlite3_close(db);
+		return false;
+	}
 	sqlite3_close(db);
+
+	if (count == 0) {
+		mpdcron_log(LOG_WARNING, "Expression %s didn't match anything", expr);
+		return false;
+	}
+
+	mpdcron_log(LOG_NOTICE, "%sd %d songs matching expression %s",
+			love ? "Love" : "Hate",
+			count, expr);
 	return true;
 }
 
@@ -1135,7 +1350,7 @@ bool db_love_song_expr(const char *path, const char *expr, bool love, bool wantc
 		return true;
 	}
 
-	if (!db_select_song(db, "uri, love", expr, cb_love_count_matches, &count, &errmsg)) {
+	if (!db_select_song(db, "uri, love", expr, cb_song_love_count_matches, &count, &errmsg)) {
 		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
 		sqlite3_free(errmsg);
 		sqlite3_close(db);
@@ -1213,7 +1428,7 @@ bool db_kill_song_expr(const char *path, const char *expr, bool kkill, bool want
 		return true;
 	}
 
-	if (!db_select_song(db, "uri, kill", expr, cb_kill_count_matches, &count, &errmsg)) {
+	if (!db_select_song(db, "uri, kill", expr, cb_song_kill_count_matches, &count, &errmsg)) {
 		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
 		sqlite3_free(errmsg);
 		sqlite3_close(db);
@@ -1319,7 +1534,7 @@ bool db_rate_song_expr(const char *path, const char *expr,
 		return true;
 	}
 
-	if (!db_select_song(db, "uri, rating", expr, cb_rating_count_matches, &count, &errmsg)) {
+	if (!db_select_song(db, "uri, rating", expr, cb_song_rating_count_matches, &count, &errmsg)) {
 		mpdcron_log(LOG_ERR, "Failed to list matches: %s", errmsg);
 		sqlite3_free(errmsg);
 		sqlite3_close(db);

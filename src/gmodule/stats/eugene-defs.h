@@ -41,13 +41,19 @@ struct eu_config {
 
 extern struct eu_config euconfig;
 
-extern void eulog(int level, const char *fmt, ...);
-extern void load_paths(void);
-extern struct mpd_song *load_current_song(void);
-extern int cmd_update(int argc, char **argv);
-extern int cmd_hate_song(int argc, char **argv);
-extern int cmd_love_song(int argc, char **argv);
-extern int cmd_kill_song(int argc, char **argv);
-extern int cmd_unkill_song(int argc, char **argv);
-extern int cmd_rate_song(int argc, char **argv);
+void eulog(int level, const char *fmt, ...);
+void load_paths(void);
+struct mpd_song *load_current_song(void);
+int cmd_update(int argc, char **argv);
+int cmd_hate_artist(int argc, char **argv);
+int cmd_hate_album(int argc, char **argv);
+int cmd_hate_genre(int argc, char **argv);
+int cmd_hate_song(int argc, char **argv);
+int cmd_love_artist(int argc, char **argv);
+int cmd_love_album(int argc, char **argv);
+int cmd_love_genre(int argc, char **argv);
+int cmd_love_song(int argc, char **argv);
+int cmd_kill_song(int argc, char **argv);
+int cmd_unkill_song(int argc, char **argv);
+int cmd_rate_song(int argc, char **argv);
 #endif /* !MPDCRON_GUARD_STATS_CLIENT_DEFS_H */

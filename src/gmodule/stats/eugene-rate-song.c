@@ -65,15 +65,7 @@ int cmd_rate_song(int argc, char **argv)
 	g_option_context_add_main_entries(ctx, options, "eugene-rate");
 	g_option_context_set_summary(ctx, "eugene-rate-"VERSION GITHEAD" - Rate song");
 	g_option_context_set_description(ctx, ""
-"Examples:\n"
-"# Rate the current playing song:"
-"$> eugene rate 10\n"
-"# Rate 0 all songs which are killed:\n"
-"$> eugene rate --expr \"kill > 0\"\n"
-"# Rate +5 all songs which are loved:\n"
-"$> eugene rate --add --expr \"love > 0\" 5\n"
-"# Rate -5 all songs which are hated:\n"
-"$> eugene rate --substract --expr \"love < 0\" 5\n"
+"By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
 "http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {

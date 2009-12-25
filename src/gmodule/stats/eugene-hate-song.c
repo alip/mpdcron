@@ -56,15 +56,11 @@ int cmd_hate_song(int argc, char **argv)
 	g_option_context_add_main_entries(ctx, options, "eugene-hate");
 	g_option_context_set_summary(ctx, "eugene-hate-"VERSION GITHEAD" - Hate song");
 	g_option_context_set_description(ctx, ""
-"Examples:\n"
-"# Hate the current playing song:\n"
-"$> eugene hate\n"
-"# Hate all songs of artist Hater Band:\n"
-"$> eugene hate --expr \"artist='Hater Band'\"\n"
+"By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
 "http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
-		g_printerr("eugene-hate: option parsing failed: %s\n", parse_err->message);
+		g_printerr("Option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
 		return -1;

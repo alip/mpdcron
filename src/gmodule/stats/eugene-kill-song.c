@@ -56,11 +56,7 @@ int cmd_kill_song(int argc, char **argv)
 	g_option_context_add_main_entries(ctx, options, "eugene-kill");
 	g_option_context_set_summary(ctx, "eugene-kill-"VERSION GITHEAD" - kill songs");
 	g_option_context_set_description(ctx, ""
-"Examples:\n"
-"# Kill the current playing song\n"
-"$> eugene kill\n"
-"# Kill all the songs whose rating is smaller than 0\n"
-"$> eugene kill --expr \"rating < 0\"\n"
+"By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
 "http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {

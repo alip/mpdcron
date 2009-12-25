@@ -24,5 +24,8 @@ eugene_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 eugene_SOURCES= stats-sqlite.c \
 		eugene-hate-song.c eugene-love-song.c \
 		eugene-kill-song.c eugene-unkill-song.c \
+		eugene-love-artist.c eugene-hate-artist.c \
+		eugene-love-album.c eugene-hate-album.c \
+		eugene-love-genre.c eugene-hate-genre.c \
 		eugene-rate-song.c eugene-update.c \
 		eugene-utils.c eugene-main.c

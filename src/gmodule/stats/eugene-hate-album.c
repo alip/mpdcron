@@ -31,30 +31,30 @@ static char *expr = NULL;
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Unkill songs matching the given expression", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Hate artists matching the given expression", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
 
-static int unkill_current(void)
+static int hate_current(void)
 {
 	int ret;
 	struct mpd_song *song;
 
 	if ((song = load_current_song()) == NULL)
 		return 1;
-	ret = db_kill_song(euconfig.dbpath, song, false);
+	ret = db_love_album(euconfig.dbpath, song, false);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }
 
-int cmd_unkill_song(int argc, char **argv)
+int cmd_hate_album(int argc, char **argv)
 {
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-unkill");
-	g_option_context_set_summary(ctx, "eugene-unkill-"VERSION GITHEAD" - Unkill song");
+	g_option_context_add_main_entries(ctx, options, "eugene-hate-album");
+	g_option_context_set_summary(ctx, "eugene-hate-album-"VERSION GITHEAD" - Hate album");
 	g_option_context_set_description(ctx, ""
 "By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
@@ -77,8 +77,7 @@ int cmd_unkill_song(int argc, char **argv)
 		return -1;
 
 	if (expr != NULL)
-		return db_kill_song_expr(euconfig.dbpath, expr, false,
-				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		return db_love_album_expr(euconfig.dbpath, expr, false) ? 0 : 1;
 	else
-		return unkill_current();
+		return hate_current();
 }

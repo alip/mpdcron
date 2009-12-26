@@ -38,7 +38,7 @@ static char *expr = NULL;
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Rate songs matching the given expression", NULL},
 	{"add", 'a', 0, G_OPTION_ARG_NONE, &optsum, "Add the given rating, instead of setting", NULL},
 	{"substract", 's', 0, G_OPTION_ARG_NONE, &optsubs, "Substract the given rating, instead of setting", NULL},
 	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Rate artist instead of song", NULL},

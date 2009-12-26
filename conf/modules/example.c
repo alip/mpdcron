@@ -26,17 +26,13 @@
  *     example.c -o example.so
  * Put it under MPDCRON_DIR/modules where MPDCRON_DIR is ~/.mpdcron by default.
  * Load it from your configuration file like:
- * [mixer]
+ * [main]
  * modules = example
  */
 
-/* To do type-checking and to get some important constants
- * mpdcron/gmodule.h needs to be included.
- * Before including this file one of the MPDCRON_EVENT_* constants has to be
- * defined so that gmodule.h can define the correct prototypes for the
- * specified event.
+/* Define MPDCRON_MODULE before including the file.
  */
-#define MPDCRON_EVENT_MIXER 1
+#define MPDCRON_MODULE		"example"
 #include <mpdcron/gmodule.h>
 
 #include <stdio.h>
@@ -45,92 +41,105 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-#define EXAMPLE_LOG_PREFIX	"[example] "
-
-static int optnd;
 static int count;
 static int last_volume;
 
+/* Prototypes */
+int init(const struct mpdcron_config *, GKeyFile *);
+void destroy(void);
+int run(const struct mpd_connection *, const struct mpd_status *);
+
+/* Every module should define module which is of type struct mpdcron_module.
+ * This is the initial symbol mpdcron looks for in the module.
+ */
+struct mpdcron_module module = {
+	.name = "Example",
+	.init = init,
+	.destroy = destroy,
+	.event_mixer = run,
+};
+
 /**
  * Initialization function.
- * @param nodaemon Non-zero if --no-daemon option is passed to mpdcron.
+ * @param conf mpdcron's global configuration.
  * @param fd This file descriptor points to mpdcron's configuration file.
  *           Never call g_key_file_free() on this!
- * @return On success this function should return MPDCRON_INIT_RETVAL_SUCCESS.
- *         On failure this function should return MPDCRON_INIT_RETVAL_FAILURE.
+ * @return On success this function should return MPDCRON_INIT_SUCCESS.
+ *         On failure this function should return MPDCRON_INIT_FAILURE.
  */
-int mpdcron_init(int nodaemon, GKeyFile *fd)
+int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	GError *parse_error;
 
-	optnd = nodaemon;
-	if (optnd)
-		fprintf(stderr, "%sHello from example module!\n", EXAMPLE_LOG_PREFIX);
+	/* Use mpdcron_log() as logging function.
+	 * It's a macro around daemon_log that adds MPDCRON_MODULE as a prefix
+	 * to log strings.
+	 */
+	mpdcron_log(LOG_NOTICE, "Hello from example module!");
 
 	/* Parse configuration here. */
 	parse_error = NULL;
-	count = g_key_file_get_integer(fd, "mixer", "count", &parse_error);
+	count = g_key_file_get_integer(fd, "example", "count", &parse_error);
 	if (parse_error != NULL) {
-		if (parse_error->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND) {
-			/* Use daemon_log() as the logging function.
-			 * Make sure to add a prefix so that the logs can be
-			 * easily read by the user.
-			 */
-			daemon_log(LOG_ERR, "%sParse error: %s", EXAMPLE_LOG_PREFIX, parse_error->message);
-			g_error_free(parse_error);
-			return MPDCRON_INIT_RETVAL_FAILURE;
+		switch (parse_error->code) {
+			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
+			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+				/* ignore */
+				g_error_free(parse_error);
+				break;
+			default:
+				mpdcron_log(LOG_ERR, "Parse error: %s", parse_error->message);
+				g_error_free(parse_error);
+				return MPDCRON_INIT_FAILURE;
 		}
 	}
 	if (count <= 0)
 		count = 5;
 
 	last_volume = -1;
-	return MPDCRON_INIT_RETVAL_SUCCESS;
+	return MPDCRON_INIT_SUCCESS;
 }
 
 /**
- * Cleanup function.
+ * Destroy function.
  * This function should be used to free any allocated data and do other
  * cleaning up that the module has to make.
  */
-void mpdcron_close(void)
+void destroy(void)
 {
-	if (optnd)
-		fprintf(stderr, "%sBye from example module!\n", EXAMPLE_LOG_PREFIX);
-
+	mpdcron_log(LOG_NOTICE, "Bye from example module!");
 	/* Do the cleaning up. */
 }
 
 /**
- * Run function.
+ * Mixer event function.
  * @param conn: mpd connection
  * @param status: mpd status
- * @return This function should return MPDCRON_RUN_RETVAL_SUCCESS on success.
- *         This function should return MPDCRON_RUN_RETVAL_RECONNECT to schedule
+ * @return This function should return MPDCRON_RUN_SUCCESS on success.
+ *         This function should return MPDCRON_RUN_RECONNECT to schedule
  *           a reconnection to mpd server.
- *         This function should return MPDCRON_RUN_RETVAL_RECONNECT_NOW to
+ *         This function should return MPDCRON_RUN_RECONNECT_NOW to
  *           schedule a reconnection by cancelling to run any of the next
  *           modules in the queue.
- *         This function should return MPDCRON_RUN_RETVAL_UNLOAD when the
+ *         This function should return MPDCRON_RUN_UNLOAD when the
  *           module needs to be unloaded.
  */
-int mpdcron_run(G_GNUC_UNUSED const struct mpd_connection *conn, const struct mpd_status *status)
+int run(G_GNUC_UNUSED const struct mpd_connection *conn, const struct mpd_status *status)
 {
 	int volume;
 
-	if (count-- == 0)
-		return MPDCRON_RUN_RETVAL_UNLOAD;
+	if (count-- <= 0)
+		return MPDCRON_EVENT_UNLOAD;
 
 	volume = mpd_status_get_volume(status);
 
 	if (last_volume < 0)
-		daemon_log(LOG_INFO, "%sVolume set to: %d%%", EXAMPLE_LOG_PREFIX, volume);
+		mpdcron_log(LOG_INFO, "Volume set to: %d%%", volume);
 	else
-		daemon_log(LOG_INFO, "%sVolume %s from: %d to: %d%%",
-				EXAMPLE_LOG_PREFIX,
+		mpdcron_log(LOG_INFO, "Volume %s from: %d to: %d%%",
 				(last_volume < volume) ? "increased" : "decreased",
 				last_volume, volume);
 
 	last_volume = volume;
-	return MPDCRON_RUN_RETVAL_SUCCESS;
+	return MPDCRON_EVENT_SUCCESS;
 }

@@ -22,10 +22,7 @@ eugene_CFLAGS= $(AM_CFLAGS)
 eugene_CFLAGS+= -DCAREFUL_WITH_THAT_AXE=1 -D"mpdcron_log(level, ...)=eulog((level), __VA_ARGS__)"
 eugene_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 eugene_SOURCES= stats-sqlite.c \
-		eugene-hate-song.c eugene-love-song.c \
-		eugene-kill-song.c eugene-unkill-song.c \
-		eugene-love-artist.c eugene-hate-artist.c \
-		eugene-love-album.c eugene-hate-album.c \
-		eugene-love-genre.c eugene-hate-genre.c \
-		eugene-rate-song.c eugene-update.c \
+		eugene-hate.c eugene-love.c \
+		eugene-kill.c eugene-unkill.c \
+		eugene-rate.c eugene-update.c \
 		eugene-utils.c eugene-main.c

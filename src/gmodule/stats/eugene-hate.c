@@ -26,35 +26,31 @@
 #include <mpd/client.h>
 
 static int optv = 0;
+static int opta = 0;
+static int optA = 0;
+static int optg = 0;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Hate songs matching the given expression", NULL},
+	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Hate artist instead of song", NULL},
+	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Hate album instead of song", NULL},
+	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Hate genre instead of song", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
 
-static int love_current(void)
+int cmd_hate(int argc, char **argv)
 {
-	int ret;
-	struct mpd_song *song;
-
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	ret = db_love_song(euconfig.dbpath, song, true);
-	mpd_song_free(song);
-	return ret ? 0 : 1;
-}
-
-int cmd_love_song(int argc, char **argv)
-{
+	bool ret;
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
+	struct mpd_song *song;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-love");
-	g_option_context_set_summary(ctx, "eugene-love-"VERSION GITHEAD" - Love song");
+	g_option_context_add_main_entries(ctx, options, "eugene-hate");
+	g_option_context_set_summary(ctx, "eugene-hate-"VERSION GITHEAD" - Hate song/artist/album/genre");
 	g_option_context_set_description(ctx, ""
 "By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
@@ -69,6 +65,10 @@ int cmd_love_song(int argc, char **argv)
 
 	if (optv)
 		euconfig.verbosity = LOG_DEBUG;
+	if ((opta && optA && optg) || (opta && optA) || (opta && optg) || (optA && optg)) {
+		g_printerr("--artist, --album and --genre options are mutually exclusive\n");
+		return -1;
+	}
 
 	if (euconfig.dbpath == NULL)
 		load_paths();
@@ -76,9 +76,33 @@ int cmd_love_song(int argc, char **argv)
 	if (!db_init(euconfig.dbpath))
 		return -1;
 
-	if (expr != NULL)
-		return db_love_song_expr(euconfig.dbpath, expr, true,
+	if (expr != NULL) {
+		if (opta)
+			return db_love_artist_expr(euconfig.dbpath, expr, false,
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		else if (optA)
+			return db_love_album_expr(euconfig.dbpath, expr, false,
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		else if (optg)
+			return db_love_genre_expr(euconfig.dbpath, expr, false,
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		return db_love_song_expr(euconfig.dbpath, expr, false,
 				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+	}
+	if ((song = load_current_song()) == NULL)
+		return 1;
+	if (opta)
+		ret = db_love_artist(euconfig.dbpath, song, false,
+				(euconfig.verbosity > LOG_WARNING));
+	else if (optA)
+		ret = db_love_album(euconfig.dbpath, song, false,
+				(euconfig.verbosity > LOG_WARNING));
+	else if (optg)
+		ret = db_love_genre(euconfig.dbpath, song, false,
+				(euconfig.verbosity > LOG_WARNING));
 	else
-		return love_current();
+		ret = db_love_song(euconfig.dbpath, song, false,
+				(euconfig.verbosity > LOG_WARNING));
+	mpd_song_free(song);
+	return ret ? 0 : 1;
 }

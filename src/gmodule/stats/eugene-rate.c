@@ -27,39 +27,34 @@
 #include <glib.h>
 #include <mpd/client.h>
 
-static int opta = 0;
-static int opts = 0;
 static int optv = 0;
+static int optsum = 0;
+static int optsubs = 0;
+static int opta = 0;
+static int optA = 0;
+static int optg = 0;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
 	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
-	{"add", 'a', 0, G_OPTION_ARG_NONE, &opta, "Add the given rating, instead of setting", NULL},
-	{"substract", 's', 0, G_OPTION_ARG_NONE, &opts, "Substract the given rating, instead of setting", NULL},
+	{"add", 'a', 0, G_OPTION_ARG_NONE, &optsum, "Add the given rating, instead of setting", NULL},
+	{"substract", 's', 0, G_OPTION_ARG_NONE, &optsubs, "Substract the given rating, instead of setting", NULL},
+	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Rate artist instead of song", NULL},
+	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Rate album instead of song", NULL},
+	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Rate genre instead of song", NULL},
 	{ NULL, -1, 0, 0, NULL, NULL, NULL },
 };
 
-static int rate_current(int rating, bool add)
+int cmd_rate(int argc, char **argv)
 {
-	int ret;
-	struct mpd_song *song;
-
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	ret = db_rate_song(euconfig.dbpath, song, rating, add,
-			(euconfig.verbosity > LOG_NOTICE));
-	mpd_song_free(song);
-	return ret ? 0 : 1;
-}
-
-int cmd_rate_song(int argc, char **argv)
-{
+	bool ret;
 	long rating;
 	char *endptr;
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
+	struct mpd_song *song;
 
 	ctx = g_option_context_new("RATING");
 	g_option_context_add_main_entries(ctx, options, "eugene-rate");
@@ -95,11 +90,15 @@ int cmd_rate_song(int argc, char **argv)
 
 	if (optv)
 		euconfig.verbosity = LOG_DEBUG;
-	if (opta && opts) {
+	if ((opta && optA && optg) || (opta && optA) || (opta && optg) || (optA && optg)) {
+		g_printerr("--artist, --album and --genre options are mutually exclusive\n");
+		return -1;
+	}
+	if (optsum && optsubs) {
 		g_printerr("--add and --substract are mutually exclusive options\n");
 		return -1;
 	}
-	else if (opts)
+	else if (optsubs)
 		rating = -rating;
 
 	if (euconfig.dbpath == NULL)
@@ -108,10 +107,41 @@ int cmd_rate_song(int argc, char **argv)
 	if (!db_init(euconfig.dbpath))
 		return -1;
 
-	if (expr != NULL)
+	if (expr != NULL) {
+		if (opta)
+			return db_rate_artist_expr(euconfig.dbpath, expr, rating,
+					(optsum || optsubs),
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		if (optA)
+			return db_rate_album_expr(euconfig.dbpath, expr, rating,
+					(optsum || optsubs),
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+		if (optg)
+			return db_rate_genre_expr(euconfig.dbpath, expr, rating,
+					(optsum || optsubs),
+					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
 		return db_rate_song_expr(euconfig.dbpath, expr, rating,
-				(opta || opts),
-				(euconfig.verbosity > LOG_NOTICE)) ? 0 : 1;
+				(optsum || optsubs),
+				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+	}
+	if ((song = load_current_song()) == NULL)
+		return 1;
+	if (opta)
+		ret = db_rate_artist(euconfig.dbpath, song, rating,
+				(optsum || optsubs),
+				(euconfig.verbosity > LOG_WARNING));
+	else if (optA)
+		ret = db_rate_album(euconfig.dbpath, song, rating,
+				(optsum || optsubs),
+				(euconfig.verbosity > LOG_WARNING));
+	else if (optg)
+		ret = db_rate_genre(euconfig.dbpath, song, rating,
+				(optsum || optsubs),
+				(euconfig.verbosity > LOG_WARNING));
 	else
-		return rate_current(rating, (opta || opts));
+		ret = db_rate_song(euconfig.dbpath, song, rating,
+				(optsum || optsubs),
+				(euconfig.verbosity > LOG_NOTICE));
+	mpd_song_free(song);
+	return ret ? 0 : 1;
 }

@@ -61,8 +61,8 @@ static void usage(FILE *outf, int exitval)
 "update        Create/Update database\n"
 "love          Love song/artist/album/genre\n"
 "hate          Hate song/artist/album/genre\n"
-"kill          Kill song\n"
-"rate          Rate song\n"
+"kill          Kill song/artist/album/genre\n"
+"rate          Rate song/artist/album/genre\n"
 "\n"
 "See eugene COMMAND --help for more information\n");
 	exit(exitval);

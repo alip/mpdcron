@@ -31,7 +31,6 @@ static int opta = 0;
 static int optA = 0;
 static int optg = 0;
 static int optc = 0;
-static int optr = 0;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
@@ -39,7 +38,6 @@ static GOptionEntry options[] = {
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
 	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Load songs matching the given expression", NULL},
 	{"clear", 'c', 0, G_OPTION_ARG_NONE, &optc, "Clear playlist before loading", NULL},
-	{"restore", 'r', 0, G_OPTION_ARG_NONE, &optr, "Restore mpd's playing state after loading", NULL},
 	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Expression matches artists instead of songs", NULL},
 	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Expression matches albums instead of songs", NULL},
 	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Expression matches genres instead of songs", NULL},
@@ -88,28 +86,28 @@ int cmd_load(int argc, char **argv)
 	ret = 1;
 	if (opta) {
 		if (db_load_artist_expr(db, expr, &song_list))
-			ret = play_songs(song_list, optc, optr);
+			ret = load_songs(song_list, optc);
 		g_slist_free(song_list);
 		sqlite3_close(db);
 		return ret;
 	}
 	if (optA) {
 		if (db_load_album_expr(db, expr, &song_list))
-			ret = play_songs(song_list, optc, optr);
+			ret = load_songs(song_list, optc);
 		g_slist_free(song_list);
 		sqlite3_close(db);
 		return ret;
 	}
 	if (optg) {
 		if (db_load_genre_expr(db, expr, &song_list))
-			ret = play_songs(song_list, optc, optr);
+			ret = load_songs(song_list, optc);
 		g_slist_free(song_list);
 		sqlite3_close(db);
 		return ret;
 	}
 
 	if (db_load_song_expr(db, expr, &song_list))
-		ret = play_songs(song_list, optc, optr);
+		ret = load_songs(song_list, optc);
 	g_slist_free(song_list);
 	sqlite3_close(db);
 	return ret;

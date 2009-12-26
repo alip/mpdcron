@@ -45,7 +45,7 @@ extern struct eu_config euconfig;
 
 void eulog(int level, const char *fmt, ...);
 void load_paths(void);
-int play_songs(GSList *list, bool clear, bool restore);
+int load_songs(GSList *list, bool clear);
 struct mpd_song *load_current_song(void);
 int cmd_update(int argc, char **argv);
 int cmd_hate(int argc, char **argv);

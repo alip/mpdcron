@@ -34,7 +34,7 @@ Here is a list of <tt>mpdcron</tt>'s standard modules:
 
     # mpdcron configuration file
     ...
-    [player]
+    [main]
     modules = notification
 
     [notification]
@@ -65,7 +65,7 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 
     # mpdcron configuration file
     ...
-    [player]
+    [main]
     modules = scrobbler
 
     [scrobbler]
@@ -85,5 +85,26 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     url = http://post.audioscrobbler.com
     username = <last.fm username here>
     password = <last.fm password here>
+
+### stats
+This module saves song data to a [sqlite](http://www.sqlite.org/) database.
+It tracks play count.
+
+##### Configuration
+
+    # mpdcron configuration file
+    ...
+    [main]
+    modules = stats
+
+    [stats]
+    # Path to the database default is MPDCRON_DIR/stats.db where MPDCRON_DIR is
+    # ~/.mpdcron by default.
+    dbpath = /path/to/database
+
+#### Eugene
+This module comes with a client called <tt>eugene</tt> which can be used to
+interact with the statistics database. See **eugene --help** output for more
+information.
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

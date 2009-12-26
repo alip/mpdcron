@@ -88,9 +88,9 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 
 ### stats
 This module saves song data to a [sqlite](http://www.sqlite.org/) database and
-trakcs play count.
+tracks play count.
 
-##### Configuration
+#### Configuration
 
     # mpdcron configuration file
     ...

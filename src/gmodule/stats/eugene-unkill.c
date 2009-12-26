@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License along with
  * this program; if not, write to the Free Software Foundation, Inc., 59 Temple
- * Place, Suite 330, Boston, MA  02111-1307  USA
+ * Place, Suite 330, Boston, MA  021111307  USA
  */
 
 #include "eugene-defs.h"
@@ -24,6 +24,7 @@
 
 #include <glib.h>
 #include <mpd/client.h>
+#include <sqlite3.h>
 
 static int optv = 0;
 static int opta = 0;
@@ -39,7 +40,7 @@ static GOptionEntry options[] = {
 	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Unkill artist instead of song", NULL},
 	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Unkill album instead of song", NULL},
 	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Unkill genre instead of song", NULL},
-	{ NULL, -1, 0, 0, NULL, NULL, NULL },
+	{ NULL, 0, 0, 0, NULL, NULL, NULL },
 };
 
 int cmd_unkill(int argc, char **argv)
@@ -48,6 +49,7 @@ int cmd_unkill(int argc, char **argv)
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 	struct mpd_song *song;
+	sqlite3 *db;
 
 	ctx = g_option_context_new("");
 	g_option_context_add_main_entries(ctx, options, "eugene-unkill");
@@ -60,7 +62,7 @@ int cmd_unkill(int argc, char **argv)
 		g_printerr("Option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
-		return -1;
+		return 1;
 	}
 	g_option_context_free(ctx);
 
@@ -68,38 +70,47 @@ int cmd_unkill(int argc, char **argv)
 		euconfig.verbosity = LOG_DEBUG;
 	if ((opta && optA && optg) || (opta && optA) || (opta && optg) || (optA && optg)) {
 		g_printerr("--artist, --album and --genre options are mutually exclusive\n");
-		return -1;
+		return 1;
 	}
 
 	if (euconfig.dbpath == NULL)
 		load_paths();
 
-	if (!db_init(euconfig.dbpath))
-		return -1;
-
 	if (expr != NULL) {
+		if ((db = db_init(euconfig.dbpath)) ==  NULL)
+			return 1;
 		if (opta)
-			return db_kill_artist_expr(euconfig.dbpath, expr, false,
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+			ret = db_kill_artist_expr(db, expr, false,
+					(euconfig.verbosity > LOG_WARNING));
 		else if (optA)
-			return db_kill_album_expr(euconfig.dbpath, expr, false,
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+			ret = db_kill_album_expr(db, expr, false,
+					(euconfig.verbosity > LOG_WARNING));
 		else if (optg)
-			return db_kill_genre_expr(euconfig.dbpath, expr, false,
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
-		return db_kill_song_expr(euconfig.dbpath, expr, false,
-				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+			ret = db_kill_genre_expr(db, expr, false,
+					(euconfig.verbosity > LOG_WARNING));
+		else
+			ret = db_kill_song_expr(db, expr, false,
+					(euconfig.verbosity > LOG_WARNING));
+		sqlite3_close(db);
+		return ret ? 0 : 1;
 	}
+
 	if ((song = load_current_song()) == NULL)
 		return 1;
+	if ((db = db_init(euconfig.dbpath)) == NULL) {
+		mpd_song_free(song);
+		return 1;
+	}
+
 	if (opta)
-		ret = db_kill_artist(euconfig.dbpath, song, false);
+		ret = db_kill_artist(db, song, false);
 	else if (optA)
-		ret = db_kill_album(euconfig.dbpath, song, false);
+		ret = db_kill_album(db, song, false);
 	else if (optg)
-		ret = db_kill_genre(euconfig.dbpath, song, false);
+		ret = db_kill_genre(db, song, false);
 	else
-		ret = db_kill_song(euconfig.dbpath, song, false);
+		ret = db_kill_song(db, song, false);
+	sqlite3_close(db);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }

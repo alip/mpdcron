@@ -30,31 +30,34 @@ static int optv = 0;
 static int opta = 0;
 static int optA = 0;
 static int optg = 0;
+static int optc = 0;
+static int optr = 0;
 static char *expr = NULL;
 
 static GOptionEntry options[] = {
 	{"verbose", 'v', 0, G_OPTION_ARG_NONE, &optv, "Be verbose", NULL},
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &euconfig.dbpath, "Path to the database", NULL},
-	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Love songs matching the given expression", NULL},
-	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Love artist instead of song", NULL},
-	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Love album instead of song", NULL},
-	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Love genre instead of song", NULL},
+	{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr, "Load songs matching the given expression", NULL},
+	{"clear", 'c', 0, G_OPTION_ARG_NONE, &optc, "Clear playlist before loading", NULL},
+	{"restore", 'r', 0, G_OPTION_ARG_NONE, &optr, "Restore mpd's playing state after loading", NULL},
+	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Expression matches artists instead of songs", NULL},
+	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Expression matches albums instead of songs", NULL},
+	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Expression matches genres instead of songs", NULL},
 	{ NULL, 0, 0, 0, NULL, NULL, NULL },
 };
 
-int cmd_love(int argc, char **argv)
+int cmd_load(int argc, char **argv)
 {
-	bool ret;
+	int ret;
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
-	struct mpd_song *song;
+	GSList *song_list = NULL;
 	sqlite3 *db;
 
 	ctx = g_option_context_new("");
-	g_option_context_add_main_entries(ctx, options, "eugene-love");
-	g_option_context_set_summary(ctx, "eugene-love-"VERSION GITHEAD" - Love song/artist/album/genre");
+	g_option_context_add_main_entries(ctx, options, "eugene-load");
+	g_option_context_set_summary(ctx, "eugene-load-"VERSION GITHEAD" - Load songs");
 	g_option_context_set_description(ctx, ""
-"By default this command works on the current playing song.\n"
 "For more information about the expression syntax, see:\n"
 "http://www.sqlite.org/lang_expr.html");
 	if (!g_option_context_parse(ctx, &argc, &argv, &parse_err)) {
@@ -71,49 +74,43 @@ int cmd_love(int argc, char **argv)
 		g_printerr("--artist, --album and --genre options are mutually exclusive\n");
 		return 1;
 	}
+	if (expr == NULL) {
+		g_printerr("No expression given\n");
+		return 1;
+	}
 
 	if (euconfig.dbpath == NULL)
 		load_paths();
 
-	if (expr != NULL) {
-		if ((db = db_init(euconfig.dbpath)) ==  NULL)
-			return 1;
-		if (opta)
-			ret = db_love_artist_expr(db, expr, true,
-					(euconfig.verbosity > LOG_WARNING));
-		else if (optA)
-			ret =  db_love_album_expr(db, expr, true,
-					(euconfig.verbosity > LOG_WARNING));
-		else if (optg)
-			ret = db_love_genre_expr(db, expr, true,
-					(euconfig.verbosity > LOG_WARNING));
-		else
-			ret = db_love_song_expr(db, expr, true,
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+	if ((db = db_init(euconfig.dbpath)) == NULL)
+		return 1;
+
+	ret = 1;
+	if (opta) {
+		if (db_load_artist_expr(db, expr, &song_list))
+			ret = play_songs(song_list, optc, optr);
+		g_slist_free(song_list);
 		sqlite3_close(db);
-		return ret ? 0 : 1;
+		return ret;
+	}
+	if (optA) {
+		if (db_load_album_expr(db, expr, &song_list))
+			ret = play_songs(song_list, optc, optr);
+		g_slist_free(song_list);
+		sqlite3_close(db);
+		return ret;
+	}
+	if (optg) {
+		if (db_load_genre_expr(db, expr, &song_list))
+			ret = play_songs(song_list, optc, optr);
+		g_slist_free(song_list);
+		sqlite3_close(db);
+		return 1;
 	}
 
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	if ((db = db_init(euconfig.dbpath)) == NULL) {
-		mpd_song_free(song);
-		return 1;
-	}
-
-	if (opta)
-		ret = db_love_artist(db, song, true,
-				(euconfig.verbosity > LOG_WARNING));
-	else if (optA)
-		ret = db_love_album(db, song, true,
-				(euconfig.verbosity > LOG_WARNING));
-	else if (optg)
-		ret = db_love_genre(db, song, true,
-				(euconfig.verbosity > LOG_WARNING));
-	else
-		ret = db_love_song(db, song, true,
-				(euconfig.verbosity > LOG_WARNING));
+	if (db_load_song_expr(db, expr, &song_list))
+		ret = play_songs(song_list, optc, optr);
+	g_slist_free(song_list);
 	sqlite3_close(db);
-	mpd_song_free(song);
-	return ret ? 0 : 1;
+	return ret;
 }

@@ -23,6 +23,7 @@
 #include "stats-defs.h"
 
 #include <glib.h>
+#include <sqlite3.h>
 
 static unsigned last_id = -1;
 static bool was_paused = 0;
@@ -54,6 +55,7 @@ static void song_started(const struct mpd_song *song)
 static void song_ended(const struct mpd_song *song)
 {
 	int elapsed;
+	sqlite3 *db;
 
 	g_assert(song != NULL);
 
@@ -72,7 +74,10 @@ static void song_ended(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	db_process(dbpath, song, true);
+	if ((db = db_init(dbpath)) != NULL) {
+		db_process(db, song, true);
+		sqlite3_close(db);
+	}
 }
 
 static void song_playing(const struct mpd_song *song, unsigned elapsed)
@@ -107,8 +112,6 @@ static void song_stopped(void)
 static int init(const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	if (file_load(conf, fd) < 0)
-		return MPDCRON_INIT_FAILURE;
-	if (!db_init(dbpath))
 		return MPDCRON_INIT_FAILURE;
 	timer = g_timer_new();
 	mpdcron_log(LOG_DEBUG, "Initialized");

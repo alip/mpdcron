@@ -27,35 +27,40 @@
 
 #include <glib.h>
 #include <mpd/client.h>
+#include <sqlite3.h>
 
 extern char *dbpath;
 
-bool db_init(const char *path);
-bool db_process(const char *path, const struct mpd_song *song, bool increment);
-bool db_love_artist(const char *path, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_artist_expr(const char *path, const char *expr, bool love, bool wantcount);
-bool db_love_album(const char *path, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_album_expr(const char *path, const char *expr, bool love, bool wantcount);
-bool db_love_genre(const char *path, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_genre_expr(const char *path, const char *expr, bool love, bool wantcount);
-bool db_love_song(const char *path, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_song_expr(const char *path, const char *expr, bool love, bool wantcount);
-bool db_kill_artist(const char *path, const struct mpd_song *song, bool kkill);
-bool db_kill_artist_expr(const char *path, const char *expr, bool kkill, bool wantcount);
-bool db_kill_album(const char *path, const struct mpd_song *song, bool kkill);
-bool db_kill_album_expr(const char *path, const char *expr, bool kkill, bool wantcount);
-bool db_kill_genre(const char *path, const struct mpd_song *song, bool kkill);
-bool db_kill_genre_expr(const char *path, const char *expr, bool kkill, bool wantcount);
-bool db_kill_song(const char *path, const struct mpd_song *song, bool kkill);
-bool db_kill_song_expr(const char *path, const char *expr, bool kkill, bool wantcount);
-bool db_rate_artist(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_artist_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_album(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_album_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_genre(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_genre_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_song(const char *path, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_song_expr(const char *path, const char *expr, long rating, bool add, bool wantcount);
+sqlite3 *db_init(const char *path);
+bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment);
+bool db_love_artist(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
+bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
+bool db_love_album(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
+bool db_love_album_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
+bool db_love_genre(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
+bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
+bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
+bool db_love_song_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
+bool db_kill_artist(sqlite3 *db, const struct mpd_song *song, bool kkill);
+bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
+bool db_kill_album(sqlite3 *db, const struct mpd_song *song, bool kkill);
+bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
+bool db_kill_genre(sqlite3 *db, const struct mpd_song *song, bool kkill);
+bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
+bool db_kill_song(sqlite3 *db, const struct mpd_song *song, bool kkill);
+bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
+bool db_rate_artist(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
+bool db_rate_artist_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
+bool db_rate_album(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
+bool db_rate_album_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
+bool db_rate_genre(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
+bool db_rate_genre_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
+bool db_rate_song(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
+bool db_rate_song_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
+bool db_load_artist_expr(sqlite3 *db, const char *expr, GSList **list_r);
+bool db_load_album_expr(sqlite3 *db, const char *expr, GSList **list_r);
+bool db_load_genre_expr(sqlite3 *db, const char *expr, GSList **list_r);
+bool db_load_song_expr(sqlite3 *db, const char *expr, GSList **list_r);
 
 int file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);

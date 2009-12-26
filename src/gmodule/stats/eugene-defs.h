@@ -24,6 +24,8 @@
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 
+#include <stdbool.h>
+
 #include "../../cron-config.h"
 #include "stats-defs.h"
 
@@ -43,6 +45,7 @@ extern struct eu_config euconfig;
 
 void eulog(int level, const char *fmt, ...);
 void load_paths(void);
+int play_songs(GSList *list, bool clear, bool restore);
 struct mpd_song *load_current_song(void);
 int cmd_update(int argc, char **argv);
 int cmd_hate(int argc, char **argv);
@@ -50,4 +53,5 @@ int cmd_love(int argc, char **argv);
 int cmd_kill(int argc, char **argv);
 int cmd_unkill(int argc, char **argv);
 int cmd_rate(int argc, char **argv);
+int cmd_load(int argc, char **argv);
 #endif /* !MPDCRON_GUARD_STATS_CLIENT_DEFS_H */

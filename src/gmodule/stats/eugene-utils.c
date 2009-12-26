@@ -20,6 +20,7 @@
 #include "eugene-defs.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <glib.h>
 
@@ -111,4 +112,79 @@ struct mpd_song *load_current_song(void)
 
 	mpd_connection_free(conn);
 	return song;
+}
+
+int play_songs(GSList *list, bool clear, bool restore)
+{
+	int count;
+	GSList *walk;
+	struct mpd_connection *conn;
+	struct mpd_status *status = NULL;
+
+	if ((conn = mpd_connection_new(euconfig.hostname, atoi(euconfig.port), 0)) == NULL) {
+		eulog(LOG_ERR, "Error creating mpd connection: out of memory");
+		return 1;
+	}
+
+	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
+		eulog(LOG_ERR, "Failed to connect to Mpd: %s",
+			mpd_connection_get_error_message(conn));
+		mpd_connection_free(conn);
+		return 1;
+	}
+
+	if (restore) {
+		if ((status = mpd_run_status(conn)) == NULL) {
+			eulog(LOG_WARNING, "Failed to get status: %s",
+					mpd_connection_get_error_message(conn));
+			eulog(LOG_WARNING, "Cancelling to restore status");
+		}
+	}
+
+	if (!mpd_command_list_begin(conn, false)) {
+		eulog(LOG_ERR, "Failed to begin command list: %s",
+				mpd_connection_get_error_message(conn));
+		mpd_connection_free(conn);
+		return 1;
+	}
+
+	if (clear)
+		mpd_send_clear(conn);
+
+	for (walk = list, count = 0; walk != NULL; walk = g_slist_next(walk), ++count) {
+		printf("%s\n", (char *)walk->data);
+		mpd_send_add(conn, walk->data);
+		g_free(walk->data);
+	}
+
+	if (status != NULL) {
+		enum mpd_state state = mpd_status_get_state(status);
+		switch (state) {
+			case MPD_STATE_STOP:
+				mpd_send_stop(conn);
+				break;
+			case MPD_STATE_PAUSE:
+				mpd_send_pause(conn, true);
+				break;
+			case MPD_STATE_PLAY:
+				mpd_send_play(conn);
+				break;
+			case MPD_STATE_UNKNOWN:
+			default:
+				eulog(LOG_WARNING, "Unknown status, can't restore");
+				break;
+		}
+		mpd_status_free(status);
+	}
+
+	if (!mpd_command_list_end(conn) || !mpd_response_finish(conn)) {
+		eulog(LOG_ERR, "Failed to end command list: %s",
+				mpd_connection_get_error_message(conn));
+		mpd_connection_free(conn);
+		return 1;
+	}
+
+	eulog(LOG_INFO, "Loaded %d songs", count);
+	mpd_connection_free(conn);
+	return 0;
 }

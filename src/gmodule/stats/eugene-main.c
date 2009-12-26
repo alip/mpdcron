@@ -63,6 +63,7 @@ static void usage(FILE *outf, int exitval)
 "hate          Hate song/artist/album/genre\n"
 "kill          Kill song/artist/album/genre\n"
 "rate          Rate song/artist/album/genre\n"
+"load          Load songs\n"
 "\n"
 "See eugene COMMAND --help for more information\n");
 	exit(exitval);
@@ -91,6 +92,8 @@ static int run_cmd(const char *name, int argc, char **argv)
 		return cmd_unkill(argc, argv);
 	else if (strncmp(name, "rate", 5) == 0)
 		return cmd_rate(argc, argv);
+	else if (strncmp(name, "load", 5) == 0)
+		return cmd_load(argc, argv);
 	fprintf(stderr, "eugene: Unknown command `%s'\n", name);
 	usage(stderr, 1);
 }

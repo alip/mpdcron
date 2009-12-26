@@ -26,6 +26,7 @@
 
 #include <glib.h>
 #include <mpd/client.h>
+#include <sqlite3.h>
 
 static int optv = 0;
 static int optsum = 0;
@@ -44,7 +45,7 @@ static GOptionEntry options[] = {
 	{"artist", 0, 0, G_OPTION_ARG_NONE, &opta, "Rate artist instead of song", NULL},
 	{"album", 0, 0, G_OPTION_ARG_NONE, &optA, "Rate album instead of song", NULL},
 	{"genre", 0, 0, G_OPTION_ARG_NONE, &optg, "Rate genre instead of song", NULL},
-	{ NULL, -1, 0, 0, NULL, NULL, NULL },
+	{ NULL, 0, 0, 0, NULL, NULL, NULL },
 };
 
 int cmd_rate(int argc, char **argv)
@@ -55,6 +56,7 @@ int cmd_rate(int argc, char **argv)
 	GOptionContext *ctx;
 	GError *parse_err = NULL;
 	struct mpd_song *song;
+	sqlite3 *db;
 
 	ctx = g_option_context_new("RATING");
 	g_option_context_add_main_entries(ctx, options, "eugene-rate");
@@ -67,13 +69,13 @@ int cmd_rate(int argc, char **argv)
 		g_printerr("Option parsing failed: %s\n", parse_err->message);
 		g_error_free(parse_err);
 		g_option_context_free(ctx);
-		return -1;
+		return 1;
 	}
 	g_option_context_free(ctx);
 
 	if (argc < 2) {
 		g_printerr("No rating given\n");
-		return -1;
+		return 1;
 	}
 
 	errno = 0;
@@ -81,22 +83,22 @@ int cmd_rate(int argc, char **argv)
 	if ((errno == ERANGE && (rating == LONG_MAX || rating == LONG_MIN))
 			|| (errno != 0 && rating == 0)) {
 		g_printerr("Failed to convert `%s' to number: %s\n", argv[1], g_strerror(errno));
-		return -1;
+		return 1;
 	}
 	if (endptr == argv[1]) {
 		g_printerr("Failed to convert `%s' to number: No digits were found\n", argv[1]);
-		return -1;
+		return 1;
 	}
 
 	if (optv)
 		euconfig.verbosity = LOG_DEBUG;
 	if ((opta && optA && optg) || (opta && optA) || (opta && optg) || (optA && optg)) {
 		g_printerr("--artist, --album and --genre options are mutually exclusive\n");
-		return -1;
+		return 1;
 	}
 	if (optsum && optsubs) {
 		g_printerr("--add and --substract are mutually exclusive options\n");
-		return -1;
+		return 1;
 	}
 	else if (optsubs)
 		rating = -rating;
@@ -104,44 +106,53 @@ int cmd_rate(int argc, char **argv)
 	if (euconfig.dbpath == NULL)
 		load_paths();
 
-	if (!db_init(euconfig.dbpath))
-		return -1;
-
 	if (expr != NULL) {
+		if ((db = db_init(euconfig.dbpath)) ==  NULL)
+			return 1;
 		if (opta)
-			return db_rate_artist_expr(euconfig.dbpath, expr, rating,
+			ret = db_rate_artist_expr(db, expr, rating,
 					(optsum || optsubs),
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
-		if (optA)
-			return db_rate_album_expr(euconfig.dbpath, expr, rating,
+					(euconfig.verbosity > LOG_WARNING));
+		else if (optA)
+			ret = db_rate_album_expr(db, expr, rating,
 					(optsum || optsubs),
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
-		if (optg)
-			return db_rate_genre_expr(euconfig.dbpath, expr, rating,
+					(euconfig.verbosity > LOG_WARNING));
+		else if (optg)
+			ret = db_rate_genre_expr(db, expr, rating,
 					(optsum || optsubs),
-					(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
-		return db_rate_song_expr(euconfig.dbpath, expr, rating,
-				(optsum || optsubs),
-				(euconfig.verbosity > LOG_WARNING)) ? 0 : 1;
+					(euconfig.verbosity > LOG_WARNING));
+		else
+			ret = db_rate_song_expr(db, expr, rating,
+					(optsum || optsubs),
+					(euconfig.verbosity > LOG_WARNING));
+		sqlite3_close(db);
+		return ret;
 	}
+
 	if ((song = load_current_song()) == NULL)
 		return 1;
+	if ((db = db_init(euconfig.dbpath)) == NULL) {
+		mpd_song_free(song);
+		return 1;
+	}
+
 	if (opta)
-		ret = db_rate_artist(euconfig.dbpath, song, rating,
+		ret = db_rate_artist(db, song, rating,
 				(optsum || optsubs),
 				(euconfig.verbosity > LOG_WARNING));
 	else if (optA)
-		ret = db_rate_album(euconfig.dbpath, song, rating,
+		ret = db_rate_album(db, song, rating,
 				(optsum || optsubs),
 				(euconfig.verbosity > LOG_WARNING));
 	else if (optg)
-		ret = db_rate_genre(euconfig.dbpath, song, rating,
+		ret = db_rate_genre(db, song, rating,
 				(optsum || optsubs),
 				(euconfig.verbosity > LOG_WARNING));
 	else
-		ret = db_rate_song(euconfig.dbpath, song, rating,
+		ret = db_rate_song(db, song, rating,
 				(optsum || optsubs),
 				(euconfig.verbosity > LOG_NOTICE));
+	sqlite3_close(db);
 	mpd_song_free(song);
 	return ret ? 0 : 1;
 }

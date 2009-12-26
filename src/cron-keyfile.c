@@ -27,52 +27,40 @@ int reconnect = DEFAULT_MPD_RECONNECT;
 int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
-int keyfile_load(
-#ifndef HAVE_GMODULE
-		G_GNUC_UNUSED
-#endif /* !HAVE_GMODULE */
-		int load_modules)
+int keyfile_load(GKeyFile **cfd_r)
 {
-	GKeyFile *config_fd;
 	GError *config_err = NULL;
 	char *optstr;
 	char **events;
-#ifdef HAVE_GMODULE
-	char **modules;
-#endif /* HAVE_GMODULE */
 
-	config_fd = g_key_file_new();
-	if (!g_key_file_load_from_file(config_fd, conf.conf_path, G_KEY_FILE_NONE, &config_err)) {
+	if (!g_key_file_load_from_file(*cfd_r, conf.conf_path, G_KEY_FILE_NONE, &config_err)) {
 		switch (config_err->code) {
 			case G_FILE_ERROR_NOENT:
 			case G_KEY_FILE_ERROR_NOT_FOUND:
 				mpdcron_log(LOG_DEBUG, "Configuration file `%s' not found, skipping",
 						conf.conf_path);
 				g_error_free(config_err);
-				g_key_file_free(config_fd);
 				return 0;
 			default:
 				mpdcron_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
 						conf.conf_path, config_err->message);
 				g_error_free(config_err);
-				g_key_file_free(config_fd);
 				return -1;
 		}
 	}
 
 	/* Get main.pidfile */
 	if (conf.pid_path == NULL)
-		conf.pid_path = g_key_file_get_string(config_fd, "main", "pidfile", NULL);
+		conf.pid_path = g_key_file_get_string(*cfd_r, "main", "pidfile", NULL);
 
 	/* Get main.killwait */
 	config_err = NULL;
-	killwait = g_key_file_get_integer(config_fd, "main", "killwait", &config_err);
+	killwait = g_key_file_get_integer(*cfd_r, "main", "killwait", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
 				mpdcron_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
 				g_error_free(config_err);
-				g_key_file_free(config_fd);
 				return -1;
 			default:
 				g_error_free(config_err);
@@ -89,13 +77,12 @@ int keyfile_load(
 
 	/* Get mpd.reconnect */
 	config_err = NULL;
-	reconnect = g_key_file_get_integer(config_fd, "mpd", "reconnect", &config_err);
+	reconnect = g_key_file_get_integer(*cfd_r, "mpd", "reconnect", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
 				mpdcron_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
 				g_error_free(config_err);
-				g_key_file_free(config_fd);
 				return -1;
 			default:
 				g_error_free(config_err);
@@ -118,13 +105,12 @@ int keyfile_load(
 
 	/* Get mpd.timeout */
 	config_err = NULL;
-	timeout = g_key_file_get_integer(config_fd, "mpd", "timeout", &config_err);
+	timeout = g_key_file_get_integer(*cfd_r, "mpd", "timeout", &config_err);
 	if (config_err != NULL) {
 		switch (config_err->code) {
 			case G_KEY_FILE_ERROR_INVALID_VALUE:
 				mpdcron_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
 				g_error_free(config_err);
-				g_key_file_free(config_fd);
 				return -1;
 			default:
 				g_error_free(config_err);
@@ -144,7 +130,7 @@ int keyfile_load(
 	g_free(optstr);
 
 	/* Get mpd.events */
-	if ((events = g_key_file_get_string_list(config_fd, "mpd", "events", NULL, NULL)) != NULL) {
+	if ((events = g_key_file_get_string_list(*cfd_r, "mpd", "events", NULL, NULL)) != NULL) {
 		for (unsigned int i = 0; events[i] != NULL; i++) {
 			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
 			if (parsed == 0)
@@ -155,21 +141,23 @@ int keyfile_load(
 		g_strfreev(events);
 	}
 
-#ifdef HAVE_GMODULE
-	if (!load_modules) {
-		g_key_file_free(config_fd);
-		return 0;
-	}
-
-	/* Load modules */
-	if ((modules = g_key_file_get_string_list(config_fd, "main", "modules", NULL, NULL)) != NULL) {
-		for (unsigned int i = 0; modules[i] != NULL; i++)
-			module_load(modules[i], config_fd);
-		g_strfreev(modules);
-	}
-
-#endif /* HAVE_GMODULE */
-
-	g_key_file_free(config_fd);
 	return 0;
 }
+
+#ifdef HAVE_GMODULE
+int keyfile_load_modules(GKeyFile **cfd_r)
+{
+	char **modules;
+
+	g_assert(*cfd_r != NULL);
+
+	/* Load modules */
+	if ((modules = g_key_file_get_string_list(*cfd_r, "main", "modules", NULL, NULL)) != NULL) {
+		for (unsigned int i = 0; modules[i] != NULL; i++)
+			module_load(modules[i], *cfd_r);
+		g_strfreev(modules);
+	}
+	return 0;
+}
+
+#endif /* HAVE_GMODULE */

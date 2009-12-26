@@ -29,33 +29,36 @@
 extern struct mpdcron_config conf;
 extern GMainLoop *loop;
 
-extern const char *conf_pid_file_proc(void);
-extern int conf_init(void);
-extern void conf_free(void);
-extern void env_clearenv(void);
-extern int env_list_all_meta(struct mpd_connection *conn);
-extern int env_list_queue_meta(struct mpd_connection *conn);
-extern int env_stats(struct mpd_connection *conn, struct mpd_stats **stats);
-extern int env_status(struct mpd_connection *conn, struct mpd_status **status);
-extern int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status);
-extern int env_outputs(struct mpd_connection *conn);
-extern int event_run(struct mpd_connection *conn, enum mpd_idle event);
-extern int hooker_run_hook(const char *name);
-extern int keyfile_load(int load_modules);
-extern void loop_connect(void);
-extern void loop_disconnect(void);
+const char *conf_pid_file_proc(void);
+int conf_init(void);
+void conf_free(void);
+void env_clearenv(void);
+int env_list_all_meta(struct mpd_connection *conn);
+int env_list_queue_meta(struct mpd_connection *conn);
+int env_stats(struct mpd_connection *conn, struct mpd_stats **stats);
+int env_status(struct mpd_connection *conn, struct mpd_status **status);
+int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status);
+int env_outputs(struct mpd_connection *conn);
+int event_run(struct mpd_connection *conn, enum mpd_idle event);
+int hooker_run_hook(const char *name);
+int keyfile_load(GKeyFile **cfd_r);
 #ifdef HAVE_GMODULE
-extern int module_load(const char *modname, GKeyFile *config_fd);
-extern void module_close(void);
-extern int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
-extern int module_stored_playlist_run(const struct mpd_connection *conn);
-extern int module_queue_run(const struct mpd_connection *conn);
-extern int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
+int keyfile_load_modules(GKeyFile **cfd_r);
+#endif /* HAVE_GMODULE */
+void loop_connect(void);
+void loop_disconnect(void);
+#ifdef HAVE_GMODULE
+int module_load(const char *modname, GKeyFile *config_fd);
+void module_close(void);
+int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
+int module_stored_playlist_run(const struct mpd_connection *conn);
+int module_queue_run(const struct mpd_connection *conn);
+int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
 		const struct mpd_status *status);
-extern int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status);
-extern int module_output_run(const struct mpd_connection *conn);
-extern int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status);
-extern int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status);
+int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status);
+int module_output_run(const struct mpd_connection *conn);
+int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status);
+int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status);
 #endif /* HAVE_GMODULE */
 
 #endif /* !MPDCRON_GUARD_CRON_DEFS_H */

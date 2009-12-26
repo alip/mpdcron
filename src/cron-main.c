@@ -33,7 +33,9 @@
 
 #include <mpd/client.h>
 
+
 GMainLoop *loop = NULL;
+static GKeyFile *cfd = NULL;
 static int optv, optk;
 
 static GOptionEntry options[] = {
@@ -52,6 +54,10 @@ static void cleanup(void)
 {
 	module_close();
 	conf_free();
+	if (cfd != NULL) {
+		g_key_file_free(cfd);
+		cfd = NULL;
+	}
 	if (loop != NULL) {
 		g_main_loop_quit(loop);
 		g_main_loop_unref(loop);
@@ -110,15 +116,11 @@ int main(int argc, char **argv)
 	else
 		g_setenv("MCOPT_DAEMONIZE", "1", 1);
 
-	/* Important! Create the loop before parsing configuration because the
-	 * configuration file loads modules and modules may register events.
-	 */
-	loop = g_main_loop_new(NULL, FALSE);
-
 	/* Important! Parse configuration file before killing the daemon
 	 * because the configuration file has a pidfile and killwait option.
 	 */
-	if (keyfile_load(!optk) < 0) {
+	cfd = g_key_file_new();
+	if (keyfile_load(&cfd) < 0) {
 		cleanup();
 		return EXIT_FAILURE;
 	}
@@ -154,7 +156,11 @@ int main(int argc, char **argv)
 #undef HANDLE_SIGNAL
 
 	if (conf.no_daemon) {
-		/* Connect and start the main loop */
+		/* Load modules, connect and start the main loop. */
+		keyfile_load_modules(&cfd);
+		g_key_file_free(cfd);
+		cfd = NULL;
+		loop = g_main_loop_new(NULL, FALSE);
 		loop_connect();
 		g_main_loop_run(loop);
 		cleanup();
@@ -202,7 +208,11 @@ int main(int argc, char **argv)
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-		/* Connect and start the main loop */
+		/* Load modules, connect and start the main loop */
+		keyfile_load_modules(&cfd);
+		g_key_file_free(cfd);
+		cfd = NULL;
+		loop = g_main_loop_new(NULL, FALSE);
 		loop_connect();
 		g_main_loop_run(loop);
 		cleanup();

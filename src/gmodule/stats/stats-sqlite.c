@@ -754,7 +754,6 @@ static bool db_select_song_uri(sqlite3 *db,
 	return ret;
 }
 
-G_GNUC_UNUSED
 static bool db_select_artist_song(sqlite3 *db, const char *elem,
 		const struct mpd_song *song,
 		int (*callback)(void *, int, char **, char **),
@@ -782,7 +781,6 @@ static bool db_select_artist_song(sqlite3 *db, const char *elem,
 			false, callback, data, errmsg_r);
 }
 
-G_GNUC_UNUSED
 static bool db_select_album_song(sqlite3 *db, const char *elem,
 		const struct mpd_song *song,
 		int (*callback)(void *, int, char **, char **),
@@ -800,7 +798,7 @@ static bool db_select_album_song(sqlite3 *db, const char *elem,
 	 * Add it if it doesn't exist.
 	 */
 	if ((id = db_has_album(db,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0))) < -1)
+			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0))) < -1)
 		return false;
 	else if (id == -1 && !db_insert(db, song, false))
 		return false;
@@ -810,7 +808,6 @@ static bool db_select_album_song(sqlite3 *db, const char *elem,
 			false, callback, data, errmsg_r);
 }
 
-G_GNUC_UNUSED
 static bool db_select_genre_song(sqlite3 *db, const char *elem,
 		const struct mpd_song *song,
 		int (*callback)(void *, int, char **, char **),

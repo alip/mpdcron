@@ -87,8 +87,8 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     password = <last.fm password here>
 
 ### stats
-This module saves song data to a [sqlite](http://www.sqlite.org/) database.
-It tracks play count.
+This module saves song data to a [sqlite](http://www.sqlite.org/) database and
+trakcs play count.
 
 ##### Configuration
 

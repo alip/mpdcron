@@ -105,7 +105,7 @@ int cmd_load(int argc, char **argv)
 			ret = play_songs(song_list, optc, optr);
 		g_slist_free(song_list);
 		sqlite3_close(db);
-		return 1;
+		return ret;
 	}
 
 	if (db_load_song_expr(db, expr, &song_list))

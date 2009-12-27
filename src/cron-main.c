@@ -50,9 +50,9 @@ static void about(void)
 	printf(PACKAGE"-"VERSION GITHEAD "\n");
 }
 
-static void cleanup(void)
+static void internal_cleanup(bool signaled)
 {
-	module_close();
+	module_close(signaled ? 0 : 1);
 	conf_free();
 	if (cfd != NULL) {
 		g_key_file_free(cfd);
@@ -65,9 +65,14 @@ static void cleanup(void)
 	}
 }
 
+static void cleanup(void)
+{
+	internal_cleanup(false);
+}
+
 static void sig_cleanup(G_GNUC_UNUSED int signum)
 {
-	cleanup();
+	internal_cleanup(true);
 }
 
 int main(int argc, char **argv)

@@ -112,16 +112,20 @@ static int module_init_one(const char *modname, GKeyFile *config_fd)
 	return 0;
 }
 
-static void module_destroy_one(gpointer data, G_GNUC_UNUSED gpointer userdata)
+static void module_destroy_one(gpointer data, gpointer userdata)
 {
+	int gclose;
 	struct module_data *mod;
 
 	mod = (struct module_data *)data;
+	gclose = GPOINTER_TO_INT(userdata);
+
 	/* Run the destroy function if there's any */
 	if (mod->data->destroy != NULL)
 		(mod->data->destroy)();
 	g_free(mod->path);
-	g_module_close(mod->module);
+	if (gclose)
+		g_module_close(mod->module);
 	g_free(mod);
 }
 
@@ -163,9 +167,9 @@ int module_load(const char *modname, GKeyFile *config_fd)
 	return module_init_one(modname, config_fd);
 }
 
-void module_close(void)
+void module_close(int gclose)
 {
-	g_slist_foreach(modules, module_destroy_one, NULL);
+	g_slist_foreach(modules, module_destroy_one, GINT_TO_POINTER(gclose));
 	g_slist_free(modules);
 	modules = NULL;
 }

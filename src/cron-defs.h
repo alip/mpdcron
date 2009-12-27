@@ -49,7 +49,7 @@ void loop_connect(void);
 void loop_disconnect(void);
 #ifdef HAVE_GMODULE
 int module_load(const char *modname, GKeyFile *config_fd);
-void module_close(void);
+void module_close(int gclose);
 int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats);
 int module_stored_playlist_run(const struct mpd_connection *conn);
 int module_queue_run(const struct mpd_connection *conn);

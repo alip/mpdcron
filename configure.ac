@@ -53,6 +53,7 @@ dnl }}}
 
 dnl {{{ Check for libraries
 GLIB_REQUIRED=2.18
+GIO_REQUIRED=2.22
 LIBDAEMON_REQUIRED=0.13
 LIBMPDCLIENT_REQUIRED=2.1
 
@@ -89,7 +90,8 @@ AC_ARG_WITH([standard-modules],
 			   all              Build all available standard modules
 			   notification     Build the notification module
 			   scrobbler        Build the scrobbler module
-			   stats            Build the stats module])],
+			   stats            Build the stats module
+			   rstats           Build the rstats module])],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
 			   [standard_modules=""])
 standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`
@@ -126,15 +128,26 @@ for m in $STANDARD_MODULES ; do
 		if test x"$WANT_GMODULE" != x"yes"; then
 			AC_MSG_WARN([GModule support is disabled, stats module won't be built])
 		else
-			# Scrobbler requires curl.
+			# Stats module requires gio and sqlite3
 			PKG_CHECK_MODULES([sqlite], [sqlite3], [WANT_STATS=yes],
 							  AC_MSG_ERROR([stats standard module requires sqlite]))
+			PKG_CHECK_MODULES([gio_unix], [gio-unix-2.0 >= $GIO_REQUIRED],
+							  [HAVE_GIO_UNIX=yes],
+							  [HAVE_GIO_UNIX=no])
+			if test x"$HAVE_GIO_UNIX" = x"no" ; then
+				PKG_CHECK_MODULES([gio], [gio-2.0 >= $GIO_REQUIRED], [WANT_RSTATS=yes],
+								  [AC_MSG_ERROR([stats standard module requires gio-$GLIB_REQUIRED or newer])])
+				AC_DEFINE(HAVE_GIO_UNIX, 0, "Define for gio-unix")
+			else
+				AC_DEFINE(HAVE_GIO_UNIX, 1, "Define for gio-unix")
+			fi
 		fi
 	fi
 done
 AM_CONDITIONAL([WANT_NOTIFICATION], test x"$WANT_NOTIFICATION" = x"yes")
 AM_CONDITIONAL([WANT_SCROBBLER], test x"$WANT_SCROBBLER" = x"yes")
 AM_CONDITIONAL([WANT_STATS], test x"$WANT_STATS" = x"yes")
+AM_CONDITIONAL([HAVE_GIO_UNIX], test x"$HAVE_GIO_UNIX" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS

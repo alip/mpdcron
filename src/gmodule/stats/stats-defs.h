@@ -20,49 +20,114 @@
 #ifndef MPDCRON_GUARD_STATS_DEFS_H
 #define MPDCRON_GUARD_STATS_DEFS_H 1
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif /* HAVE_CONFIG_H */
+
+#ifndef MPDCRON_MODULE
 #define MPDCRON_MODULE		"stats"
 #include "../gmodule.h"
+#endif /* !MPDCRON_MODULE */
 
 #include <stdbool.h>
 
 #include <glib.h>
+#include <gio/gio.h>
 #include <mpd/client.h>
 #include <sqlite3.h>
 
-extern char *dbpath;
+#define PROTOCOL_VERSION VERSION
+#define DEFAULT_HOST "any"
+#define DEFAULT_PORT 6601
 
-sqlite3 *db_init(const char *path);
-bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment);
-bool db_love_artist(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
-bool db_love_album(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_album_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
-bool db_love_genre(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
-bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love, bool wantcount);
-bool db_love_song_expr(sqlite3 *db, const char *expr, bool love, bool wantcount);
-bool db_kill_artist(sqlite3 *db, const struct mpd_song *song, bool kkill);
-bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
-bool db_kill_album(sqlite3 *db, const struct mpd_song *song, bool kkill);
-bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
-bool db_kill_genre(sqlite3 *db, const struct mpd_song *song, bool kkill);
-bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
-bool db_kill_song(sqlite3 *db, const struct mpd_song *song, bool kkill);
-bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, bool wantcount);
-bool db_rate_artist(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_artist_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_album(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_album_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_genre(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_genre_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
-bool db_rate_song(sqlite3 *db, const struct mpd_song *song, long rating, bool add, bool wantcount);
-bool db_rate_song_expr(sqlite3 *db, const char *expr, long rating, bool add, bool wantcount);
-bool db_load_artist_expr(sqlite3 *db, const char *expr, GSList **list_r);
-bool db_load_album_expr(sqlite3 *db, const char *expr, GSList **list_r);
-bool db_load_genre_expr(sqlite3 *db, const char *expr, GSList **list_r);
-bool db_load_song_expr(sqlite3 *db, const char *expr, GSList **list_r);
+#define PERMISSION_NONE    0
+#define PERMISSION_SELECT  1
+#define PERMISSION_UPDATE  2
+#define PERMISSION_ALL     (PERMISSION_SELECT | PERMISSION_UPDATE)
 
-int file_load(const struct mpdcron_config *conf, GKeyFile *fd);
+#define COMMAND_ARGV_MAX   16
+#define CLIENT_MAX 1024
+
+struct client {
+	int id;
+	bool sending;
+	unsigned perm;
+	GSList *queue;
+	struct fifo_buffer *fifo;
+	GIOStream *stream;
+	GInputStream *input;
+	GOutputStream *output;
+};
+
+enum ack {
+	ACK_ERROR_ARG = 102,
+	ACK_ERROR_PASSWORD = 103,
+	ACK_ERROR_PERMISSION = 104,
+	ACK_ERROR_UNKNOWN = 105,
+
+	ACK_MPD_ERROR_NO_SONG = 150,
+
+	ACK_ERROR_DATABASE_OPEN = 200,
+	ACK_ERROR_DATABASE_CREATE = 201,
+	ACK_ERROR_DATABASE_VERSION = 202,
+	ACK_ERROR_DATABASE_INSERT = 203,
+	ACK_ERROR_DATABASE_SELECT = 204,
+	ACK_ERROR_DATABASE_UPDATE = 205,
+
+	ACK_ERROR_SONG_NO_TAGS = 250,
+};
+
+enum command_return {
+	COMMAND_RETURN_ERROR = -1,
+	COMMAND_RETURN_OK = 0,
+	COMMAND_RETURN_KILL = 10,
+	COMMAND_RETURN_CLOSE = 20,
+};
+
+/**
+ * Configuration
+ */
+struct config {
+	char **addrs;
+	int port;
+	char *dbpath;
+	int default_permissions;
+	GHashTable *passwords;
+	char *mpd_hostname;
+	char *mpd_port;
+	char *mpd_password;
+};
+
+extern struct config globalconf;
+
+bool file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);
+
+/**
+ * Database Interface
+ */
+sqlite3 *db_init(const char *path, GError **error);
+void db_close(sqlite3 *db);
+bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
+bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love, int *value, GError **error);
+
+/**
+ * Mpd Interface
+ */
+struct mpd_song *mpdclient_current_song(GError **error);
+
+/**
+ * Remote query interface
+ */
+void server_init(void);
+void server_bind(const char *hostname, int port);
+void server_start(void);
+void server_close(void);
+void server_schedule_write(struct client *client, const gchar *data, gsize count);
+
+/**
+ * Commands
+ */
+enum command_return command_process(struct client *client, char *line);
 
 #endif /* !MPDCRON_GUARD_STATS_DEFS_H */

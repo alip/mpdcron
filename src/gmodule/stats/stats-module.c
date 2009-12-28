@@ -22,6 +22,8 @@
 
 #include "stats-defs.h"
 
+#include <string.h>
+
 #include <glib.h>
 #include <sqlite3.h>
 
@@ -55,6 +57,7 @@ static void song_started(const struct mpd_song *song)
 static void song_ended(const struct mpd_song *song)
 {
 	int elapsed;
+	GError *error;
 	sqlite3 *db;
 
 	g_assert(song != NULL);
@@ -74,10 +77,20 @@ static void song_ended(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	if ((db = db_init(dbpath)) != NULL) {
-		db_process(db, song, true);
+	error = NULL;
+	if ((db = db_init(globalconf.dbpath, &error)) == NULL) {
+		mpdcron_log(LOG_WARNING, "%s", error->message);
+		g_error_free(error);
+		return;
+	}
+
+	error = NULL;
+	if (!db_process(db, song, true, &error)) {
+		mpdcron_log(LOG_WARNING, "%s", error->message);
+		g_error_free(error);
 		sqlite3_close(db);
 	}
+	sqlite3_close(db);
 }
 
 static void song_playing(const struct mpd_song *song, unsigned elapsed)
@@ -111,10 +124,24 @@ static void song_stopped(void)
 /* Module functions */
 static int init(const struct mpdcron_config *conf, GKeyFile *fd)
 {
+	mpdcron_log(LOG_INFO, "Initializing");
+
+	/* Load configuration */
 	if (file_load(conf, fd) < 0)
 		return MPDCRON_INIT_FAILURE;
+
+	server_init();
+	for (unsigned int i = 0; globalconf.addrs[i] != NULL; i++) {
+		if (strncmp(globalconf.addrs[i], "any", 4) == 0)
+			server_bind(NULL, globalconf.port);
+		else if (globalconf.addrs[i][0] == '/')
+			server_bind(globalconf.addrs[i], -1);
+		else
+			server_bind(globalconf.addrs[i], globalconf.port);
+	}
+	server_start();
+
 	timer = g_timer_new();
-	mpdcron_log(LOG_DEBUG, "Initialized");
 	return MPDCRON_INIT_SUCCESS;
 }
 
@@ -125,6 +152,7 @@ static void destroy(void)
 		mpd_song_free(prev);
 	g_timer_destroy(timer);
 	file_cleanup();
+	server_close();
 }
 
 static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,

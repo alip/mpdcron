@@ -70,7 +70,14 @@ static void event_write(G_GNUC_UNUSED GObject *source,
 	struct client *client;
 
 	client = g_hash_table_lookup(clients, clientid);
+	if (client == NULL) {
+		/* Already disconnected.
+		 * Nothing left to do.
+		 */
+		return;
+	}
 
+	error = NULL;
 	if ((count = g_output_stream_write_finish(client->output, res, &error)) < 0) {
 		mpdcron_log(LOG_WARNING, "Write failed: %s", error->message);
 		g_error_free(error);
@@ -102,7 +109,12 @@ static void event_read(G_GNUC_UNUSED GObject *source,
 	struct client *client;
 
 	client = g_hash_table_lookup(clients, clientid);
-	g_assert(client != NULL);
+	if (client == NULL) {
+		/* Already disconnected.
+		 * Nothing left to do.
+		 */
+		return;
+	}
 
 	error = NULL;
 	if ((count = g_input_stream_read_finish(client->input, result, &error)) < 0) {

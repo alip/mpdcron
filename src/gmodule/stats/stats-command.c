@@ -45,6 +45,38 @@ struct command {
 
 static const char *current_command;
 
+static void command_ok(struct client *client)
+{
+	mpdcron_log(LOG_DEBUG, "[%d]> "PROTOCOL_OK, client->id);
+	server_schedule_write(client, PROTOCOL_OK"\n", sizeof(PROTOCOL_OK"\n") - 1);
+}
+
+static void command_putv(struct client *client, const char *fmt, va_list args)
+{
+	GString *message;
+
+	g_assert(client != NULL);
+
+	message = g_string_new("");
+	g_string_append_vprintf(message, fmt, args);
+
+	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
+	g_string_append_c(message, '\n');
+
+	server_schedule_write(client, message->str, strlen(message->str));
+	g_string_free(message, TRUE);
+}
+
+G_GNUC_PRINTF(2, 3)
+static void command_puts(struct client *client, const char *fmt, ...)
+{
+	va_list args;
+
+	va_start(args, fmt);
+	command_putv(client, fmt, args);
+	va_end(args);
+}
+
 static void command_error_v(struct client *client, enum ack error,
 		const char *fmt, va_list args)
 {
@@ -61,7 +93,7 @@ static void command_error_v(struct client *client, enum ack error,
 	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
 	g_string_append_c(message, '\n');
 
-	server_schedule_write(client, message->str, strlen(message->str) + 1);
+	server_schedule_write(client, message->str, strlen(message->str));
 	g_string_free(message, TRUE);
 	current_command = NULL;
 }
@@ -74,39 +106,6 @@ static void command_error(struct client *client, enum ack error,
 
 	va_start(args, fmt);
 	command_error_v(client, error, fmt, args);
-	va_end(args);
-}
-
-static void command_ok(struct client *client)
-{
-	const char *ok = PROTOCOL_OK" \n";
-	mpdcron_log(LOG_DEBUG, "[%d]> "PROTOCOL_OK, client->id);
-	server_schedule_write(client, ok, strlen(ok) + 1);
-}
-
-static void command_putv(struct client *client, const char *fmt, va_list args)
-{
-	GString *message;
-
-	g_assert(client != NULL);
-
-	message = g_string_new("");
-	g_string_append_vprintf(message, fmt, args);
-
-	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
-	g_string_append_c(message, '\n');
-
-	server_schedule_write(client, message->str, strlen(message->str) + 1);
-	g_string_free(message, TRUE);
-}
-
-G_GNUC_PRINTF(2, 3)
-static void command_puts(struct client *client, const char *fmt, ...)
-{
-	va_list args;
-
-	va_start(args, fmt);
-	command_putv(client, fmt, args);
 	va_end(args);
 }
 
@@ -130,42 +129,15 @@ static bool check_bool(struct client *client, bool *value_r, const char *s)
 static enum command_return handle_love(struct client *client,
 		int argc, char **argv)
 {
-	int value;
-	GError *error;
-	sqlite3 *db;
-
-	g_assert(argc == 2);
-
-	error = NULL;
-	db = db_init(globalconf.dbpath, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
-	if (!db_love_song_uri(db, argv[1], true, &value, &error)) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		sqlite3_close(db);
-		return COMMAND_RETURN_ERROR;
-	}
-	sqlite3_close(db);
-
-	command_puts(client, "Love: %d", value);
-	command_ok(client);
-	return COMMAND_RETURN_OK;
-}
-
-static enum command_return handle_love_expr(struct client *client,
-		int argc, char **argv)
-{
+	bool love;
+	int count;
 	GError *error;
 	GSList *values, *walk;
 	sqlite3 *db;
 
 	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love") == 0);
 
 	error = NULL;
 	db = db_init(globalconf.dbpath, &error);
@@ -177,12 +149,15 @@ static enum command_return handle_love_expr(struct client *client,
 
 	error = NULL;
 	values = NULL;
-	if (!db_love_song_expr(db, argv[1], true, &values, &error)) {
+	if (!db_love_song_uri(db, argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
+		sqlite3_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
+	sqlite3_close(db);
 
+	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		char **message = (char **) walk->data;
 		command_puts(client, "file: %s", message[0]);
@@ -190,10 +165,366 @@ static enum command_return handle_love_expr(struct client *client,
 		g_free(message[0]);
 		g_free(message[1]);
 		g_free(message);
+		++count;
 	}
 	g_slist_free(values);
-	command_ok(client);
-	return COMMAND_RETURN_OK;
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "No such song");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_album(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_album") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_album_name(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		sqlite3_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+	sqlite3_close(db);
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Album: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "No such album");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_artist(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_artist") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_artist_name(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		sqlite3_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+	sqlite3_close(db);
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Artist: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "No such artist");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_genre(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_genre") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_genre_name(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		sqlite3_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+	sqlite3_close(db);
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Genre: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "No such genre");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_expr(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_expr") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_song_expr(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "file: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_album_expr(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_album_expr") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_album_expr(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Album: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+
+static enum command_return handle_love_artist_expr(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_artist_expr") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_artist_expr(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Artist: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_love_genre_expr(struct client *client,
+		int argc, char **argv)
+{
+	bool love;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	love = (strcmp(argv[0], "love_genre_expr") == 0);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_genre_expr(db, argv[1], love, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Genre: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
 }
 
 static enum command_return handle_password(struct client *client,
@@ -209,9 +540,26 @@ static enum command_return handle_password(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
+/* This has to be sorted! */
 static const struct command commands[] = {
+	{ "hate", PERMISSION_UPDATE, 1, 1, handle_love },
+	{ "hate_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
+	{ "hate_album_expr", PERMISSION_UPDATE, 1, 1, handle_love_album_expr },
+	{ "hate_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
+	{ "hate_artist_expr", PERMISSION_UPDATE, 1, 1, handle_love_artist_expr },
+	{ "hate_expr", PERMISSION_UPDATE, 1, 1, handle_love_expr },
+	{ "hate_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
+	{ "hate_genre_expr", PERMISSION_UPDATE, 1, 1, handle_love_genre_expr },
+	
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
+	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
+	{ "love_album_expr", PERMISSION_UPDATE, 1, 1, handle_love_album_expr },
+	{ "love_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
+	{ "love_artist_expr", PERMISSION_UPDATE, 1, 1, handle_love_artist_expr },
 	{ "love_expr", PERMISSION_UPDATE, 1, 1, handle_love_expr },
+	{ "love_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
+	{ "love_genre_expr", PERMISSION_UPDATE, 1, 1, handle_love_genre_expr },
+
 	{ "password", PERMISSION_NONE, 1, 1, handle_password },
 };
 

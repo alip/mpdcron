@@ -17,41 +17,99 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MPDCRON_GUARD_STATS_CLIENT_DEFS_H
-#define MPDCRON_GUARD_STATS_CLIENT_DEFS_H 1
+#ifndef MPDCRON_EUGENE_DEFS_H
+#define MPDCRON_EUGENE_DEFS_H 1
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif /* HAVE_CONFIG_H */
 
+#include "fifo_buffer.h"
+
 #include <stdbool.h>
+#include <syslog.h>
 
-#include "../../cron-config.h"
-#include "stats-defs.h"
+#include <glib.h>
+#include <gio/gio.h>
 
-#include <mpd/client.h>
-
-struct eu_config {
-	int verbosity;
-	char *homepath;
-	char *confpath;
-	char *dbpath;
-	const char *hostname;
-	const char *port;
-	const char *password;
+enum mpdcron_error {
+	MPDCRON_ERROR_NO_UNIX,
+	MPDCRON_ERROR_BAD_ADDRESS,
+	MPDCRON_ERROR_MALFORMED,
+	MPDCRON_ERROR_OVERFLOW,
+	MPDCRON_ERROR_EOF,
+	MPDCRON_ERROR_SERVER_UNK,
 };
 
-extern struct eu_config euconfig;
+enum mpdcron_parser_result {
+	/**
+	 * Response line was not understood.
+	 */
+	MPDCRON_PARSER_MALFORMED,
+
+	/**
+	 * mpdcron has returned "OK".
+	 */
+	MPDCRON_PARSER_SUCCESS,
+
+	/**
+	 * mpdcron has returned "ACK" with an error code.  Call
+	 * mpd_parser_get_server_error() to get the error code.
+	 */
+	MPDCRON_PARSER_ERROR,
+
+	/**
+	 * mpdcron has returned a name-value pair.  Call
+	 * mpdcron_parser_get_name() and mpdcron_parser_get_value().
+	 */
+	MPDCRON_PARSER_PAIR,
+};
+
+struct mpdcron_song {
+	char *uri;
+	int love;
+};
+
+struct mpdcron_parser;
+
+struct mpdcron_connection {
+	/**
+	 * The version number reported by mpdcron server.
+	 */
+	unsigned version[3];
+
+	/**
+	 * The last error occured.
+	 */
+	GError *error;
+
+	/**
+	 * Client object.
+	 */
+	GSocketClient *client;
+
+	/**
+	 * IO Stream that represents the connection.
+	 */
+	GSocketConnection *stream;
+
+	/**
+	 * Client read buffer
+	 */
+	struct fifo_buffer *fifo;
+
+	/**
+	 * Parser
+	 */
+	struct mpdcron_parser *parser;
+};
+
+struct mpdcron_connection *mpdcron_connection_new(const char *hostname, unsigned port);
+void mpdcron_connection_free(struct mpdcron_connection *conn);
+bool mpdcron_password(struct mpdcron_connection *conn, const char *password);
+bool mpdcron_love_expr(struct mpdcron_connection *conn, const char *expr, bool love, GSList **values);
+bool mpdcron_love_uri(struct mpdcron_connection *conn, const char *uri, bool love, GSList **values);
 
 void eulog(int level, const char *fmt, ...);
-void load_paths(void);
-int load_songs(GSList *list, bool clear);
-struct mpd_song *load_current_song(void);
-int cmd_update(int argc, char **argv);
-int cmd_hate(int argc, char **argv);
-int cmd_love(int argc, char **argv);
-int cmd_kill(int argc, char **argv);
-int cmd_unkill(int argc, char **argv);
-int cmd_rate(int argc, char **argv);
-int cmd_load(int argc, char **argv);
-#endif /* !MPDCRON_GUARD_STATS_CLIENT_DEFS_H */
+
+#endif /* !MPDCRON_EUGENE_DEFS_H */

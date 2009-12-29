@@ -119,6 +119,7 @@ static char *escape_string(const char *src)
 	return dest;
 }
 
+G_GNUC_UNUSED
 static bool check_tags(const struct mpd_song *song, bool checkalbum, bool checkgenre)
 {
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
@@ -203,19 +204,17 @@ static int cb_check_entry(void *pArg, G_GNUC_UNUSED int argc,
 	return SQLITE_OK;
 }
 
-static int cb_song_love_save(void *pArg, int argc,
+static int cb_save(void *pArg, int argc,
 		char **argv, G_GNUC_UNUSED char **columnName)
 {
+	int i;
 	char **message;
 	GSList **values = (GSList **) pArg;
 
-	g_assert(argc == 2);
-
-	message = g_new(char *, 3);
-	message[0] = g_strdup(argv[0]);
-	message[1] = g_strdup(argv[1]);
-	message[2] = NULL;
-
+	message = g_new(char *, argc + 1);
+	for (i = 0; i < argc; i++)
+		message[i] = g_strdup(argv[i]);
+	message[i] = NULL;
 	*values = g_slist_prepend(*values, message);
 	return SQLITE_OK;
 }
@@ -689,195 +688,6 @@ static inline bool sql_select_song(sqlite3 *db,
 	return sql_select_entry(db, "SONG", elem, expr, callback, data, error);
 }
 
-static bool sql_select_artist_name(sqlite3 *db,
-		const char *elem, const char *name,
-		bool like,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	bool ret;
-	char *expr;
-
-	expr = make_expr(name, like);
-	ret = sql_select_artist(db, elem, expr, callback, data, error);
-	g_free(expr);
-
-	return ret;
-}
-
-static bool sql_select_album_name(sqlite3 *db,
-		const char *elem, const char *name,
-		bool like,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	bool ret;
-	char *expr;
-
-	expr = make_expr(name, like);
-	ret = sql_select_album(db, elem, expr, callback, data, error);
-	g_free(expr);
-
-	return ret;
-}
-
-static bool sql_select_genre_name(sqlite3 *db,
-		const char *elem, const char *name,
-		bool like,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	bool ret;
-	char *expr;
-
-	expr = make_expr(name, like);
-	ret = sql_select_genre(db, elem, expr, callback, data, error);
-	g_free(expr);
-
-	return ret;
-}
-
-static bool sql_select_song_uri(sqlite3 *db,
-		const char *elem, const char *uri,
-		const char *artist, const char *title,
-		bool like,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	bool ret;
-	char *expr;
-
-	expr = make_expr_song(uri, artist, title, like);
-	ret = sql_select_song(db, elem, expr, callback, data, error);
-	g_free(expr);
-
-	return ret;
-}
-
-static bool sql_select_artist_song(sqlite3 *db, const char *elem,
-		const struct mpd_song *song,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	int id;
-
-	if (!check_tags(song, false, false)) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
-				"Song (%s) doesn't have required tags",
-				mpd_song_get_uri(song));
-		return true;
-	}
-
-	/* Check if the artist is already in the database.
-	 * Add her if she doesn't exist.
-	 */
-	if ((id = db_has_artist(db,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			error)) < -1)
-		return false;
-	else if (id == -1 && !db_insert_artist(db, song, false, error))
-		return false;
-
-	return sql_select_artist_name(db, elem,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			false, callback, data, error);
-}
-
-static bool sql_select_album_song(sqlite3 *db, const char *elem,
-		const struct mpd_song *song,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	int id;
-
-	if (!check_tags(song, false, false)) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
-				"Song (%s) doesn't have required tags",
-				mpd_song_get_uri(song));
-		return true;
-	}
-
-	/* Check if the album is already in the database.
-	 * Add it if it doesn't exist.
-	 */
-	if ((id = db_has_album(db,
-			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-			error)) < -1)
-		return false;
-	else if (id == -1 && !db_insert_album(db, song, false, error))
-		return false;
-
-	return sql_select_album_name(db, elem,
-			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
-			false, callback, data, error);
-}
-
-static bool sql_select_genre_song(sqlite3 *db, const char *elem,
-		const struct mpd_song *song,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	int id;
-
-	if (!check_tags(song, false, false)) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
-				"Song (%s) doesn't have required tags",
-				mpd_song_get_uri(song));
-		return true;
-	}
-
-	/* Check if the genre is already in the database.
-	 * Add it if it doesn't exist.
-	 */
-	if ((id = db_has_genre(db,
-			mpd_song_get_tag(song, MPD_TAG_GENRE, 0),
-			error)) < -1)
-		return false;
-	else if (id == -1 && !db_insert_genre(db, song, false, error))
-		return false;
-
-	return sql_select_genre_name(db, elem,
-			mpd_song_get_tag(song, MPD_TAG_GENRE, 0),
-			false, callback, data, error);
-}
-
-static bool sql_select_song_song(sqlite3 *db, const char *elem,
-		const struct mpd_song *song,
-		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
-{
-	int id;
-
-	if (!check_tags(song, false, false)) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
-				"Song (%s) doesn't have required tags",
-				mpd_song_get_uri(song));
-		return true;
-	}
-
-	/* Check if the song is already in the database.
-	 * Add it if it doesn't exist.
-	 */
-	if ((id = db_has_song(db, mpd_song_get_uri(song), error)) < -1)
-		return false;
-	else if (id == -1 && !db_insert_song(db, song, false, error))
-		return false;
-
-	return sql_select_song_uri(db, elem,
-			mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			false, callback, data, error);
-}
-
 /**
  * Database Updates
  */
@@ -944,32 +754,6 @@ static bool sql_update_song_uri(sqlite3 *db, const char *stmt,
 	g_free(expr);
 
 	return ret;
-}
-
-static bool sql_update_song_song(sqlite3 *db, const char *stmt,
-		const struct mpd_song *song, GError **error)
-{
-	int id;
-
-	if (!check_tags(song, false, false)) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
-				"Song (%s) doesn't have required tags",
-				mpd_song_get_uri(song));
-		return true;
-	}
-
-	/* Check if the song is already in the database.
-	 * Add it if it doesn't exist */
-	if ((id = db_has_song(db, mpd_song_get_uri(song), error)) < -1)
-		return false;
-	else if (id == -1 && !db_insert_song(db, song, false, error))
-		return false;
-
-	return sql_update_song_uri(db, stmt,
-			mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			false, error);
 }
 
 /**
@@ -1088,7 +872,7 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 
 	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
+		g_set_error(error, db_quark(), ACK_ERROR_NO_TAGS,
 				"Song (%s) doesn't have required tags",
 				mpd_song_get_uri(song));
 		return true;
@@ -1153,11 +937,94 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 /**
  * Main Interface
  */
-bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
-		int *value, GError **error)
+bool db_love_artist_name(sqlite3 *db, const char *name, bool love,
+		GSList **values, GError **error)
 {
-	int newlove;
-	char *stmt;
+	char *expr, *stmt;
+
+	g_assert(db != NULL);
+	g_assert(name != NULL);
+
+	expr = make_expr(name, false);
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_artist(db, stmt, expr, error)) {
+		g_free(expr);
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_artist(db, "name, love", expr, cb_save, values, error)) {
+		g_free(expr);
+		return false;
+	}
+	g_free(expr);
+	return true;
+}
+
+bool db_love_album_name(sqlite3 *db, const char *name, bool love,
+		GSList **values, GError **error)
+{
+	char *expr, *stmt;
+
+	g_assert(db != NULL);
+	g_assert(name != NULL);
+
+	expr = make_expr(name, false);
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_album(db, stmt, expr, error)) {
+		g_free(expr);
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_album(db, "name, love", expr, cb_save, values, error)) {
+		g_free(expr);
+		return false;
+	}
+	g_free(expr);
+	return true;
+}
+
+bool db_love_genre_name(sqlite3 *db, const char *name, bool love,
+		GSList **values, GError **error)
+{
+	char *expr, *stmt;
+
+	g_assert(db != NULL);
+	g_assert(name != NULL);
+
+	expr = make_expr(name, false);
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_genre(db, stmt, expr, error)) {
+		g_free(expr);
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_genre(db, "name, love", expr, cb_save, values, error)) {
+		g_free(expr);
+		return false;
+	}
+	g_free(expr);
+	return true;
+}
+
+bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
+		GSList **values, GError **error)
+{
+	char *expr, *esc_uri, *stmt;
 
 	g_assert(db != NULL);
 	g_assert(uri != NULL);
@@ -1169,15 +1036,86 @@ bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
 	}
 	g_free(stmt);
 
-	if (value == NULL)
+	if (values == NULL)
 		return true;
 
-	newlove = 0;
-	if (!sql_select_song_uri(db, "love", uri, NULL, NULL, false,
-				cb_integer_first, &newlove, error))
+	esc_uri = escape_string(uri);
+	expr = g_strdup_printf("uri=%s", esc_uri);
+	g_free(esc_uri);
+	if (!sql_select_song(db, "uri, love", expr, cb_save, values, error)) {
+		g_free(expr);
 		return false;
+	}
+	g_free(expr);
+	return true;
+}
 
-	*value = newlove;
+bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_artist(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_artist(db, "name, love", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_love_album_expr(sqlite3 *db, const char *expr, bool love,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_album(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_album(db, "name, love", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_genre(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_genre(db, "name, love", expr, cb_save, values, error))
+		return false;
 	return true;
 }
 
@@ -1199,34 +1137,7 @@ bool db_love_song_expr(sqlite3 *db, const char *expr, bool love,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_song(db, "uri, love", expr, cb_song_love_save, values, error))
+	if (!sql_select_song(db, "uri, love", expr, cb_save, values, error))
 		return false;
 	return true;
 }
-
-#if 0
-bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love,
-		int *value, GError **error)
-{
-	int newlove;
-	char *stmt;
-
-	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
-	if (!sql_update_song_song(db, stmt, song, error)) {
-		g_free(stmt);
-		return false;
-	}
-	g_free(stmt);
-
-	if (value == NULL)
-		return true;
-
-	newlove = 0;
-	if (!sql_select_song_song(db, "love", song, cb_integer_first,
-				&newlove, error))
-		return false;
-
-	*value = newlove;
-	return true;
-}
-#endif

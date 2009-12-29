@@ -27,17 +27,11 @@ walrus_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 
 # Careful with that axe!
 # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!
-#bin_PROGRAMS= eugene
+noinst_HEADERS+= eugene-defs.h
+bin_PROGRAMS+= eugene
+eugene_SOURCES= fifo_buffer.c eugene-connection.c eugene-main.c
 # Hack to workaround the error:
 #     object x created both with libtool and without.
 # See: http://bit.ly/libtool_both
-#eugene_CFLAGS= $(AM_CFLAGS)
-# Another hack to make log functions work without linking to libdaemon.
-# See gmodule.h
-#eugene_CFLAGS+= -DCAREFUL_WITH_THAT_AXE=1 -D"mpdcron_log(level, ...)=eulog((level), __VA_ARGS__)"
-#eugene_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
-#eugene_SOURCES= stats-sqlite.c \
-#		eugene-hate.c eugene-love.c \
-#		eugene-kill.c eugene-unkill.c \
-#		eugene-rate.c eugene-load.c \
-#		eugene-update.c eugene-utils.c eugene-main.c
+eugene_CFLAGS= $(AM_CFLAGS)
+eugene_LDADD= $(gio_unix_LIBS) $(gio_LIBS) $(glib_LIBS) $(libmpdclient_LIBS)

@@ -134,6 +134,8 @@ static enum command_return handle_love(struct client *client,
 	GError *error;
 	sqlite3 *db;
 
+	g_assert(argc == 2);
+
 	error = NULL;
 	db = db_init(globalconf.dbpath, &error);
 	if (db == NULL) {
@@ -156,6 +158,44 @@ static enum command_return handle_love(struct client *client,
 	return COMMAND_RETURN_OK;
 }
 
+static enum command_return handle_love_expr(struct client *client,
+		int argc, char **argv)
+{
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_love_song_expr(db, argv[1], true, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "file: %s", message[0]);
+		command_puts(client, "Love: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+	}
+	g_slist_free(values);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
 static enum command_return handle_password(struct client *client,
 		G_GNUC_UNUSED int argc, char **argv)
 {
@@ -171,6 +211,7 @@ static enum command_return handle_password(struct client *client,
 
 static const struct command commands[] = {
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
+	{ "love_expr", PERMISSION_UPDATE, 1, 1, handle_love_expr },
 	{ "password", PERMISSION_NONE, 1, 1, handle_password },
 };
 

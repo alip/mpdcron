@@ -44,5 +44,6 @@ sqlite3 *db_init(const char *path, GError **error);
 void db_close(sqlite3 *db);
 bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
 bool db_love_song_uri(sqlite3 *db, const char *uri, bool love, int *value, GError **error);
+bool db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 
 #endif /* !MPDCRON_GUARD_STATS_SQLITE_H */

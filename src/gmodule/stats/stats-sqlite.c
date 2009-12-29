@@ -203,6 +203,23 @@ static int cb_check_entry(void *pArg, G_GNUC_UNUSED int argc,
 	return SQLITE_OK;
 }
 
+static int cb_song_love_save(void *pArg, int argc,
+		char **argv, G_GNUC_UNUSED char **columnName)
+{
+	char **message;
+	GSList **values = (GSList **) pArg;
+
+	g_assert(argc == 2);
+
+	message = g_new(char *, 3);
+	message[0] = g_strdup(argv[0]);
+	message[1] = g_strdup(argv[1]);
+	message[2] = NULL;
+
+	*values = g_slist_prepend(*values, message);
+	return SQLITE_OK;
+}
+
 /**
  * Database Queries
  */
@@ -1142,6 +1159,9 @@ bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
 	int newlove;
 	char *stmt;
 
+	g_assert(db != NULL);
+	g_assert(uri != NULL);
+
 	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
 	if (!sql_update_song_uri(db, stmt, uri, NULL, NULL, love, error)) {
 		g_free(stmt);
@@ -1158,6 +1178,29 @@ bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
 		return false;
 
 	*value = newlove;
+	return true;
+}
+
+bool db_love_song_expr(sqlite3 *db, const char *expr, bool love,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_song(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_song(db, "uri, love", expr, cb_song_love_save, values, error))
+		return false;
 	return true;
 }
 

@@ -28,7 +28,6 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-#include <mpd/client.h>
 #include <sqlite3.h>
 
 #define PROTOCOL_OK	"OK"
@@ -133,50 +132,28 @@ static enum command_return handle_love(struct client *client,
 {
 	int value;
 	GError *error;
-	struct mpd_song *csong;
 	sqlite3 *db;
 
-	if (argc == 1) {
-		/* Load the current song */
-		error = NULL;
-		csong = mpdclient_current_song(&error);
-		if (error != NULL) {
-			command_error(client, error->code, "%s", error->message);
-			g_error_free(error);
-			return COMMAND_RETURN_ERROR;
-		}
-		else if (csong == NULL) {
-			/* No song playing */
-			command_error(client, ACK_MPD_ERROR_NO_SONG, "No song playing");
-			return COMMAND_RETURN_ERROR;
-		}
-
-		error = NULL;
-		db = db_init(globalconf.dbpath, &error);
-		if (db == NULL) {
-			command_error(client, error->code, "%s", error->message);
-			g_error_free(error);
-			mpd_song_free(csong);
-			return COMMAND_RETURN_ERROR;
-		}
-
-		error = NULL;
-		if (!db_love_song(db, csong, true, &value, &error)) {
-			command_error(client, error->code, "%s", error->message);
-			g_error_free(error);
-			sqlite3_close(db);
-			mpd_song_free(csong);
-			return COMMAND_RETURN_ERROR;
-		}
-		sqlite3_close(db);
-		mpd_song_free(csong);
-
-		command_puts(client, "Love: %d", value);
-		command_ok(client);
-		return COMMAND_RETURN_OK;
+	error = NULL;
+	db = db_init(globalconf.dbpath, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
 	}
-	
-	return COMMAND_RETURN_ERROR;
+
+	error = NULL;
+	if (!db_love_song_uri(db, argv[1], true, &value, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		sqlite3_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+	sqlite3_close(db);
+
+	command_puts(client, "Love: %d", value);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return handle_password(struct client *client,
@@ -193,7 +170,7 @@ static enum command_return handle_password(struct client *client,
 }
 
 static const struct command commands[] = {
-	{ "love", PERMISSION_UPDATE, 0, 1, handle_love },
+	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "password", PERMISSION_NONE, 1, 1, handle_password },
 };
 

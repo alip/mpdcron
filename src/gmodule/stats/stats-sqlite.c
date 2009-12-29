@@ -607,7 +607,6 @@ static bool db_update_song(sqlite3 *db, const struct mpd_song *song, int id,
 	return true;
 }
 
-
 /**
  * Database Selects
  */
@@ -921,7 +920,7 @@ static bool sql_update_song_uri(sqlite3 *db, const char *stmt,
 	char *expr;
 
 	g_assert(db != NULL);
-	g_assert(uri != NULL || artist != NULL || title != NULL);
+	g_assert(uri != NULL);
 
 	expr = make_expr_song(uri, artist, title, like);
 	ret = sql_update_song(db, stmt, expr, error);
@@ -1137,6 +1136,32 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 /**
  * Main Interface
  */
+bool db_love_song_uri(sqlite3 *db, const char *uri, bool love,
+		int *value, GError **error)
+{
+	int newlove;
+	char *stmt;
+
+	stmt = g_strdup_printf("love = love %s 1", love ? "+" : "-");
+	if (!sql_update_song_uri(db, stmt, uri, NULL, NULL, love, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (value == NULL)
+		return true;
+
+	newlove = 0;
+	if (!sql_select_song_uri(db, "love", uri, NULL, NULL, false,
+				cb_integer_first, &newlove, error))
+		return false;
+
+	*value = newlove;
+	return true;
+}
+
+#if 0
 bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love,
 		int *value, GError **error)
 {
@@ -1161,3 +1186,4 @@ bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love,
 	*value = newlove;
 	return true;
 }
+#endif

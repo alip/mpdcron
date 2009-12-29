@@ -28,9 +28,15 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
+static GQuark kf_quark(void)
+{
+	return g_quark_from_static_string("keyfile");
+}
+
 G_GNUC_UNUSED
 static bool load_string(GKeyFile *fd, const char *grp,
-		const char *name, bool mustload, char **value_r)
+		const char *name, bool mustload,
+		char **value_r, GError **error)
 {
 	char *value;
 	GError *e = NULL;
@@ -52,7 +58,8 @@ static bool load_string(GKeyFile *fd, const char *grp,
 				}
 				/* fall through */
 			default:
-				mpdcron_log(LOG_ERR, "Failed to load string %s.%s: %s",
+				g_set_error(error, kf_quark(), e->code,
+						"Failed to load string %s.%s: %s",
 						grp, name, e->message);
 				g_error_free(e);
 				return false;
@@ -65,7 +72,8 @@ static bool load_string(GKeyFile *fd, const char *grp,
 
 G_GNUC_UNUSED
 static bool load_integer(GKeyFile *fd, const char *grp,
-		const char *name, int mustload, int *value_r)
+		const char *name, int mustload,
+		int *value_r, GError **error)
 {
 	int value;
 	GError *e = NULL;
@@ -87,7 +95,8 @@ static bool load_integer(GKeyFile *fd, const char *grp,
 				}
 				/* fall through */
 			default:
-				mpdcron_log(LOG_ERR, "Failed to load integer %s.%s: %s",
+				g_set_error(error, kf_quark(), e->code,
+						"Failed to load integer %s.%s: %s",
 						grp, name, e->message);
 				g_error_free(e);
 				return false;
@@ -95,25 +104,6 @@ static bool load_integer(GKeyFile *fd, const char *grp,
 	}
 
 	*value_r = value;
-	return true;
-}
-
-G_GNUC_UNUSED
-static bool load_unsigned(GKeyFile *fd, const char *grp,
-		const char *name, bool mustload, unsigned *value_r)
-{
-	int value = -1;
-
-	if (!load_integer(fd, grp, name, mustload, &value))
-		return false;
-
-	if (mustload && value < 0) {
-		mpdcron_log(LOG_ERR, "Setting %s.%s must not be negative",
-				grp, name);
-		return false;
-	}
-
-	*value_r = (unsigned)value;
 	return true;
 }
 

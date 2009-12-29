@@ -37,15 +37,23 @@ bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	memset(&globalconf, 0, sizeof(struct config));
 
 	/* Load database path */
-	if (!load_string(fd, MPDCRON_MODULE, "dbpath", false, &globalconf.dbpath))
+	error = NULL;
+	if (!load_string(fd, MPDCRON_MODULE, "dbpath", false, &globalconf.dbpath, &error)) {
+		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_error_free(error);
 		return false;
+	}
 	if (globalconf.dbpath == NULL)
 		globalconf.dbpath = g_build_filename(conf->home_path, "stats.db", NULL);
 
 	/* Load port */
+	error = NULL;
 	globalconf.port = -1;
-	if (!load_integer(fd, MPDCRON_MODULE, "port", false, &globalconf.port))
+	if (!load_integer(fd, MPDCRON_MODULE, "port", false, &globalconf.port, &error)) {
+		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_error_free(error);
 		return false;
+	}
 	if (globalconf.port <= 0)
 		globalconf.port = DEFAULT_PORT;
 

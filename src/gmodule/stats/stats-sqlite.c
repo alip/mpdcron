@@ -17,7 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "stats-defs.h"
+#include "stats-sqlite.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -248,34 +248,25 @@ static inline int db_has_genre(sqlite3 *db, const char *name, GError **error)
 	return db_has_name(db, "GENRE", name, error);
 }
 
-static int db_has_song(sqlite3 *db, const char *uri,
-		const char *artist, const char *title,
-		GError **error)
+static int db_has_song(sqlite3 *db, const char *uri, GError **error)
 {
 	int id;
-	char *errmsg, *esc_uri, *esc_artist, *esc_title, *sql;
+	char *errmsg, *esc_uri, *sql;
 
 	g_assert(db != NULL);
-	g_assert(artist != NULL && title != NULL);
 
 	esc_uri = escape_string(uri);
-	esc_artist = escape_string(artist);
-	esc_title = escape_string(title);
-
 	sql = g_strdup_printf("select db_id from SONG"
-			" where uri=%s and artist=%s and title=%s",
-			esc_uri, esc_artist, esc_title);
-
+			" where uri=%s",
+			esc_uri);
 	g_free(esc_uri);
-	g_free(esc_artist);
-	g_free(esc_title);
 
 	/* The ID can be zero */
 	id = -1;
 	if (sqlite3_exec(db, sql, cb_check_entry, &id, &errmsg) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_SELECT,
-				"Error while trying to find song (%s - %s): %s",
-				artist, title, errmsg);
+				"Error while trying to find song (%s): %s",
+				uri, errmsg);
 		g_free(sql);
 		sqlite3_free(errmsg);
 		return -2;
@@ -859,11 +850,7 @@ static bool sql_select_song_song(sqlite3 *db, const char *elem,
 	/* Check if the song is already in the database.
 	 * Add it if it doesn't exist.
 	 */
-	if ((id = db_has_song(db,
-			mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			error)) < -1)
+	if ((id = db_has_song(db, mpd_song_get_uri(song), error)) < -1)
 		return false;
 	else if (id == -1 && !db_insert_song(db, song, false, error))
 		return false;
@@ -957,11 +944,7 @@ static bool sql_update_song_song(sqlite3 *db, const char *stmt,
 
 	/* Check if the song is already in the database.
 	 * Add it if it doesn't exist */
-	if ((id = db_has_song(db,
-			mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			error)) < -1)
+	if ((id = db_has_song(db, mpd_song_get_uri(song), error)) < -1)
 		return false;
 	else if (id == -1 && !db_insert_song(db, song, false, error))
 		return false;
@@ -1057,8 +1040,6 @@ sqlite3 *db_init(const char *path, GError **error)
 
 	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
 		if (sqlite3_open(path, &db) != 0) {
-			mpdcron_log(LOG_ERR, "Failed to open database (%s): %s",
-					path, sqlite3_errmsg(db));
 			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_OPEN,
 					"%s", sqlite3_errmsg(db));
 			return false;
@@ -1094,14 +1075,10 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 		g_set_error(error, db_quark(), ACK_ERROR_SONG_NO_TAGS,
 				"Song (%s) doesn't have required tags",
 				mpd_song_get_uri(song));
-		return false;
+		return true;
 	}
 
-	if ((id = db_has_song(db,
-			mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-			error)) < -1)
+	if ((id = db_has_song(db, mpd_song_get_uri(song), error)) < -1)
 		return false;
 	else if (id == -1) {
 		if (!db_insert_song(db, song, increment, error))

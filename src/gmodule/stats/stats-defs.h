@@ -36,6 +36,8 @@
 #include <mpd/client.h>
 #include <sqlite3.h>
 
+#include "stats-sqlite.h"
+
 #define PROTOCOL_VERSION VERSION
 #define DEFAULT_HOST "any"
 #define DEFAULT_PORT 6601
@@ -66,15 +68,6 @@ enum ack {
 	ACK_ERROR_UNKNOWN = 105,
 
 	ACK_MPD_ERROR_NO_SONG = 150,
-
-	ACK_ERROR_DATABASE_OPEN = 200,
-	ACK_ERROR_DATABASE_CREATE = 201,
-	ACK_ERROR_DATABASE_VERSION = 202,
-	ACK_ERROR_DATABASE_INSERT = 203,
-	ACK_ERROR_DATABASE_SELECT = 204,
-	ACK_ERROR_DATABASE_UPDATE = 205,
-
-	ACK_ERROR_SONG_NO_TAGS = 250,
 };
 
 enum command_return {
@@ -102,14 +95,6 @@ extern struct config globalconf;
 
 bool file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);
-
-/**
- * Database Interface
- */
-sqlite3 *db_init(const char *path, GError **error);
-void db_close(sqlite3 *db);
-bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
-bool db_love_song(sqlite3 *db, const struct mpd_song *song, bool love, int *value, GError **error);
 
 /**
  * Mpd Interface

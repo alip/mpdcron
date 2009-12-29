@@ -20,9 +20,7 @@
 #ifndef MPDCRON_EUGENE_DEFS_H
 #define MPDCRON_EUGENE_DEFS_H 1
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif /* HAVE_CONFIG_H */
+#include "../../cron-config.h"
 
 #include "fifo_buffer.h"
 
@@ -70,6 +68,11 @@ struct mpdcron_song {
 	int love;
 };
 
+struct mpdcron_entity {
+	char *name;
+	int love;
+};
+
 struct mpdcron_parser;
 
 struct mpdcron_connection {
@@ -107,8 +110,10 @@ struct mpdcron_connection {
 struct mpdcron_connection *mpdcron_connection_new(const char *hostname, unsigned port);
 void mpdcron_connection_free(struct mpdcron_connection *conn);
 bool mpdcron_password(struct mpdcron_connection *conn, const char *password);
+bool mpdcron_love_artist_expr(struct mpdcron_connection *conn, const char *expr, bool love, GSList **values);
+bool mpdcron_love_album_expr(struct mpdcron_connection *conn, const char *expr, bool love, GSList **values);
+bool mpdcron_love_genre_expr(struct mpdcron_connection *conn, const char *expr, bool love, GSList **values);
 bool mpdcron_love_expr(struct mpdcron_connection *conn, const char *expr, bool love, GSList **values);
-bool mpdcron_love_uri(struct mpdcron_connection *conn, const char *uri, bool love, GSList **values);
 
 void eulog(int level, const char *fmt, ...);
 

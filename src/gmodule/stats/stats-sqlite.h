@@ -44,10 +44,6 @@ enum dback {
 sqlite3 *db_init(const char *path, GError **error);
 void db_close(sqlite3 *db);
 bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
-bool db_love_artist_name(sqlite3 *db, const char *name, bool love, GSList **values, GError **error);
-bool db_love_album_name(sqlite3 *db, const char *name, bool love, GSList **values, GError **error);
-bool db_love_genre_name(sqlite3 *db, const char *name, bool love, GSList **values, GError **error);
-bool db_love_song_uri(sqlite3 *db, const char *uri, bool love, GSList **values, GError **error);
 bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 bool db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);

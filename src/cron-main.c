@@ -154,7 +154,6 @@ int main(int argc, char **argv)
 	} while (0)
 
 	HANDLE_SIGNAL(SIGABRT);
-	HANDLE_SIGNAL(SIGSEGV);
 	HANDLE_SIGNAL(SIGINT);
 	HANDLE_SIGNAL(SIGTERM);
 

@@ -1145,6 +1145,11 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 /**
  * Main Interface
  */
+
+
+/**
+ * Love/Hate song/artist/album/genre
+ */
 bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love,
 		GSList **values, GError **error)
 {
@@ -1233,6 +1238,101 @@ bool db_love_song_expr(sqlite3 *db, const char *expr, bool love,
 		return true;
 
 	if (!sql_select_song(db, "uri, love", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+/**
+ * Kill/Unkill song/artist/album/genre
+ */
+bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("kill = %s", kkill ? "kill + 1" : "0");
+	if (!sql_update_artist(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_artist(db, "name, kill", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("kill = %s", kkill ? "kill + 1" : "0");
+	if (!sql_update_album(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_album(db, "name, kill", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("kill = %s", kkill ? "kill + 1" : "0");
+	if (!sql_update_genre(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_genre(db, "name, kill", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("kill = %s", kkill ? "kill + 1" : "0");
+	if (!sql_update_song(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_song(db, "uri, kill", expr, cb_save, values, error))
 		return false;
 	return true;
 }

@@ -126,6 +126,229 @@ static bool check_bool(struct client *client, bool *value_r, const char *s)
 	return true;
 }
 
+static enum command_return handle_kill(struct client *client,
+		int argc, char **argv)
+{
+	bool kkill;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	kkill = (strcmp(argv[0], "kill") == 0);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_kill_song_expr(db, argv[1], kkill, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "file: %s", message[0]);
+		command_puts(client, "Kill: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_kill_album(struct client *client,
+		int argc, char **argv)
+{
+	bool kkill;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	kkill = (strcmp(argv[0], "kill_album") == 0);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_kill_album_expr(db, argv[1], kkill, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Album: %s", message[0]);
+		command_puts(client, "Kill: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_kill_artist(struct client *client,
+		int argc, char **argv)
+{
+	bool kkill;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	kkill = (strcmp(argv[0], "kill_artist") == 0);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_kill_artist_expr(db, argv[1], kkill, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Artist: %s", message[0]);
+		command_puts(client, "Kill: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return handle_kill_genre(struct client *client,
+		int argc, char **argv)
+{
+	bool kkill;
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	kkill = (strcmp(argv[0], "kill_genre") == 0);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_kill_genre_expr(db, argv[1], kkill, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Genre: %s", message[0]);
+		command_puts(client, "Kill: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+
+/* XXX XXX XXX XXX XXX
+ */
 static enum command_return handle_love(struct client *client,
 		int argc, char **argv)
 {
@@ -366,12 +589,22 @@ static const struct command commands[] = {
 	{ "hate_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
 	{ "hate_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
 
+	{ "kill", PERMISSION_UPDATE, 1, 1, handle_kill },
+	{ "kill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },
+	{ "kill_artist", PERMISSION_UPDATE, 1, 1, handle_kill_artist },
+	{ "kill_genre", PERMISSION_UPDATE, 1, 1, handle_kill_genre },
+
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "love_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
 	{ "love_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
 
 	{ "password", PERMISSION_NONE, 1, 1, handle_password },
+
+	{ "unkill", PERMISSION_UPDATE, 1, 1, handle_kill },
+	{ "unkill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },
+	{ "unkill_artist", PERMISSION_UPDATE, 1, 1, handle_kill_artist },
+	{ "unkill_genre", PERMISSION_UPDATE, 1, 1, handle_kill_genre },
 };
 
 static const unsigned num_commands = sizeof(commands) / sizeof(commands[0]);

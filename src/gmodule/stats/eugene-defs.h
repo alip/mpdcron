@@ -66,11 +66,13 @@ enum mpdcron_parser_result {
 struct mpdcron_song {
 	char *uri;
 	int love;
+	int kill;
 };
 
 struct mpdcron_entity {
 	char *name;
 	int love;
+	int kill;
 };
 
 struct mpdcron_parser;
@@ -112,14 +114,22 @@ struct mpdcron_connection *mpdcron_connection_new(const char *hostname,
 void mpdcron_connection_free(struct mpdcron_connection *conn);
 bool mpdcron_password(struct mpdcron_connection *conn,
 		const char *password);
-bool mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
-		const char *expr, GSList **values);
 bool mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
+		const char *expr, GSList **values);
+bool mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
 bool mpdcron_love_genre_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
 bool mpdcron_love_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
+bool mpdcron_kill_album_expr(struct mpdcron_connection *conn,
+		bool kkill, const char *expr, GSList **values);
+bool mpdcron_kill_artist_expr(struct mpdcron_connection *conn,
+		bool kkill, const char *expr, GSList **values);
+bool mpdcron_kill_genre_expr(struct mpdcron_connection *conn,
+		bool kkill, const char *expr, GSList **values);
+bool mpdcron_kill_expr(struct mpdcron_connection *conn,
+		bool kkill, const char *expr, GSList **values);
 
 void eulog(int level, const char *fmt, ...);
 

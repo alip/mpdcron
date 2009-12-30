@@ -52,5 +52,9 @@ bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **valu
 bool db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 bool db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
+bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
 
 #endif /* !MPDCRON_GUARD_STATS_SQLITE_H */

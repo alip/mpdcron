@@ -83,7 +83,7 @@ static bool run_update(sqlite3 *db, const char *path)
 			song = mpd_entity_get_song(entity);
 			error = NULL;
 			if (!db_process(db, song, false, &error)) {
-				g_printerr("Failed to process song (%s): %s",
+				g_printerr("Failed to process song %s: %s\n",
 						mpd_song_get_uri(song),
 						error->message);
 				g_error_free(error);
@@ -122,8 +122,8 @@ int main(int argc, char **argv)
 		dbpath = xload_dbpath();
 
 	error = NULL;
-	if ((db = db_init(dbpath, &error)) == NULL) {
-		g_printerr("Failed to load database `%s': %s", dbpath, error->message);
+	if ((db = db_init(dbpath, true, false, &error)) == NULL) {
+		g_printerr("Failed to load database `%s': %s\n", dbpath, error->message);
 		g_error_free(error);
 		g_free(dbpath);
 		return 1;
@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 	g_free(dbpath);
 
 	if (sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg) != SQLITE_OK) {
-		g_printerr("Failed to begin transaction: %s", errmsg);
+		g_printerr("Failed to begin transaction: %s\n", errmsg);
 		sqlite3_free(errmsg);
 		sqlite3_close(db);
 		return 1;

@@ -60,14 +60,25 @@ static void usage(FILE *outf, int exitval)
 	exit(exitval);
 }
 
-static char *escape_string(const char *src)
+static char *quote(const char *src)
 {
-	char *q, *dest;
+	const char *p;
+	GString *dest;
 
-	q = sqlite3_mprintf("%Q", src);
-	dest = g_strdup(q);
-	sqlite3_free(q);
-	return dest;
+	g_return_val_if_fail(src != NULL, NULL);
+
+	dest = g_string_new("'");
+	p = src;
+
+	while (*p != 0) {
+		if (*p == '\'')
+			g_string_append(dest, "\\\'");
+		else
+			g_string_append_c(dest, *p);
+		++p;
+	}
+	g_string_append_c(dest, '\'');
+	return g_string_free(dest, FALSE);
 }
 
 static struct mpd_song *load_current_song(void)
@@ -122,13 +133,211 @@ static struct mpd_song *load_current_song(void)
 	return song;
 }
 
+static int love_artist(struct mpdcron_connection *conn,
+		bool love, const char *expr)
+{
+	GSList *values, *walk;
+
+	values = NULL;
+	if (expr != NULL) {
+		if (!mpdcron_love_artist_expr(conn, love, expr, &values)) {
+			eulog(LOG_ERR, "Failed to %s artist: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			return 1;
+		}
+	}
+	else {
+		char *esc_artist, *myexpr;
+		struct mpd_song *song;
+
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no artist tag!");
+			mpd_song_free(song);
+			return 1;
+		}
+
+		esc_artist = quote(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
+		myexpr = g_strdup_printf("name=%s", esc_artist);
+		g_free(esc_artist);
+		mpd_song_free(song);
+
+		if (!mpdcron_love_artist_expr(conn, love, myexpr, &values)) {
+			eulog(LOG_ERR, "Failed to %s current playing artist: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
+		g_free(myexpr);
+	}
+
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct mpdcron_entity *e = walk->data;
+		printf("%s %d\n", e->name, e->love);
+		g_free(e->name);
+		g_free(e);
+	}
+	g_slist_free(values);
+	return 0;
+}
+
+static int love_album(struct mpdcron_connection *conn,
+		bool love, const char *expr)
+{
+	GSList *values, *walk;
+
+	values = NULL;
+	if (expr != NULL) {
+		if (!mpdcron_love_album_expr(conn, love, expr, &values)) {
+			eulog(LOG_ERR, "Failed to %s album: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			return 1;
+		}
+	}
+	else {
+		char *esc_album, *myexpr;
+		struct mpd_song *song;
+
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no album tag!");
+			mpd_song_free(song);
+			return 1;
+		}
+
+		esc_album = quote(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
+		myexpr = g_strdup_printf("name=%s", esc_album);
+		g_free(esc_album);
+		mpd_song_free(song);
+
+		if (!mpdcron_love_album_expr(conn, love, myexpr, &values)) {
+			eulog(LOG_ERR, "Failed to %s current playing album: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
+		g_free(myexpr);
+	}
+
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct mpdcron_entity *e = walk->data;
+		printf("%s %d\n", e->name, e->love);
+		g_free(e->name);
+		g_free(e);
+	}
+	g_slist_free(values);
+	return 0;
+}
+
+static int love_genre(struct mpdcron_connection *conn,
+		bool love, const char *expr)
+{
+	GSList *values, *walk;
+
+	values = NULL;
+	if (expr != NULL) {
+		if (!mpdcron_love_genre_expr(conn, love, expr, &values)) {
+			eulog(LOG_ERR, "Failed to %s genre: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			return 1;
+		}
+	}
+	else {
+		char *esc_genre, *myexpr;
+		struct mpd_song *song;
+
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no genre tag!");
+			mpd_song_free(song);
+			return 1;
+		}
+
+		esc_genre = quote(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
+		myexpr = g_strdup_printf("name=%s", esc_genre);
+		g_free(esc_genre);
+		mpd_song_free(song);
+
+		if (!mpdcron_love_genre_expr(conn, love, myexpr, &values)) {
+			eulog(LOG_ERR, "Failed to %s current playing genre: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
+		g_free(myexpr);
+	}
+
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct mpdcron_entity *e = walk->data;
+		printf("%s %d\n", e->name, e->love);
+		g_free(e->name);
+		g_free(e);
+	}
+	g_slist_free(values);
+	return 0;
+}
+
+static int love_song(struct mpdcron_connection *conn,
+		bool love, const char *expr)
+{
+	GSList *values, *walk;
+
+	values = NULL;
+	if (expr != NULL) {
+		if (!mpdcron_love_expr(conn, love, expr, &values)) {
+			eulog(LOG_ERR, "Failed to %s song: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			return 1;
+		}
+	}
+	else {
+		char *esc_uri, *myexpr;
+		struct mpd_song *song;
+
+		if ((song = load_current_song()) == NULL)
+			return 1;
+
+		esc_uri = quote(mpd_song_get_uri(song));
+		myexpr = g_strdup_printf("uri=%s", esc_uri);
+		g_free(esc_uri);
+		mpd_song_free(song);
+
+		if (!mpdcron_love_expr(conn, love, myexpr, &values)) {
+			eulog(LOG_ERR, "Failed to %s current playing song: %s",
+					love ? "love" : "hate",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
+		g_free(myexpr);
+	}
+
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct mpdcron_entity *e = walk->data;
+		printf("%s %d\n", e->name, e->love);
+		g_free(e->name);
+		g_free(e);
+	}
+	g_slist_free(values);
+	return 0;
+}
+
 static int cmd_love_internal(bool love, const char *expr,
 		bool artist, bool album, bool genre)
 {
-	int port;
+	int port, ret;
 	const char *hostname, *password;
 	struct mpdcron_connection *conn;
-	GSList *values, *walk;
 
 	if ((artist && album && genre) ||
 			(artist && album) ||
@@ -161,200 +370,23 @@ static int cmd_love_internal(bool love, const char *expr,
 		}
 	}
 
-	values = NULL;
-	if (artist) {
-		if (expr != NULL) {
-			if (!mpdcron_love_artist_expr(conn, expr, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s artist: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-		}
-		else {
-			char *esc_artist, *sql;
-			struct mpd_song *song;
-
-			if ((song = load_current_song()) == NULL)
-				return 1;
-			else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
-				eulog(LOG_ERR, "Current playing song has no artist tag!");
-				mpd_song_free(song);
-				return 1;
-			}
-
-			esc_artist = escape_string(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
-			sql = g_strdup_printf("name=%s", esc_artist);
-			g_free(esc_artist);
-			mpd_song_free(song);
-
-			if (!mpdcron_love_artist_expr(conn, sql, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s current playing artist: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				g_free(sql);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-			g_free(sql);
-		}
-
-		mpdcron_connection_free(conn);
-		for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-			struct mpdcron_entity *e = walk->data;
-			printf("%s %d\n", e->name, e->love);
-			g_free(e->name);
-			g_free(e);
-		}
-		g_slist_free(values);
-		return 0;
-	}
-	else if (album) {
-		if (expr != NULL) {
-			if (!mpdcron_love_album_expr(conn, expr, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s album: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-		}
-		else {
-			char *esc_album, *sql;
-			struct mpd_song *song;
-
-			if ((song = load_current_song()) == NULL)
-				return 1;
-			else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
-				eulog(LOG_ERR, "Current playing song has no album tag!");
-				mpd_song_free(song);
-				return 1;
-			}
-
-			esc_album = escape_string(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
-			sql = g_strdup_printf("name=%s", esc_album);
-			g_free(esc_album);
-			mpd_song_free(song);
-
-			if (!mpdcron_love_album_expr(conn, sql, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s current playing album: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				g_free(sql);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-			g_free(sql);
-		}
-		mpdcron_connection_free(conn);
-		for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-			struct mpdcron_entity *e = walk->data;
-			printf("%s %d\n", e->name, e->love);
-			g_free(e->name);
-			g_free(e);
-		}
-		g_slist_free(values);
-		return 0;
-	}
-	else if (genre) {
-		if (expr != NULL) {
-			if (!mpdcron_love_genre_expr(conn, expr, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s genre: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-		}
-		else {
-			char *esc_genre, *sql;
-			struct mpd_song *song;
-
-			if ((song = load_current_song()) == NULL)
-				return 1;
-			else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
-				eulog(LOG_ERR, "Current playing song has no genre tag!");
-				mpd_song_free(song);
-				return 1;
-			}
-
-			esc_genre = escape_string(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
-			sql = g_strdup_printf("name=%s", esc_genre);
-			g_free(esc_genre);
-			mpd_song_free(song);
-
-			if (!mpdcron_love_genre_expr(conn, sql, love, &values)) {
-				eulog(LOG_ERR, "Failed to %s current playing genre: %s",
-						love ? "love" : "hate",
-						conn->error->message);
-				g_free(sql);
-				mpdcron_connection_free(conn);
-				return 1;
-			}
-			g_free(sql);
-		}
-		mpdcron_connection_free(conn);
-		for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-			struct mpdcron_entity *e = walk->data;
-			printf("%s %d\n", e->name, e->love);
-			g_free(e->name);
-			g_free(e);
-		}
-		g_slist_free(values);
-		return 0;
-	}
-
-	if (expr != NULL) {
-		if (!mpdcron_love_expr(conn, expr, love, &values)) {
-			eulog(LOG_ERR, "Failed to %s song: %s",
-					love ? "love" : "hate",
-					conn->error->message);
-			mpdcron_connection_free(conn);
-			return 1;
-		}
-	}
-	else {
-		char *esc_uri, *sql;
-		struct mpd_song *song;
-
-		if ((song = load_current_song()) == NULL)
-			return 1;
-
-		esc_uri = escape_string(mpd_song_get_uri(song));
-		sql = g_strdup_printf("uri=%s", esc_uri);
-		g_free(esc_uri);
-		mpd_song_free(song);
-
-		if (!mpdcron_love_expr(conn, sql, love, &values)) {
-			eulog(LOG_ERR, "Failed to %s current playing song: %s",
-					love ? "love" : "hate",
-					conn->error->message);
-			g_free(sql);
-			mpdcron_connection_free(conn);
-			return 1;
-		}
-		g_free(sql);
-	}
+	if (artist)
+		ret = love_artist(conn, love, expr);
+	else if (album)
+		ret = love_album(conn, love, expr);
+	else if (genre)
+		ret = love_genre(conn, love, expr);
+	else
+		ret = love_song(conn, love, expr);
 	mpdcron_connection_free(conn);
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_song *s = walk->data;
-		printf("%s %d\n", s->uri, s->love);
-		g_free(s->uri);
-		g_free(s);
-	}
-	g_slist_free(values);
-	return 0;
+	return ret;
 }
 
 static int cmd_hate(int argc, char **argv)
 {
-	int opta = 0, optA = 0, optg = 0;
-	char *expr = NULL;
+	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
 	GOptionEntry options[] = {
-		{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr,
-			"Hate song/artist/album/genre matching the given expression", NULL},
 		{"artist", 'a', 0, G_OPTION_ARG_NONE, &opta,
 			"Hate artists instead of songs", NULL},
 		{"album", 'A', 0, G_OPTION_ARG_NONE, &optA,
@@ -365,7 +397,7 @@ static int cmd_hate(int argc, char **argv)
 	};
 	GOptionContext *ctx;
 
-	ctx = g_option_context_new("");
+	ctx = g_option_context_new("[EXPRESSION]");
 	g_option_context_add_main_entries(ctx, options, "eugene-hate");
 	g_option_context_set_summary(ctx, "eugene-hate-"VERSION GITHEAD" - Hate song/artist/album/genre");
 	g_option_context_set_description(ctx, ""
@@ -380,28 +412,29 @@ static int cmd_hate(int argc, char **argv)
 	}
 	g_option_context_free(ctx);
 
-	return cmd_love_internal(false, expr, opta, optA, optg);
+	if (argc > 1)
+		ret = cmd_love_internal(false, argv[1], opta, optA, optg);
+	else
+		ret = cmd_love_internal(false, NULL, opta, optA, optg);
+	return ret;
 }
 
 static int cmd_love(int argc, char **argv)
 {
-	int opta = 0, optA = 0, optg = 0;
-	char *expr = NULL;
+	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
 	GOptionEntry options[] = {
-		{"expr", 'e', 0, G_OPTION_ARG_STRING, &expr,
-			"Love song/artist/album/genre matching the given expression", NULL},
 		{"artist", 'a', 0, G_OPTION_ARG_NONE, &opta,
 			"Love artists instead of songs", NULL},
 		{"album", 'A', 0, G_OPTION_ARG_NONE, &optA,
 			"Love albums instead of songs", NULL},
-		{"genre", 'g', 0, G_OPTION_ARG_NONE, &optA,
+		{"genre", 'g', 0, G_OPTION_ARG_NONE, &optg,
 			"Love genres instead of songs", NULL},
 		{ NULL, 0, 0, 0, NULL, NULL, NULL },
 	};
 	GOptionContext *ctx;
 
-	ctx = g_option_context_new("");
+	ctx = g_option_context_new("[EXPRESSION]");
 	g_option_context_add_main_entries(ctx, options, "eugene-love");
 	g_option_context_set_summary(ctx, "eugene-love-"VERSION GITHEAD" - Love song/artist/album/genre");
 	g_option_context_set_description(ctx, ""
@@ -416,7 +449,11 @@ static int cmd_love(int argc, char **argv)
 	}
 	g_option_context_free(ctx);
 
-	return cmd_love_internal(true, expr, opta, optA, optg);
+	if (argc > 1)
+		ret = cmd_love_internal(true, argv[1], opta, optA, optg);
+	else
+		ret = cmd_love_internal(true, NULL, opta, optA, optg);
+	return ret;
 }
 
 static int run_cmd(int argc, char **argv)

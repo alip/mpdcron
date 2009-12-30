@@ -33,6 +33,10 @@ enum dback {
 	ACK_ERROR_DATABASE_INSERT = 103,
 	ACK_ERROR_DATABASE_SELECT = 104,
 	ACK_ERROR_DATABASE_UPDATE = 105,
+	ACK_ERROR_DATABASE_PREPARE = 106,
+	ACK_ERROR_DATABASE_BIND = 107,
+	ACK_ERROR_DATABASE_STEP = 108,
+	ACK_ERROR_DATABASE_RESET = 109,
 
 	ACK_ERROR_NO_EXIST = 150,
 	ACK_ERROR_NO_TAGS = 151,
@@ -41,7 +45,7 @@ enum dback {
 /**
  * Database Interface
  */
-sqlite3 *db_init(const char *path, GError **error);
+sqlite3 *db_init(const char *path, bool create, bool readonly, GError **error);
 void db_close(sqlite3 *db);
 bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
 bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);

@@ -47,7 +47,11 @@
 #define PERMISSION_UPDATE  2
 #define PERMISSION_ALL     (PERMISSION_SELECT | PERMISSION_UPDATE)
 
-#define COMMAND_ARGV_MAX   16
+/* Check command_process() function if you want to change this!
+ */
+#define COMMAND_ARGV_MAX 16
+
+/* TODO: Make this configurable */
 #define CLIENT_MAX 1024
 
 struct client {
@@ -65,7 +69,8 @@ enum ack {
 	ACK_ERROR_ARG = 2,
 	ACK_ERROR_PASSWORD = 3,
 	ACK_ERROR_PERMISSION = 4,
-	ACK_ERROR_UNKNOWN = 5,
+	ACK_ERROR_FORMAT = 5,
+	ACK_ERROR_UNKNOWN = 7,
 };
 
 enum command_return {
@@ -93,11 +98,6 @@ extern struct config globalconf;
 
 bool file_load(const struct mpdcron_config *conf, GKeyFile *fd);
 void file_cleanup(void);
-
-/**
- * Mpd Interface
- */
-struct mpd_song *mpdclient_current_song(GError **error);
 
 /**
  * Remote query interface

@@ -600,10 +600,9 @@ bool mpdcron_password(struct mpdcron_connection *conn,
 }
 
 bool mpdcron_love_album_expr(struct mpdcron_connection *conn,
-		const char *expr, bool love, GSList **values)
+		bool love, const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
-	g_assert(expr != NULL);
 	g_assert(values != NULL);
 
 	if (!mpdcron_send_command(conn, love ? "love_album" : "hate_album", expr, NULL))
@@ -612,10 +611,9 @@ bool mpdcron_love_album_expr(struct mpdcron_connection *conn,
 }
 
 bool mpdcron_love_artist_expr(struct mpdcron_connection *conn,
-		const char *expr, bool love, GSList **values)
+		bool love, const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
-	g_assert(expr != NULL);
 	g_assert(values != NULL);
 
 	if (!mpdcron_send_command(conn, love ? "love_artist" : "hate_artist", expr, NULL))
@@ -624,10 +622,9 @@ bool mpdcron_love_artist_expr(struct mpdcron_connection *conn,
 }
 
 bool mpdcron_love_genre_expr(struct mpdcron_connection *conn,
-		const char *expr, bool love, GSList **values)
+		bool love, const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
-	g_assert(expr != NULL);
 	g_assert(values != NULL);
 
 	if (!mpdcron_send_command(conn, love ? "love_genre" : "hate_genre", expr, NULL))
@@ -636,10 +633,9 @@ bool mpdcron_love_genre_expr(struct mpdcron_connection *conn,
 }
 
 bool mpdcron_love_expr(struct mpdcron_connection *conn,
-		const char *expr, bool love, GSList **values)
+		bool love, const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
-	g_assert(expr != NULL);
 	g_assert(values != NULL);
 
 	if (!mpdcron_send_command(conn, love ? "love" : "hate", expr, NULL))

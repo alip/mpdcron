@@ -57,6 +57,43 @@ bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	if (globalconf.port <= 0)
 		globalconf.port = DEFAULT_PORT;
 
+	/* Load default permissions */
+	error = NULL;
+	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "default_permissions",
+			NULL, &error);
+	if (error != NULL) {
+		switch (error->code) {
+			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
+			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+				g_error_free(error);
+				break;
+			default:
+				mpdcron_log(LOG_ERR, "Failed to load "
+						MPDCRON_MODULE".default_permissions: %s",
+						error->message);
+				g_error_free(error);
+				g_free(globalconf.dbpath);
+				return false;
+		}
+	}
+	if (values != NULL) {
+		for (unsigned int i = 0; values[i] != NULL; i++) {
+			if (strncmp(values[i], "select", 7) == 0)
+				globalconf.default_permissions |= PERMISSION_SELECT;
+			else if (strncmp(values[i], "update", 7) == 0)
+				globalconf.default_permissions |= PERMISSION_UPDATE;
+			else if (strncmp(values[i], "none", 5) == 0)
+				globalconf.default_permissions = 0;
+			else
+				mpdcron_log(LOG_WARNING, "Invalid value in "
+						MPDCRON_MODULE".default_permissions `%s'",
+						values[i]);
+		}
+		g_strfreev(values);
+	}
+	else
+		globalconf.default_permissions = PERMISSION_SELECT | PERMISSION_UPDATE;
+
 	/* Load passwords */
 	error = NULL;
 	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "passwords",
@@ -94,16 +131,19 @@ bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 				g_free(split[1]);
 				g_hash_table_insert(globalconf.passwords, split[0],
 						GINT_TO_POINTER(PERMISSION_SELECT));
+				globalconf.default_permissions = globalconf.default_permissions & ~PERMISSION_SELECT;
 			}
 			else if (strncmp(split[1], "update", 7) == 0) {
 				g_free(split[1]);
 				g_hash_table_insert(globalconf.passwords, split[0],
 						GINT_TO_POINTER(PERMISSION_UPDATE));
+				globalconf.default_permissions = globalconf.default_permissions & ~PERMISSION_UPDATE;
 			}
 			else if (strncmp(split[1], "all", 4) == 0) {
 				g_free(split[1]);
 				g_hash_table_insert(globalconf.passwords, split[0],
 						GINT_TO_POINTER(PERMISSION_ALL));
+				globalconf.default_permissions = globalconf.default_permissions & ~PERMISSION_ALL;
 			}
 			else {
 				mpdcron_log(LOG_WARNING, "Invalid value in "
@@ -114,45 +154,6 @@ bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 		}
 		g_strfreev(values);
 	}
-
-	/* Load default permissions */
-	error = NULL;
-	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "default_permissions",
-			NULL, &error);
-	if (error != NULL) {
-		switch (error->code) {
-			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(error);
-				break;
-			default:
-				mpdcron_log(LOG_ERR, "Failed to load "
-						MPDCRON_MODULE".default_permissions: %s",
-						error->message);
-				g_error_free(error);
-				g_free(globalconf.dbpath);
-				return false;
-		}
-	}
-	if (values != NULL) {
-		for (unsigned int i = 0; values[i] != NULL; i++) {
-			if (strncmp(values[i], "select", 7) == 0)
-				globalconf.default_permissions |= PERMISSION_SELECT;
-			else if (strncmp(values[i], "update", 7) == 0)
-				globalconf.default_permissions |= PERMISSION_UPDATE;
-			else if (strncmp(values[i], "none", 5) == 0)
-				globalconf.default_permissions = 0;
-			else
-				mpdcron_log(LOG_WARNING, "Invalid value in "
-						MPDCRON_MODULE".default_permissions `%s'",
-						values[i]);
-		}
-		g_strfreev(values);
-	}
-	else if (g_hash_table_size(globalconf.passwords) > 0)
-		globalconf.default_permissions = 0;
-	else
-		globalconf.default_permissions = PERMISSION_SELECT | PERMISSION_UPDATE;
 
 	/* Load addresses */
 	error = NULL;

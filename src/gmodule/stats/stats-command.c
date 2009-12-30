@@ -140,7 +140,10 @@ static enum command_return handle_love(struct client *client,
 	love = (strcmp(argv[0], "love") == 0);
 
 	error = NULL;
-	db = db_init(globalconf.dbpath, &error);
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
 	if (db == NULL) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
@@ -152,6 +155,7 @@ static enum command_return handle_love(struct client *client,
 	if (!db_love_song_expr(db, argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
+		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -169,9 +173,11 @@ static enum command_return handle_love(struct client *client,
 
 	if (count > 0) {
 		command_ok(client);
+		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -189,7 +195,10 @@ static enum command_return handle_love_album(struct client *client,
 	love = (strcmp(argv[0], "love_album") == 0);
 
 	error = NULL;
-	db = db_init(globalconf.dbpath, &error);
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
 	if (db == NULL) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
@@ -201,6 +210,7 @@ static enum command_return handle_love_album(struct client *client,
 	if (!db_love_album_expr(db, argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
+		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -218,12 +228,13 @@ static enum command_return handle_love_album(struct client *client,
 
 	if (count > 0) {
 		command_ok(client);
+		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
-
 
 static enum command_return handle_love_artist(struct client *client,
 		int argc, char **argv)
@@ -239,7 +250,10 @@ static enum command_return handle_love_artist(struct client *client,
 	love = (strcmp(argv[0], "love_artist") == 0);
 
 	error = NULL;
-	db = db_init(globalconf.dbpath, &error);
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
 	if (db == NULL) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
@@ -251,6 +265,7 @@ static enum command_return handle_love_artist(struct client *client,
 	if (!db_love_artist_expr(db, argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
+		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -268,9 +283,11 @@ static enum command_return handle_love_artist(struct client *client,
 
 	if (count > 0) {
 		command_ok(client);
+		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -288,7 +305,10 @@ static enum command_return handle_love_genre(struct client *client,
 	love = (strcmp(argv[0], "love_genre") == 0);
 
 	error = NULL;
-	db = db_init(globalconf.dbpath, &error);
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
 	if (db == NULL) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
@@ -300,6 +320,7 @@ static enum command_return handle_love_genre(struct client *client,
 	if (!db_love_genre_expr(db, argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
+		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -317,9 +338,11 @@ static enum command_return handle_love_genre(struct client *client,
 
 	if (count > 0) {
 		command_ok(client);
+		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -328,7 +351,7 @@ static enum command_return handle_password(struct client *client,
 {
 	gpointer perm = g_hash_table_lookup(globalconf.passwords, argv[1]);
 	if (perm != NULL) {
-		client->perm = GPOINTER_TO_INT(perm);
+		client->perm |= GPOINTER_TO_INT(perm);
 		command_ok(client);
 		return COMMAND_RETURN_OK;
 	}
@@ -342,7 +365,7 @@ static const struct command commands[] = {
 	{ "hate_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "hate_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
 	{ "hate_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
-	
+
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "love_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },

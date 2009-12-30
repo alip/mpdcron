@@ -78,7 +78,7 @@ static void song_ended(const struct mpd_song *song)
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
 	error = NULL;
-	if ((db = db_init(globalconf.dbpath, &error)) == NULL) {
+	if ((db = db_init(globalconf.dbpath, true, false, &error)) == NULL) {
 		mpdcron_log(LOG_WARNING, "%s", error->message);
 		g_error_free(error);
 		return;
@@ -90,7 +90,7 @@ static void song_ended(const struct mpd_song *song)
 		g_error_free(error);
 		sqlite3_close(db);
 	}
-	sqlite3_close(db);
+	db_close(db);
 }
 
 static void song_playing(const struct mpd_song *song, unsigned elapsed)

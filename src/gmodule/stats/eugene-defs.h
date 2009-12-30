@@ -67,12 +67,14 @@ struct mpdcron_song {
 	char *uri;
 	int love;
 	int kill;
+	int rating;
 };
 
 struct mpdcron_entity {
 	char *name;
 	int love;
 	int kill;
+	int rating;
 };
 
 struct mpdcron_parser;
@@ -130,6 +132,19 @@ bool mpdcron_kill_genre_expr(struct mpdcron_connection *conn,
 		bool kkill, const char *expr, GSList **values);
 bool mpdcron_kill_expr(struct mpdcron_connection *conn,
 		bool kkill, const char *expr, GSList **values);
+
+bool
+mpdcron_rate_album_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr, GSList **values);
+bool
+mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr, GSList **values);
+bool
+mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr, GSList **values);
+bool
+mpdcron_rate_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr, GSList **values);
 
 void eulog(int level, const char *fmt, ...);
 

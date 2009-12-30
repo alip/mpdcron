@@ -1336,3 +1336,98 @@ bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill,
 		return false;
 	return true;
 }
+
+/**
+ * Rate song/artist/album/genre
+ */
+bool db_rate_artist_expr(sqlite3 *db, const char *expr, int rating,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("rating = rating + (%d)", rating);
+	if (!sql_update_artist(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_artist(db, "name, rating", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_rate_album_expr(sqlite3 *db, const char *expr, int rating,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("rating = rating + (%d)", rating);
+	if (!sql_update_album(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_album(db, "name, rating", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_rate_genre_expr(sqlite3 *db, const char *expr, int rating,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("rating = rating + (%d)", rating);
+	if (!sql_update_genre(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_genre(db, "name, rating", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool db_rate_song_expr(sqlite3 *db, const char *expr, int rating,
+		GSList **values, GError **error)
+{
+	char *stmt;
+
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("rating = rating + (%d)", rating);
+	if (!sql_update_song(db, stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (values == NULL)
+		return true;
+
+	if (!sql_select_song(db, "uri, rating", expr, cb_save, values, error))
+		return false;
+	return true;
+}

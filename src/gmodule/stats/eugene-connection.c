@@ -259,6 +259,10 @@ static bool mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **value
 					g_assert(album != NULL);
 					album->kill = atoi(conn->parser->u.pair.value);
 				}
+				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+					g_assert(album != NULL);
+					album->rating = atoi(conn->parser->u.pair.value);
+				}
 				g_free(line);
 				break;
 		}
@@ -316,6 +320,10 @@ static bool mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **valu
 				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
 					g_assert(artist != NULL);
 					artist->kill = atoi(conn->parser->u.pair.value);
+				}
+				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+					g_assert(artist != NULL);
+					artist->rating = atoi(conn->parser->u.pair.value);
 				}
 				g_free(line);
 				break;
@@ -375,6 +383,10 @@ static bool mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **value
 					g_assert(genre != NULL);
 					genre->kill = atoi(conn->parser->u.pair.value);
 				}
+				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+					g_assert(genre != NULL);
+					genre->rating = atoi(conn->parser->u.pair.value);
+				}
 				g_free(line);
 				break;
 		}
@@ -432,6 +444,10 @@ static bool mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values
 				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
 					g_assert(song != NULL);
 					song->kill = atoi(conn->parser->u.pair.value);
+				}
+				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+					g_assert(song != NULL);
+					song->rating = atoi(conn->parser->u.pair.value);
 				}
 				g_free(line);
 				break;
@@ -700,6 +716,50 @@ bool mpdcron_kill_expr(struct mpdcron_connection *conn,
 	g_assert(values != NULL);
 
 	if (!mpdcron_send_command(conn, kkill ? "kill" : "unkill", expr, NULL))
+		return false;
+	return mpdcron_parse_songs(conn, values);
+}
+
+bool mpdcron_rate_album_expr(struct mpdcron_connection *conn,
+		const char *expr, const char *rating, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_album", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_albums(conn, values);
+}
+
+bool mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
+		const char *expr, const char *rating, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_artist", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_artists(conn, values);
+}
+
+bool mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
+		const char *expr, const char *rating, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_genre", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_genres(conn, values);
+}
+
+bool mpdcron_rate_expr(struct mpdcron_connection *conn,
+		const char *expr, const char *rating, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "rate", expr, rating, NULL))
 		return false;
 	return mpdcron_parse_songs(conn, values);
 }

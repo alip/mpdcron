@@ -22,6 +22,7 @@
 #include "stats-defs.h"
 #include "tokenizer.h"
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -346,9 +347,6 @@ static enum command_return handle_kill_genre(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-
-/* XXX XXX XXX XXX XXX
- */
 static enum command_return handle_love(struct client *client,
 		int argc, char **argv)
 {
@@ -569,6 +567,290 @@ static enum command_return handle_love_genre(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
+static enum command_return
+handle_rate(struct client *client, int argc, char **argv)
+{
+	int count;
+	long rating;
+	char *endptr;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 3);
+
+	/* Convert first argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_rate_song_expr(db, argv[1], (int)rating, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "file: %s", message[0]);
+		command_puts(client, "Rating: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_rate_artist(struct client *client, int argc, char **argv)
+{
+	int count;
+	long rating;
+	char *endptr;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_rate_artist_expr(db, argv[1], (int)rating, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Artist: %s", message[0]);
+		command_puts(client, "Rating: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_rate_album(struct client *client, int argc, char **argv)
+{
+	int count;
+	long rating;
+	char *endptr;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_rate_album_expr(db, argv[1], (int)rating, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Album: %s", message[0]);
+		command_puts(client, "Rating: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_rate_genre(struct client *client, int argc, char **argv)
+{
+	int count;
+	long rating;
+	char *endptr;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_rate_genre_expr(db, argv[1], (int)rating, &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		char **message = (char **) walk->data;
+		command_puts(client, "Genre: %s", message[0]);
+		command_puts(client, "Rating: %s", message[1]);
+		g_free(message[0]);
+		g_free(message[1]);
+		g_free(message);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
 static enum command_return handle_password(struct client *client,
 		G_GNUC_UNUSED int argc, char **argv)
 {
@@ -600,6 +882,11 @@ static const struct command commands[] = {
 	{ "love_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
 
 	{ "password", PERMISSION_NONE, 1, 1, handle_password },
+
+	{ "rate", PERMISSION_UPDATE, 2, 2, handle_rate },
+	{ "rate_album", PERMISSION_UPDATE, 2, 2, handle_rate_album },
+	{ "rate_artist", PERMISSION_UPDATE, 2, 2, handle_rate_artist },
+	{ "rate_genre", PERMISSION_UPDATE, 2, 2, handle_rate_genre },
 
 	{ "unkill", PERMISSION_UPDATE, 1, 1, handle_kill },
 	{ "unkill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },

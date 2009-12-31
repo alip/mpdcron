@@ -73,9 +73,16 @@ cleanup(void)
 }
 
 static void
-sig_cleanup(G_GNUC_UNUSED int signum)
+sig_cleanup(int signum)
 {
+	struct sigaction action;
+
 	internal_cleanup(true);
+
+	sigaction(signum, NULL, &action);
+	action.sa_handler = SIG_DFL;
+	sigaction(signum, &action, NULL);
+	raise(signum);
 }
 
 int
@@ -157,6 +164,8 @@ main(int argc, char **argv)
 			sigaction((sig), &new_action, NULL);	\
 	} while (0)
 
+	HANDLE_SIGNAL(SIGABRT);
+	HANDLE_SIGNAL(SIGSEGV);
 	HANDLE_SIGNAL(SIGINT);
 	HANDLE_SIGNAL(SIGTERM);
 

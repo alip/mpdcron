@@ -21,6 +21,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
@@ -30,8 +31,8 @@
 /**
  * Get/Set database version
  */
-#define DB_VERSION	6
-static const char SQL_SET_VERSION[] = "PRAGMA user_version = 6;";
+#define DB_VERSION	7
+static const char SQL_SET_VERSION[] = "PRAGMA user_version = 7;";
 static sqlite3_stmt *SQL_SET_VERSION_STMT = NULL;
 
 static const char SQL_GET_VERSION[] = "PRAGMA user_version;";
@@ -48,7 +49,7 @@ static sqlite3_stmt *SQL_SET_ENCODING_STMT = NULL;
  */
 static const char SQL_DB_CREATE_SONG[] =
 	"create table song(\n"
-		"\tdb_id           INTEGER PRIMARY KEY,\n"
+		"\tid              INTEGER PRIMARY KEY,\n"
 		"\tplay_count      INTEGER,\n"
 		"\tlove            INTEGER,\n"
 		"\tkill            INTEGER,\n"
@@ -73,7 +74,7 @@ static sqlite3_stmt *SQL_DB_CREATE_SONG_STMT = NULL;
 
 static const char SQL_DB_CREATE_ARTIST[] =
 	"create table artist(\n"
-		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
+		"\tid              INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
 		"\tname            TEXT UNIQUE NOT NULL,\n"
 		"\tlove            INTEGER,\n"
@@ -83,7 +84,7 @@ static sqlite3_stmt *SQL_DB_CREATE_ARTIST_STMT = NULL;
 
 static const char SQL_DB_CREATE_ALBUM[] =
 	"create table album(\n"
-		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
+		"\tid              INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
 		"\tartist          TEXT,\n"
 		"\tname            TEXT UNIQUE NOT NULL,\n"
@@ -94,7 +95,7 @@ static sqlite3_stmt *SQL_DB_CREATE_ALBUM_STMT = NULL;
 
 static const char SQL_DB_CREATE_GENRE[] =
 	"create table genre(\n"
-		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
+		"\tid              INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
 		"\tname            TEXT UNIQUE NOT NULL,\n"
 		"\tlove            INTEGER,\n"
@@ -102,16 +103,16 @@ static const char SQL_DB_CREATE_GENRE[] =
 		"\trating          INTEGER);";
 static sqlite3_stmt *SQL_DB_CREATE_GENRE_STMT = NULL;
 
-static const char SQL_HAS_SONG[] = "select db_id from song where uri=?";
+static const char SQL_HAS_SONG[] = "select id from song where uri=?";
 static sqlite3_stmt *SQL_HAS_SONG_STMT = NULL;
 
-static const char SQL_HAS_ARTIST[] = "select db_id from artist where name=?";
+static const char SQL_HAS_ARTIST[] = "select id from artist where name=?";
 static sqlite3_stmt *SQL_HAS_ARTIST_STMT = NULL;
 
-static const char SQL_HAS_ALBUM[] = "select db_id from album where name=?";
+static const char SQL_HAS_ALBUM[] = "select id from album where name=?";
 static sqlite3_stmt *SQL_HAS_ALBUM_STMT = NULL;
 
-static const char SQL_HAS_GENRE[] = "select db_id from genre where name=?";
+static const char SQL_HAS_GENRE[] = "select id from genre where name=?";
 static sqlite3_stmt *SQL_HAS_GENRE_STMT = NULL;
 
 static const char SQL_INSERT_SONG[] =
@@ -149,7 +150,7 @@ static const char SQL_UPDATE_SONG[] =
 			"mb_artistid=?,"
 			"mb_albumid=?,"
 			"mb_trackid=?"
-			" where db_id=?;";
+			" where id=?;";
 static sqlite3_stmt *SQL_UPDATE_SONG_STMT = NULL;
 
 static const char SQL_INSERT_ARTIST[] =
@@ -176,19 +177,19 @@ static sqlite3_stmt *SQL_INSERT_GENRE_STMT = NULL;
 static const char SQL_UPDATE_ARTIST[] =
 			"update artist "
 			"set play_count = play_count + ?,"
-			"name=? where db_id=?;";
+			"name=? where id=?;";
 static sqlite3_stmt *SQL_UPDATE_ARTIST_STMT = NULL;
 
 static const char SQL_UPDATE_ALBUM[] =
 			"update album "
 			"set play_count = play_count + ?,"
-			"artist=?, name=? where db_id=?;";
+			"artist=?, name=? where id=?;";
 static sqlite3_stmt *SQL_UPDATE_ALBUM_STMT = NULL;
 
 static const char SQL_UPDATE_GENRE[] =
 			"update genre "
 			"set play_count = play_count + ?,"
-			"name=? where db_id=?;";
+			"name=? where id=?;";
 static sqlite3_stmt *SQL_UPDATE_GENRE_STMT = NULL;
 
 /**
@@ -228,18 +229,119 @@ db_step(sqlite3_stmt *stmt)
  * Callbacks
  */
 static int
-cb_save(void *pArg, int argc, char **argv, G_GNUC_UNUSED char **columnName)
+cb_save(void *pArg, int argc, char **argv, char **columnName)
 {
-	int i;
-	char **message;
+	struct db_generic_data *data;
 	GSList **values = (GSList **) pArg;
 
-	message = g_new(char *, argc + 1);
-	for (i = 0; i < argc; i++)
-		message[i] = g_strdup(argv[i]);
-	message[i] = NULL;
-	*values = g_slist_prepend(*values, message);
+	data = g_new0(struct db_generic_data, 1);
+
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(columnName[i], "id") == 0)
+			data->id = atoi(argv[i]);
+		else if (strcmp(columnName[i], "love") == 0)
+			data->love = atoi(argv[i]);
+		else if (strcmp(columnName[i], "kill") == 0)
+			data->kill = atoi(argv[i]);
+		else if (strcmp(columnName[i], "rating") == 0)
+			data->rating = atoi(argv[i]);
+		else if (strcmp(columnName[i], "name") == 0)
+			data->name = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "artist") == 0)
+			data->artist = g_strdup(argv[i]);
+		else
+			g_assert_not_reached();
+	}
+
+	*values = g_slist_prepend(*values, data);
 	return SQLITE_OK;
+}
+
+static int
+cb_save_song(void *pArg, int argc, char **argv, char **columnName)
+{
+	struct db_song_data *data;
+	GSList **values = (GSList **) pArg;
+
+	data = g_new0(struct db_song_data, 1);
+
+	for (int i = 0; i < argc; i++) {
+		if (strcmp(columnName[i], "id") == 0)
+			data->id = atoi(argv[i]);
+		else if (strcmp(columnName[i], "play_count") == 0)
+			data->play_count = atoi(argv[i]);
+		else if (strcmp(columnName[i], "love") == 0)
+			data->love = atoi(argv[i]);
+		else if (strcmp(columnName[i], "kill") == 0)
+			data->kill = atoi(argv[i]);
+		else if (strcmp(columnName[i], "rating") == 0)
+			data->rating = atoi(argv[i]);
+		else if (strcmp(columnName[i], "uri") == 0)
+			data->uri = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "duration") == 0)
+			data->duration = atoi(argv[i]);
+		else if (strcmp(columnName[i], "last_modified") == 0)
+			data->last_modified = atoi(argv[i]);
+		else if (strcmp(columnName[i], "artist") == 0)
+			data->artist = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "album") == 0)
+			data->album = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "title") == 0)
+			data->title = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "track") == 0)
+			data->track = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "name") == 0)
+			data->name = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "genre") == 0)
+			data->genre = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "date") == 0)
+			data->date = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "composer") == 0)
+			data->composer = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "performer") == 0)
+			data->performer = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "disc") == 0)
+			data->disc = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "mb_artist_id") == 0)
+			data->mb_artist_id = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "mb_album_id") == 0)
+			data->mb_album_id = g_strdup(argv[i]);
+		else if (strcmp(columnName[i], "mb_track_id") == 0)
+			data->mb_track_id = g_strdup(argv[i]);
+		else
+			g_assert_not_reached();
+	}
+
+	*values = g_slist_prepend(*values, data);
+	return SQLITE_OK;
+}
+
+void
+db_generic_data_free(struct db_generic_data *data)
+{
+	g_free(data->name);
+	g_free(data->artist);
+	g_free(data);
+}
+
+void
+db_song_data_free(struct db_song_data *song)
+{
+	g_free(song->uri);
+	g_free(song->artist);
+	g_free(song->album);
+	g_free(song->title);
+	g_free(song->track);
+	g_free(song->name);
+	g_free(song->genre);
+	g_free(song->date);
+	g_free(song->composer);
+	g_free(song->performer);
+	g_free(song->genre);
+	g_free(song->mb_artist_id);
+	g_free(song->mb_album_id);
+	g_free(song->mb_track_id);
+	g_free(song);
 }
 
 /**
@@ -1189,7 +1291,7 @@ db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_artist(db, "name, love", expr, cb_save, values, error))
+	if (!sql_select_artist(db, "id, name, love", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1213,7 +1315,7 @@ db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_album(db, "name, love", expr, cb_save, values, error))
+	if (!sql_select_album(db, "id, name, artist, love", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1237,7 +1339,7 @@ db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_genre(db, "name, love", expr, cb_save, values, error))
+	if (!sql_select_genre(db, "id, name, love", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1261,7 +1363,8 @@ db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_song(db, "uri, love", expr, cb_save, values, error))
+	if (!sql_select_song(db, "id, uri, love", expr,
+				cb_save_song, values, error))
 		return false;
 	return true;
 }
@@ -1288,7 +1391,7 @@ db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_artist(db, "name, kill", expr, cb_save, values, error))
+	if (!sql_select_artist(db, "id, name, kill", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1312,7 +1415,7 @@ db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_album(db, "name, kill", expr, cb_save, values, error))
+	if (!sql_select_album(db, "id, name, artist, kill", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1336,7 +1439,7 @@ db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_genre(db, "name, kill", expr, cb_save, values, error))
+	if (!sql_select_genre(db, "id, name, kill", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1360,7 +1463,8 @@ db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_song(db, "uri, kill", expr, cb_save, values, error))
+	if (!sql_select_song(db, "id, uri, kill", expr,
+				cb_save_song, values, error))
 		return false;
 	return true;
 }
@@ -1387,7 +1491,7 @@ db_rate_artist_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_artist(db, "name, rating", expr, cb_save, values, error))
+	if (!sql_select_artist(db, "id, name, rating", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1411,7 +1515,7 @@ db_rate_album_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_album(db, "name, rating", expr, cb_save, values, error))
+	if (!sql_select_album(db, "id, name, artist, rating", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1435,7 +1539,7 @@ db_rate_genre_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_genre(db, "name, rating", expr, cb_save, values, error))
+	if (!sql_select_genre(db, "id, name, rating", expr, cb_save, values, error))
 		return false;
 	return true;
 }
@@ -1459,7 +1563,8 @@ db_rate_song_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
 	if (values == NULL)
 		return true;
 
-	if (!sql_select_song(db, "uri, rating", expr, cb_save, values, error))
+	if (!sql_select_song(db, "id, uri, rating", expr,
+				cb_save_song, values, error))
 		return false;
 	return true;
 }

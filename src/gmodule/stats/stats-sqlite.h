@@ -26,6 +26,41 @@
 #include <sqlite3.h>
 #include <mpd/client.h>
 
+struct db_generic_data {
+	int id;
+	int love;
+	int kill;
+	int rating;
+
+	char *name;
+	char *artist;
+};
+
+struct db_song_data {
+	int id;			/** Id of the song */
+	int play_count;		/** Play count of the song */
+	int love;		/** Love count of the song */
+	int kill;		/** Kill count of the song */
+	int rating;		/** Rating of the song */
+
+	char *uri;		/** Uri of the song */
+	int duration;		/** Duration of the song */
+	int last_modified;	/** Last modified date of the song */
+	char *artist;		/** Artist of the song */
+	char *album;		/** Album of the song */
+	char *title;		/** Title of the song */
+	char *track;		/** Track number of the song */
+	char *name;		/** Name tag of the song */
+	char *genre;		/** Genre of the song */
+	char *date;		/** Date tag of the song */
+	char *composer;		/** Composer of the song */
+	char *performer;	/** Performer of the song */
+	char *disc;		/** Disc number tag */
+	char *mb_artist_id;	/** Musicbrainz artist ID */
+	char *mb_album_id;	/** Musicbrainz album ID */
+	char *mb_track_id;	/** Musicbrainz track ID */
+};
+
 enum dback {
 	ACK_ERROR_DATABASE_OPEN = 100,
 	ACK_ERROR_DATABASE_CREATE = 101,
@@ -45,20 +80,55 @@ enum dback {
 /**
  * Database Interface
  */
-sqlite3 *db_init(const char *path, bool create, bool readonly, GError **error);
-void db_close(sqlite3 *db);
-bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
-bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
-bool db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
-bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
-bool db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
-bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
-bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
-bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
-bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
-bool db_rate_artist_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
-bool db_rate_album_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
-bool db_rate_genre_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
-bool db_rate_song_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
+void
+db_generic_data_free(struct db_generic_data *data);
+
+void
+db_song_data_free(struct db_song_data *song);
+
+sqlite3 *
+db_init(const char *path, bool create, bool readonly, GError **error);
+
+void
+db_close(sqlite3 *db);
+
+bool
+db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
+
+bool
+db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
+
+bool
+db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
+
+bool
+db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
+
+bool
+db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
+
+bool
+db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+
+bool
+db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+
+bool
+db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+
+bool
+db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values, GError **error);
+
+bool
+db_rate_artist_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
+
+bool
+db_rate_album_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
+
+bool
+db_rate_genre_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
+
+bool
+db_rate_song_expr(sqlite3 *db, const char *expr, int rating, GSList **values, GError **error);
 
 #endif /* !MPDCRON_GUARD_STATS_SQLITE_H */

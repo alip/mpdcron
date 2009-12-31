@@ -64,6 +64,7 @@ enum mpdcron_parser_result {
 };
 
 struct mpdcron_song {
+	int id;
 	char *uri;
 	int love;
 	int kill;
@@ -71,7 +72,9 @@ struct mpdcron_song {
 };
 
 struct mpdcron_entity {
+	int id;
 	char *name;
+	char *artist;
 	int love;
 	int kill;
 	int rating;

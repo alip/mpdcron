@@ -57,6 +57,9 @@ usage(FILE *outf, int exitval)
 "version       Display version and exit\n"
 "hate          Hate song/artist/album/genre\n"
 "love          Love song/artist/album/genre\n"
+"kill          Kill song/artist/album/genre\n"
+"unkill        Unkill song/artist/album/genre\n"
+"rate          Rate song/artist/album/genre\n"
 "\n"
 "See eugene COMMAND --help for more information\n");
 	exit(exitval);
@@ -180,7 +183,7 @@ love_artist(struct mpdcron_connection *conn, bool love, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->love);
+		printf("%d: Love:%d %s\n", e->id, e->love, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -231,8 +234,9 @@ love_album(struct mpdcron_connection *conn, bool love, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->love);
+		printf("%d: Love:%d %s\n", e->id, e->love, e->name);
 		g_free(e->name);
+		g_free(e->artist); /* TODO: We don't print artist right now. */
 		g_free(e);
 	}
 	g_slist_free(values);
@@ -282,7 +286,7 @@ love_genre(struct mpdcron_connection *conn, bool love, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->love);
+		printf("%d: Love:%d %s\n", e->id, e->love, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -327,9 +331,9 @@ love_song(struct mpdcron_connection *conn, bool love, const char *expr)
 	}
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->love);
-		g_free(e->name);
+		struct mpdcron_song *e = walk->data;
+		printf("%d: Love:%d %s\n", e->id, e->love, e->uri);
+		g_free(e->uri);
 		g_free(e);
 	}
 	g_slist_free(values);
@@ -430,7 +434,7 @@ kill_artist(struct mpdcron_connection *conn, bool kkill, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->kill);
+		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -481,8 +485,9 @@ kill_album(struct mpdcron_connection *conn, bool kkill, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->kill);
+		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
 		g_free(e->name);
+		g_free(e->artist); /* TODO: We don't print artist right now */
 		g_free(e);
 	}
 	g_slist_free(values);
@@ -532,7 +537,7 @@ kill_genre(struct mpdcron_connection *conn, bool kkill, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->kill);
+		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -577,9 +582,9 @@ kill_song(struct mpdcron_connection *conn, bool kkill, const char *expr)
 	}
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->kill);
-		g_free(e->name);
+		struct mpdcron_song *e = walk->data;
+		printf("%d: Kill:%d %s\n", e->id, e->kill, e->uri);
+		g_free(e->uri);
 		g_free(e);
 	}
 	g_slist_free(values);
@@ -679,7 +684,7 @@ rate_artist(struct mpdcron_connection *conn, const char *expr,
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->rating);
+		printf("%d: Rating:%d %s\n", e->id, e->rating, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -729,8 +734,9 @@ rate_album(struct mpdcron_connection *conn, const char *expr,
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->rating);
+		printf("%d: Rating:%d %s\n", e->id, e->rating, e->name);
 		g_free(e->name);
+		g_free(e->artist); /* TODO: We don't print artist right now. */
 		g_free(e);
 	}
 	g_slist_free(values);
@@ -779,7 +785,7 @@ rate_genre(struct mpdcron_connection *conn, const char *expr,
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->rating);
+		printf("%d: Rating:%d %s\n", e->id, e->rating, e->name);
 		g_free(e->name);
 		g_free(e);
 	}
@@ -823,9 +829,9 @@ rate_song(struct mpdcron_connection *conn,
 	}
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%s %d\n", e->name, e->rating);
-		g_free(e->name);
+		struct mpdcron_song *e = walk->data;
+		printf("%d: Rating:%d %s\n", e->id, e->rating, e->uri);
+		g_free(e->uri);
 		g_free(e);
 	}
 	g_slist_free(values);

@@ -167,12 +167,11 @@ handle_kill(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "file: %s", message[0]);
-		command_puts(client, "Kill: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_song_data *song = (struct db_song_data *) walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		command_puts(client, "Kill: %d", song->kill);
+		db_song_data_free(song);
 		++count;
 	}
 	g_slist_free(values);
@@ -222,12 +221,12 @@ handle_kill_album(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Album: %s", message[0]);
-		command_puts(client, "Kill: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->artist);
+		command_puts(client, "Kill: %d", data->kill);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -277,12 +276,11 @@ handle_kill_artist(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Artist: %s", message[0]);
-		command_puts(client, "Kill: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		command_puts(client, "Kill: %d", data->kill);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -332,12 +330,11 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Genre: %s", message[0]);
-		command_puts(client, "Kill: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		command_puts(client, "Kill: %d", data->kill);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -387,12 +384,11 @@ handle_love(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "file: %s", message[0]);
-		command_puts(client, "Love: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_song_data *song = (struct db_song_data *) walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		command_puts(client, "Love: %d", song->love);
+		db_song_data_free(song);
 		++count;
 	}
 	g_slist_free(values);
@@ -442,12 +438,12 @@ handle_love_album(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Album: %s", message[0]);
-		command_puts(client, "Love: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->artist);
+		command_puts(client, "Love: %d", data->love);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -497,12 +493,11 @@ handle_love_artist(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Artist: %s", message[0]);
-		command_puts(client, "Love: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		command_puts(client, "Love: %d", data->love);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -552,12 +547,11 @@ handle_love_genre(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Genre: %s", message[0]);
-		command_puts(client, "Love: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		command_puts(client, "Love: %d", data->love);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -623,12 +617,11 @@ handle_rate(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "file: %s", message[0]);
-		command_puts(client, "Rating: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_song_data *song = (struct db_song_data *) walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		command_puts(client, "Rating: %d", song->rating);
+		db_song_data_free(song);
 		++count;
 	}
 	g_slist_free(values);
@@ -694,12 +687,11 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Artist: %s", message[0]);
-		command_puts(client, "Rating: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		command_puts(client, "Rating: %d", data->rating);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -765,12 +757,12 @@ handle_rate_album(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Album: %s", message[0]);
-		command_puts(client, "Rating: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->name);
+		command_puts(client, "Rating: %d", data->rating);
+		db_generic_data_free(data);
 		++count;
 	}
 	g_slist_free(values);
@@ -836,12 +828,10 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 
 	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		char **message = (char **) walk->data;
-		command_puts(client, "Genre: %s", message[0]);
-		command_puts(client, "Rating: %s", message[1]);
-		g_free(message[0]);
-		g_free(message[1]);
-		g_free(message);
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		command_puts(client, "Rating: %d", data->rating);
 		++count;
 	}
 	g_slist_free(values);

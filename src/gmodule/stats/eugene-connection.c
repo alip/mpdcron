@@ -251,11 +251,19 @@ mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "Album") == 0) {
+			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
 				if (album != NULL)
 					*values = g_slist_prepend(*values, album);
 				album = g_new0(struct mpdcron_entity, 1);
+				album->id = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Album") == 0) {
+				g_assert(album != NULL);
 				album->name = g_strdup(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
+				g_assert(album != NULL);
+				album->artist = g_strdup(conn->parser->u.pair.value);
 			}
 			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
 				g_assert(album != NULL);
@@ -314,10 +322,14 @@ mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
+			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
 				if (artist != NULL)
 					*values = g_slist_prepend(*values, artist);
 				artist = g_new0(struct mpdcron_entity, 1);
+				artist->id = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
+				g_assert(artist != NULL);
 				artist->name = g_strdup(conn->parser->u.pair.value);
 			}
 			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
@@ -377,10 +389,14 @@ mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 				return false;
 			default:
 				/* We have a pair! */
-				if (strcmp(conn->parser->u.pair.name, "Genre") == 0) {
+				if (strcmp(conn->parser->u.pair.name, "id") == 0) {
 					if (genre != NULL)
 						*values = g_slist_prepend(*values, genre);
 					genre = g_new0(struct mpdcron_entity, 1);
+					genre->id = atoi(conn->parser->u.pair.value);
+				}
+				else if (strcmp(conn->parser->u.pair.name, "Genre") == 0) {
+					g_assert(genre != NULL);
 					genre->name = g_strdup(conn->parser->u.pair.value);
 				}
 				else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
@@ -440,10 +456,14 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "file") == 0) {
+			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
 				if (song != NULL)
 					*values = g_slist_prepend(*values, song);
 				song = g_new0(struct mpdcron_song, 1);
+				song->id = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "file") == 0) {
+				g_assert(song != NULL);
 				song->uri = g_strdup(conn->parser->u.pair.value);
 			}
 			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {

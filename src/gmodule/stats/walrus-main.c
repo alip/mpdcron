@@ -28,13 +28,15 @@
 #include <sqlite3.h>
 
 static char *dbpath = NULL;
+static int keepgoing = 0;
 
 static GOptionEntry options[] = {
 	{"dbpath", 'd', 0, G_OPTION_ARG_FILENAME, &dbpath, "Path to the database", NULL},
+	{"keep-going", 'k', 0, G_OPTION_ARG_NONE, &keepgoing, "Keep going in case of database errors", NULL},
 	{ NULL, 0, 0, 0, NULL, NULL, NULL },
 };
 
-static bool run_update(sqlite3 *db, const char *path)
+static bool run_update(sqlite3 *db, int kg, const char *path)
 {
 	const char *hostname;
 	const char *port;
@@ -87,6 +89,8 @@ static bool run_update(sqlite3 *db, const char *path)
 						mpd_song_get_uri(song),
 						error->message);
 				g_error_free(error);
+				if (kg)
+					continue;
 				return false;
 			}
 			printf("%s\n", mpd_song_get_uri(song));
@@ -140,7 +144,7 @@ int main(int argc, char **argv)
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {
 			fprintf(stderr, "* Updating %s\n", argv[i]);
-			if (!run_update(db, argv[i])) {
+			if (!run_update(db, keepgoing, argv[i])) {
 				sqlite3_close(db);
 				return 1;
 			}
@@ -148,7 +152,7 @@ int main(int argc, char **argv)
 	}
 	else {
 		fprintf(stderr, "* Updating /\n");
-		if (!run_update(db, NULL)) {
+		if (!run_update(db, keepgoing, NULL)) {
 			sqlite3_close(db);
 			return 1;
 		}

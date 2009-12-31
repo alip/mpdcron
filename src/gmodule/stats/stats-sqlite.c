@@ -21,7 +21,6 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdio.h> /* XXX debug */
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
@@ -31,8 +30,8 @@
 /**
  * Get/Set database version
  */
-#define DB_VERSION	5
-static const char SQL_SET_VERSION[] = "PRAGMA user_version = 5;";
+#define DB_VERSION	6
+static const char SQL_SET_VERSION[] = "PRAGMA user_version = 6;";
 static sqlite3_stmt *SQL_SET_VERSION_STMT = NULL;
 
 static const char SQL_GET_VERSION[] = "PRAGMA user_version;";
@@ -54,7 +53,7 @@ static const char SQL_DB_CREATE_SONG[] =
 		"\tlove            INTEGER,\n"
 		"\tkill            INTEGER,\n"
 		"\trating          INTEGER,\n"
-		"\turi             TEXT,\n"
+		"\turi             TEXT UNIQUE NOT NULL,\n"
 		"\tduration        INTEGER,\n"
 		"\tlast_modified   INTEGER,\n"
 		"\tartist          TEXT,\n"
@@ -76,7 +75,7 @@ static const char SQL_DB_CREATE_ARTIST[] =
 	"create table artist(\n"
 		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
-		"\tname            TEXT,\n"
+		"\tname            TEXT UNIQUE NOT NULL,\n"
 		"\tlove            INTEGER,\n"
 		"\tkill            INTEGER,\n"
 		"\trating          INTEGER);\n";
@@ -87,7 +86,7 @@ static const char SQL_DB_CREATE_ALBUM[] =
 		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
 		"\tartist          TEXT,\n"
-		"\tname            TEXT,\n"
+		"\tname            TEXT UNIQUE NOT NULL,\n"
 		"\tlove            INTEGER,\n"
 		"\tkill            INTEGER,\n"
 		"\trating          INTEGER);\n";
@@ -97,7 +96,7 @@ static const char SQL_DB_CREATE_GENRE[] =
 	"create table genre(\n"
 		"\tdb_id           INTEGER_PRIMARY_KEY,\n"
 		"\tplay_count      INTEGER,\n"
-		"\tname            TEXT,\n"
+		"\tname            TEXT UNIQUE NOT NULL,\n"
 		"\tlove            INTEGER,\n"
 		"\tkill            INTEGER,\n"
 		"\trating          INTEGER);";

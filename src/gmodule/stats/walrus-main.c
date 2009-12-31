@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -36,7 +36,8 @@ static GOptionEntry options[] = {
 	{ NULL, 0, 0, 0, NULL, NULL, NULL },
 };
 
-static bool run_update(sqlite3 *db, int kg, const char *path)
+static bool
+run_update(sqlite3 *db, int kg, const char *path)
 {
 	const char *hostname;
 	const char *port;
@@ -103,7 +104,8 @@ static bool run_update(sqlite3 *db, int kg, const char *path)
 	return true;
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	char *errmsg;
 	GOptionContext *ctx;

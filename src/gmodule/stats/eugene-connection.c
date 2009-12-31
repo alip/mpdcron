@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -49,7 +49,8 @@ struct mpdcron_parser {
 	} u;
 };
 
-static GQuark connection_quark(void)
+static GQuark
+connection_quark(void)
 {
 	return g_quark_from_static_string("connection");
 }
@@ -57,7 +58,8 @@ static GQuark connection_quark(void)
 /**
  * Receiving data
  */
-static char *check_buffer(struct mpdcron_connection *conn)
+static char *
+check_buffer(struct mpdcron_connection *conn)
 {
 	size_t length;
 	const char *p;
@@ -77,7 +79,8 @@ static char *check_buffer(struct mpdcron_connection *conn)
 	return g_strchomp(line);
 }
 
-static char *mpdcron_recv_line(struct mpdcron_connection *conn)
+static char *
+mpdcron_recv_line(struct mpdcron_connection *conn)
 {
 	size_t length;
 	gssize count;
@@ -114,7 +117,8 @@ static char *mpdcron_recv_line(struct mpdcron_connection *conn)
 /**
  * Parsing received data
  */
-static enum mpdcron_parser_result mpdcron_parser_feed(struct mpdcron_parser *parser, char *line)
+static enum mpdcron_parser_result
+mpdcron_parser_feed(struct mpdcron_parser *parser, char *line)
 {
 	if (strcmp(line, "OK") == 0)
 		return MPDCRON_PARSER_SUCCESS;
@@ -177,7 +181,8 @@ static enum mpdcron_parser_result mpdcron_parser_feed(struct mpdcron_parser *par
 	}
 }
 
-static bool mpdcron_parse_password(struct mpdcron_connection *conn)
+static bool
+mpdcron_parse_password(struct mpdcron_connection *conn)
 {
 	int ret;
 	char *line;
@@ -209,7 +214,8 @@ static bool mpdcron_parse_password(struct mpdcron_connection *conn)
 	/* never reached */
 }
 
-static bool mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
+static bool
+mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
 	char *line;
@@ -224,54 +230,55 @@ static bool mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **value
 
 		ret = mpdcron_parser_feed(conn->parser, line);
 		switch (ret) {
-			case MPDCRON_PARSER_SUCCESS:
-				g_free(line);
+		case MPDCRON_PARSER_SUCCESS:
+			g_free(line);
+			if (album != NULL)
+				*values = g_slist_prepend(*values, album);
+			return true;
+		case MPDCRON_PARSER_ERROR:
+			g_set_error(&conn->error, connection_quark(),
+					conn->parser->u.error.server,
+					"%s", conn->parser->u.error.message);
+			g_free(album);
+			g_free(line);
+			return false;
+		case MPDCRON_PARSER_MALFORMED:
+			g_set_error(&conn->error, connection_quark(),
+					MPDCRON_ERROR_MALFORMED,
+					"Malformed line `%s' received from server", line);
+			g_free(album);
+			g_free(line);
+			return false;
+		default:
+			/* We have a pair! */
+			if (strcmp(conn->parser->u.pair.name, "Album") == 0) {
 				if (album != NULL)
 					*values = g_slist_prepend(*values, album);
-				return true;
-			case MPDCRON_PARSER_ERROR:
-				g_set_error(&conn->error, connection_quark(),
-						conn->parser->u.error.server,
-						"%s", conn->parser->u.error.message);
-				g_free(album);
-				g_free(line);
-				return false;
-			case MPDCRON_PARSER_MALFORMED:
-				g_set_error(&conn->error, connection_quark(),
-						MPDCRON_ERROR_MALFORMED,
-						"Malformed line `%s' received from server", line);
-				g_free(album);
-				g_free(line);
-				return false;
-			default:
-				/* We have a pair! */
-				if (strcmp(conn->parser->u.pair.name, "Album") == 0) {
-					if (album != NULL)
-						*values = g_slist_prepend(*values, album);
-					album = g_new0(struct mpdcron_entity, 1);
-					album->name = g_strdup(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
-					g_assert(album != NULL);
-					album->love = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
-					g_assert(album != NULL);
-					album->kill = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
-					g_assert(album != NULL);
-					album->rating = atoi(conn->parser->u.pair.value);
-				}
-				g_free(line);
-				break;
+				album = g_new0(struct mpdcron_entity, 1);
+				album->name = g_strdup(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+				g_assert(album != NULL);
+				album->love = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+				g_assert(album != NULL);
+				album->kill = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+				g_assert(album != NULL);
+				album->rating = atoi(conn->parser->u.pair.value);
+			}
+			g_free(line);
+			break;
 		}
 	}
 	/* never reached */
 	return false;
 }
 
-static bool mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
+static bool
+mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
 	char *line;
@@ -286,54 +293,55 @@ static bool mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **valu
 
 		ret = mpdcron_parser_feed(conn->parser, line);
 		switch (ret) {
-			case MPDCRON_PARSER_SUCCESS:
-				g_free(line);
+		case MPDCRON_PARSER_SUCCESS:
+			g_free(line);
+			if (artist != NULL)
+				*values = g_slist_prepend(*values, artist);
+			return true;
+		case MPDCRON_PARSER_ERROR:
+			g_set_error(&conn->error, connection_quark(),
+					conn->parser->u.error.server,
+					"%s", conn->parser->u.error.message);
+			g_free(artist);
+			g_free(line);
+			return false;
+		case MPDCRON_PARSER_MALFORMED:
+			g_set_error(&conn->error, connection_quark(),
+					MPDCRON_ERROR_MALFORMED,
+					"Malformed line `%s' received from server", line);
+			g_free(artist);
+			g_free(line);
+			return false;
+		default:
+			/* We have a pair! */
+			if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
 				if (artist != NULL)
 					*values = g_slist_prepend(*values, artist);
-				return true;
-			case MPDCRON_PARSER_ERROR:
-				g_set_error(&conn->error, connection_quark(),
-						conn->parser->u.error.server,
-						"%s", conn->parser->u.error.message);
-				g_free(artist);
-				g_free(line);
-				return false;
-			case MPDCRON_PARSER_MALFORMED:
-				g_set_error(&conn->error, connection_quark(),
-						MPDCRON_ERROR_MALFORMED,
-						"Malformed line `%s' received from server", line);
-				g_free(artist);
-				g_free(line);
-				return false;
-			default:
-				/* We have a pair! */
-				if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
-					if (artist != NULL)
-						*values = g_slist_prepend(*values, artist);
-					artist = g_new0(struct mpdcron_entity, 1);
-					artist->name = g_strdup(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
-					g_assert(artist != NULL);
-					artist->love = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
-					g_assert(artist != NULL);
-					artist->kill = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
-					g_assert(artist != NULL);
-					artist->rating = atoi(conn->parser->u.pair.value);
-				}
-				g_free(line);
-				break;
+				artist = g_new0(struct mpdcron_entity, 1);
+				artist->name = g_strdup(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+				g_assert(artist != NULL);
+				artist->love = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+				g_assert(artist != NULL);
+				artist->kill = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+				g_assert(artist != NULL);
+				artist->rating = atoi(conn->parser->u.pair.value);
+			}
+			g_free(line);
+			break;
 		}
 	}
 	/* never reached */
 	return false;
 }
 
-static bool mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
+static bool
+mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
 	char *line;
@@ -395,7 +403,8 @@ static bool mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **value
 	return false;
 }
 
-static bool mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
+static bool
+mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
 	char *line;
@@ -410,54 +419,55 @@ static bool mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values
 
 		ret = mpdcron_parser_feed(conn->parser, line);
 		switch (ret) {
-			case MPDCRON_PARSER_SUCCESS:
-				g_free(line);
+		case MPDCRON_PARSER_SUCCESS:
+			g_free(line);
+			if (song != NULL)
+				*values = g_slist_prepend(*values, song);
+			return true;
+		case MPDCRON_PARSER_ERROR:
+			g_set_error(&conn->error, connection_quark(),
+					conn->parser->u.error.server,
+					"%s", conn->parser->u.error.message);
+			g_free(song);
+			g_free(line);
+			return false;
+		case MPDCRON_PARSER_MALFORMED:
+			g_set_error(&conn->error, connection_quark(),
+					MPDCRON_ERROR_MALFORMED,
+					"Malformed line `%s' received from server", line);
+			g_free(song);
+			g_free(line);
+			return false;
+		default:
+			/* We have a pair! */
+			if (strcmp(conn->parser->u.pair.name, "file") == 0) {
 				if (song != NULL)
 					*values = g_slist_prepend(*values, song);
-				return true;
-			case MPDCRON_PARSER_ERROR:
-				g_set_error(&conn->error, connection_quark(),
-						conn->parser->u.error.server,
-						"%s", conn->parser->u.error.message);
-				g_free(song);
-				g_free(line);
-				return false;
-			case MPDCRON_PARSER_MALFORMED:
-				g_set_error(&conn->error, connection_quark(),
-						MPDCRON_ERROR_MALFORMED,
-						"Malformed line `%s' received from server", line);
-				g_free(song);
-				g_free(line);
-				return false;
-			default:
-				/* We have a pair! */
-				if (strcmp(conn->parser->u.pair.name, "file") == 0) {
-					if (song != NULL)
-						*values = g_slist_prepend(*values, song);
-					song = g_new0(struct mpdcron_song, 1);
-					song->uri = g_strdup(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
-					g_assert(song != NULL);
-					song->love = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
-					g_assert(song != NULL);
-					song->kill = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
-					g_assert(song != NULL);
-					song->rating = atoi(conn->parser->u.pair.value);
-				}
-				g_free(line);
-				break;
+				song = g_new0(struct mpdcron_song, 1);
+				song->uri = g_strdup(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+				g_assert(song != NULL);
+				song->love = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+				g_assert(song != NULL);
+				song->kill = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+				g_assert(song != NULL);
+				song->rating = atoi(conn->parser->u.pair.value);
+			}
+			g_free(line);
+			break;
 		}
 	}
 	/* never reached */
 	return false;
 }
 
-static bool mpdcron_parse_welcome(struct mpdcron_connection *conn, const char *output)
+static bool
+mpdcron_parse_welcome(struct mpdcron_connection *conn, const char *output)
 {
 	const char *tmp;
 	char *test;
@@ -495,8 +505,9 @@ static bool mpdcron_parse_welcome(struct mpdcron_connection *conn, const char *o
 /**
  * Sending data
  */
-static bool mpdcron_send_commandv(struct mpdcron_connection *conn,
-		const char *command, va_list args)
+static bool
+mpdcron_send_commandv(struct mpdcron_connection *conn, const char *command,
+		va_list args)
 {
 	const char *arg;
 	char *esc_arg;
@@ -533,8 +544,8 @@ static bool mpdcron_send_commandv(struct mpdcron_connection *conn,
 	return true;
 }
 
-static bool mpdcron_send_command(struct mpdcron_connection *conn,
-		const char *command, ...)
+static bool
+mpdcron_send_command(struct mpdcron_connection *conn, const char *command, ...)
 {
 	bool ret;
 	va_list args;
@@ -548,7 +559,8 @@ static bool mpdcron_send_command(struct mpdcron_connection *conn,
 /**
  * Global functions
  */
-struct mpdcron_connection *mpdcron_connection_new(const char *hostname, unsigned port)
+struct mpdcron_connection *
+mpdcron_connection_new(const char *hostname, unsigned port)
 {
 	char *line;
 	struct mpdcron_connection *conn;
@@ -606,7 +618,8 @@ struct mpdcron_connection *mpdcron_connection_new(const char *hostname, unsigned
 	return conn;
 }
 
-void mpdcron_connection_free(struct mpdcron_connection *conn)
+void
+mpdcron_connection_free(struct mpdcron_connection *conn)
 {
 	if (conn->error != NULL)
 		g_error_free(conn->error);
@@ -621,8 +634,8 @@ void mpdcron_connection_free(struct mpdcron_connection *conn)
 	g_free(conn);
 }
 
-bool mpdcron_password(struct mpdcron_connection *conn,
-		const char *password)
+bool
+mpdcron_password(struct mpdcron_connection *conn, const char *password)
 {
 	g_assert(conn != NULL);
 	g_assert(password != NULL);
@@ -632,8 +645,9 @@ bool mpdcron_password(struct mpdcron_connection *conn,
 	return mpdcron_parse_password(conn);
 }
 
-bool mpdcron_love_album_expr(struct mpdcron_connection *conn,
-		bool love, const char *expr, GSList **values)
+bool
+mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -643,8 +657,9 @@ bool mpdcron_love_album_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_albums(conn, values);
 }
 
-bool mpdcron_love_artist_expr(struct mpdcron_connection *conn,
-		bool love, const char *expr, GSList **values)
+bool
+mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -654,8 +669,9 @@ bool mpdcron_love_artist_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_artists(conn, values);
 }
 
-bool mpdcron_love_genre_expr(struct mpdcron_connection *conn,
-		bool love, const char *expr, GSList **values)
+bool
+mpdcron_love_genre_expr(struct mpdcron_connection *conn, bool love,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -665,8 +681,9 @@ bool mpdcron_love_genre_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_genres(conn, values);
 }
 
-bool mpdcron_love_expr(struct mpdcron_connection *conn,
-		bool love, const char *expr, GSList **values)
+bool
+mpdcron_love_expr(struct mpdcron_connection *conn, bool love,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -676,8 +693,9 @@ bool mpdcron_love_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_songs(conn, values);
 }
 
-bool mpdcron_kill_album_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values)
+bool
+mpdcron_kill_album_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -687,8 +705,9 @@ bool mpdcron_kill_album_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_albums(conn, values);
 }
 
-bool mpdcron_kill_artist_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values)
+bool
+mpdcron_kill_artist_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -698,8 +717,9 @@ bool mpdcron_kill_artist_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_artists(conn, values);
 }
 
-bool mpdcron_kill_genre_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values)
+bool
+mpdcron_kill_genre_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -709,8 +729,9 @@ bool mpdcron_kill_genre_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_genres(conn, values);
 }
 
-bool mpdcron_kill_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values)
+bool
+mpdcron_kill_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -720,8 +741,9 @@ bool mpdcron_kill_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_songs(conn, values);
 }
 
-bool mpdcron_rate_album_expr(struct mpdcron_connection *conn,
-		const char *expr, const char *rating, GSList **values)
+bool
+mpdcron_rate_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -731,8 +753,9 @@ bool mpdcron_rate_album_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_albums(conn, values);
 }
 
-bool mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
-		const char *expr, const char *rating, GSList **values)
+bool
+mpdcron_rate_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -742,8 +765,9 @@ bool mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_artists(conn, values);
 }
 
-bool mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
-		const char *expr, const char *rating, GSList **values)
+bool
+mpdcron_rate_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);
@@ -753,8 +777,9 @@ bool mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
 	return mpdcron_parse_genres(conn, values);
 }
 
-bool mpdcron_rate_expr(struct mpdcron_connection *conn,
-		const char *expr, const char *rating, GSList **values)
+bool
+mpdcron_rate_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, GSList **values)
 {
 	g_assert(conn != NULL);
 	g_assert(values != NULL);

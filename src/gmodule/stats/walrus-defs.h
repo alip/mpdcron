@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -23,6 +23,7 @@
 #include "../../cron-config.h"
 #include "stats-sqlite.h"
 
-char *xload_dbpath(void);
+char *
+xload_dbpath(void);
 
 #endif /* !MPDCRON_GUARD_WALRUS_DEFS_H */

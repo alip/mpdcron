@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -42,7 +42,8 @@ static struct hook_calls {
 	{NULL,			NULL,				0},
 };
 
-static void hooker_increment(const char *name)
+static void
+hooker_increment(const char *name)
 {
 	char *envstr;
 
@@ -57,7 +58,8 @@ static void hooker_increment(const char *name)
 	}
 }
 
-int hooker_run_hook(const char *name)
+int
+hooker_run_hook(const char *name)
 {
 	gchar **myargv;
 	GError *hook_err = NULL;

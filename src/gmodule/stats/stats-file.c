@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -29,7 +29,8 @@
 
 struct config globalconf;
 
-bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
+bool
+file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	char **values;
 	GError *error;
@@ -186,7 +187,8 @@ bool file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	return true;
 }
 
-void file_cleanup(void)
+void
+file_cleanup(void)
 {
 	g_free(globalconf.dbpath);
 	g_free(globalconf.mpd_hostname);

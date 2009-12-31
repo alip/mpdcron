@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -21,7 +21,8 @@
 
 #include <glib.h>
 
-char *cover_find(const char *artist, const char *album)
+char *
+cover_find(const char *artist, const char *album)
 {
 	char *cfile;
 	char *cpath;

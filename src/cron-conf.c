@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -28,7 +28,8 @@
 
 struct mpdcron_config conf;
 
-const char *conf_pid_file_proc(void)
+const char *
+conf_pid_file_proc(void)
 {
 	char *name;
 
@@ -40,7 +41,8 @@ const char *conf_pid_file_proc(void)
 	return conf.pid_path;
 }
 
-int conf_init(void)
+int
+conf_init(void)
 {
 	memset(&conf, 0, sizeof(struct mpdcron_config));
 
@@ -72,7 +74,8 @@ int conf_init(void)
 	return 0;
 }
 
-void conf_free(void)
+void
+conf_free(void)
 {
 	g_free(conf.home_path);
 	g_free(conf.conf_path);

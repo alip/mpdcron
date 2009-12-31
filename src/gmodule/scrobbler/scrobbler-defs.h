@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -54,7 +54,7 @@ struct config {
 	 * The interval in seconds after which the journal is saved to
 	 * the file system.
 	 */
-	unsigned journal_interval;
+	int journal_interval;
 
 	GSList *scrobblers;
 };
@@ -83,59 +83,89 @@ extern struct config file_config;
  * Copies attributes from one record to another.  Does not free
  * existing values in the destination record.
  */
-void record_copy(struct record *dest, const struct record *src);
+void
+record_copy(struct record *dest, const struct record *src);
 /**
  * Duplicates a record object.
  */
-struct record *record_dup(const struct record *src);
+struct record *
+record_dup(const struct record *src);
 /**
  * Deinitializes a record object, freeing all members.
  */
-void record_deinit(struct record *record);
+void
+record_deinit(struct record *record);
 /**
  * Frees a record object: free all members with record_deinit(), and
  * free the record pointer itself.
  */
-void record_free(struct record *record);
-void record_clear(struct record *record);
+void
+record_free(struct record *record);
 
-static inline bool record_is_defined(const struct record *record)
+void
+record_clear(struct record *record);
+
+static inline bool
+record_is_defined(const struct record *record)
 {
 	return record->artist != NULL && record->track != NULL;
 }
 
-bool journal_write(const char *path, GQueue *queue);
-void journal_read(const char *path, GQueue *queue);
+bool
+journal_write(const char *path, GQueue *queue);
+
+void
+journal_read(const char *path, GQueue *queue);
 
 /**
  * Perform global initialization on the HTTP client library.
  */
-int http_client_init(void);
+int
+http_client_init(void);
 /**
  * Global deinitializaton.
  */
-void http_client_finish(void);
+void
+http_client_finish(void);
 /**
  * Escapes URI parameters with '%'.  Free the return value with
  * g_free().
  */
-char *http_client_uri_escape(const char *src);
-void http_client_request(const char *url, const char *post_data,
+char *
+http_client_uri_escape(const char *src);
+
+void
+http_client_request(const char *url, const char *post_data,
 		http_client_callback_t * callback, void *data);
 
 
-void as_init(GSList *scrobbler_configs);
-void as_cleanup(void);
-void as_now_playing(const char *artist, const char *track,
-		const char *album, const char *mbid, const int length);
-void as_songchange(const char *file, const char *artist, const char *track,
+void
+as_init(GSList *scrobbler_configs);
+
+void
+as_cleanup(void);
+
+void
+as_now_playing(const char *artist, const char *track, const char *album,
+		const char *mbid, const int length);
+void
+as_songchange(const char *file, const char *artist, const char *track,
 		const char *album, const char *mbid, const int length,
 		const char *time);
-void as_save_cache(void);
-char *as_timestamp(void);
 
-int file_load(GKeyFile *fd);
-void file_cleanup(void);
+void
+as_save_cache(void);
 
-gboolean timer_save_journal(gpointer data);
+char *
+as_timestamp(void);
+
+int
+file_load(GKeyFile *fd);
+
+void
+file_cleanup(void);
+
+gboolean
+timer_save_journal(gpointer data);
+
 #endif /* !MPDCRON_GUARD_SCROBBLER_DEFS_H */

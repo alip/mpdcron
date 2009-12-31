@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -111,41 +111,64 @@ struct mpdcron_connection {
 	struct mpdcron_parser *parser;
 };
 
-struct mpdcron_connection *mpdcron_connection_new(const char *hostname,
-		unsigned port);
-void mpdcron_connection_free(struct mpdcron_connection *conn);
-bool mpdcron_password(struct mpdcron_connection *conn,
-		const char *password);
-bool mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
+struct mpdcron_connection *
+mpdcron_connection_new(const char *hostname, unsigned port);
+
+void
+mpdcron_connection_free(struct mpdcron_connection *conn);
+
+bool
+mpdcron_password(struct mpdcron_connection *conn, const char *password);
+
+bool
+mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
-bool mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
+
+bool
+mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
-bool mpdcron_love_genre_expr(struct mpdcron_connection *conn, bool love,
+
+bool
+mpdcron_love_genre_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
-bool mpdcron_love_expr(struct mpdcron_connection *conn, bool love,
+
+bool
+mpdcron_love_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
-bool mpdcron_kill_album_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values);
-bool mpdcron_kill_artist_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values);
-bool mpdcron_kill_genre_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values);
-bool mpdcron_kill_expr(struct mpdcron_connection *conn,
-		bool kkill, const char *expr, GSList **values);
+
+bool
+mpdcron_kill_album_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_kill_artist_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_kill_genre_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_kill_expr(struct mpdcron_connection *conn, bool kkill,
+		const char *expr, GSList **values);
 
 bool
 mpdcron_rate_album_expr(struct mpdcron_connection *conn,
 		const char *rating, const char *expr, GSList **values);
+
 bool
 mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
 		const char *rating, const char *expr, GSList **values);
+
 bool
 mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
 		const char *rating, const char *expr, GSList **values);
+
 bool
 mpdcron_rate_expr(struct mpdcron_connection *conn,
 		const char *rating, const char *expr, GSList **values);
 
-void eulog(int level, const char *fmt, ...);
+void
+eulog(int level, const char *fmt, ...);
 
 #endif /* !MPDCRON_EUGENE_DEFS_H */

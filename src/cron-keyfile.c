@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -27,7 +27,8 @@ int reconnect = DEFAULT_MPD_RECONNECT;
 int killwait = DEFAULT_PID_KILL_WAIT;
 enum mpd_idle idle = 0;
 
-int keyfile_load(GKeyFile **cfd_r)
+int
+keyfile_load(GKeyFile **cfd_r)
 {
 	GError *config_err = NULL;
 	char *optstr;
@@ -145,7 +146,8 @@ int keyfile_load(GKeyFile **cfd_r)
 }
 
 #ifdef HAVE_GMODULE
-int keyfile_load_modules(GKeyFile **cfd_r)
+int
+keyfile_load_modules(GKeyFile **cfd_r)
 {
 	char **modules;
 

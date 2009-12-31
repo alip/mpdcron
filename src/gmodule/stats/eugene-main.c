@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -38,13 +38,15 @@
 
 static int verbosity = LOG_DEBUG;
 
-static void about(void)
+static void
+about(void)
 {
 	printf("eugene-"VERSION GITHEAD "\n");
 }
 
 G_GNUC_NORETURN
-static void usage(FILE *outf, int exitval)
+static void
+usage(FILE *outf, int exitval)
 {
 	fprintf(outf, ""
 "eugene -- mpdcron statistics client\n"
@@ -60,7 +62,8 @@ static void usage(FILE *outf, int exitval)
 	exit(exitval);
 }
 
-static char *quote(const char *src)
+static char *
+quote(const char *src)
 {
 	const char *p;
 	GString *dest;
@@ -81,7 +84,8 @@ static char *quote(const char *src)
 	return g_string_free(dest, FALSE);
 }
 
-static struct mpd_song *load_current_song(void)
+static struct mpd_song *
+load_current_song(void)
 {
 	int port;
 	const char *hostname, *password;
@@ -133,8 +137,8 @@ static struct mpd_song *load_current_song(void)
 	return song;
 }
 
-static int love_artist(struct mpdcron_connection *conn,
-		bool love, const char *expr)
+static int
+love_artist(struct mpdcron_connection *conn, bool love, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -184,8 +188,8 @@ static int love_artist(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int love_album(struct mpdcron_connection *conn,
-		bool love, const char *expr)
+static int
+love_album(struct mpdcron_connection *conn, bool love, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -235,8 +239,8 @@ static int love_album(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int love_genre(struct mpdcron_connection *conn,
-		bool love, const char *expr)
+static int
+love_genre(struct mpdcron_connection *conn, bool love, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -286,8 +290,8 @@ static int love_genre(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int love_song(struct mpdcron_connection *conn,
-		bool love, const char *expr)
+static int
+love_song(struct mpdcron_connection *conn, bool love, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -332,8 +336,9 @@ static int love_song(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int cmd_love_internal(bool love, const char *expr,
-		bool artist, bool album, bool genre)
+static int
+cmd_love_internal(bool love, const char *expr, bool artist, bool album,
+		bool genre)
 {
 	int port, ret;
 	const char *hostname, *password;
@@ -382,8 +387,8 @@ static int cmd_love_internal(bool love, const char *expr,
 	return ret;
 }
 
-static int kill_artist(struct mpdcron_connection *conn,
-		bool kkill, const char *expr)
+static int
+kill_artist(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -433,8 +438,8 @@ static int kill_artist(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int kill_album(struct mpdcron_connection *conn,
-		bool kkill, const char *expr)
+static int
+kill_album(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -484,8 +489,8 @@ static int kill_album(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int kill_genre(struct mpdcron_connection *conn,
-		bool kkill, const char *expr)
+static int
+kill_genre(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -535,8 +540,8 @@ static int kill_genre(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int kill_song(struct mpdcron_connection *conn,
-		bool kkill, const char *expr)
+static int
+kill_song(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
 	GSList *values, *walk;
 
@@ -581,8 +586,9 @@ static int kill_song(struct mpdcron_connection *conn,
 	return 0;
 }
 
-static int cmd_kill_internal(bool kkill, const char *expr,
-		bool artist, bool album, bool genre)
+static int
+cmd_kill_internal(bool kkill, const char *expr, bool artist, bool album,
+		bool genre)
 {
 	int port, ret;
 	const char *hostname, *password;
@@ -877,7 +883,8 @@ cmd_rate_internal(const char *expr, const char *rating,
 	return ret;
 }
 
-static int cmd_hate(int argc, char **argv)
+static int
+cmd_hate(int argc, char **argv)
 {
 	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
@@ -914,7 +921,8 @@ static int cmd_hate(int argc, char **argv)
 	return ret;
 }
 
-static int cmd_love(int argc, char **argv)
+static int
+cmd_love(int argc, char **argv)
 {
 	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
@@ -951,7 +959,8 @@ static int cmd_love(int argc, char **argv)
 	return ret;
 }
 
-static int cmd_kill(int argc, char **argv)
+static int
+cmd_kill(int argc, char **argv)
 {
 	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
@@ -988,7 +997,8 @@ static int cmd_kill(int argc, char **argv)
 	return ret;
 }
 
-static int cmd_unkill(int argc, char **argv)
+static int
+cmd_unkill(int argc, char **argv)
 {
 	int opta = 0, optA = 0, optg = 0, ret;
 	GError *error = NULL;
@@ -1071,7 +1081,8 @@ cmd_rate(int argc, char **argv)
 }
 
 
-static int run_cmd(int argc, char **argv)
+static int
+run_cmd(int argc, char **argv)
 {
 	if (strncmp(argv[0], "help", 4) == 0)
 		usage(stdout, 0);
@@ -1093,7 +1104,8 @@ static int run_cmd(int argc, char **argv)
 	usage(stderr, 1);
 }
 
-void eulog(int level, const char *fmt, ...)
+void
+eulog(int level, const char *fmt, ...)
 {
 	va_list args;
 
@@ -1107,7 +1119,8 @@ void eulog(int level, const char *fmt, ...)
 	fputc('\n', stderr);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	g_type_init();
 

@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -46,13 +46,15 @@ struct command {
 
 static const char *current_command;
 
-static void command_ok(struct client *client)
+static void
+command_ok(struct client *client)
 {
 	mpdcron_log(LOG_DEBUG, "[%d]> "PROTOCOL_OK, client->id);
 	server_schedule_write(client, PROTOCOL_OK"\n", sizeof(PROTOCOL_OK"\n") - 1);
 }
 
-static void command_putv(struct client *client, const char *fmt, va_list args)
+static void
+command_putv(struct client *client, const char *fmt, va_list args)
 {
 	GString *message;
 
@@ -69,7 +71,8 @@ static void command_putv(struct client *client, const char *fmt, va_list args)
 }
 
 G_GNUC_PRINTF(2, 3)
-static void command_puts(struct client *client, const char *fmt, ...)
+static void
+command_puts(struct client *client, const char *fmt, ...)
 {
 	va_list args;
 
@@ -78,8 +81,9 @@ static void command_puts(struct client *client, const char *fmt, ...)
 	va_end(args);
 }
 
-static void command_error_v(struct client *client, enum ack error,
-		const char *fmt, va_list args)
+static void
+command_error_v(struct client *client, enum ack error, const char *fmt,
+		va_list args)
 {
 	GString *message;
 
@@ -100,8 +104,8 @@ static void command_error_v(struct client *client, enum ack error,
 }
 
 G_GNUC_PRINTF(3, 4)
-static void command_error(struct client *client, enum ack error,
-		const char *fmt, ...)
+static void
+command_error(struct client *client, enum ack error, const char *fmt, ...)
 {
 	va_list args;
 
@@ -111,7 +115,8 @@ static void command_error(struct client *client, enum ack error,
 }
 
 G_GNUC_UNUSED
-static bool check_bool(struct client *client, bool *value_r, const char *s)
+static bool
+check_bool(struct client *client, bool *value_r, const char *s)
 {
 	long value;
 	char *endptr;
@@ -127,8 +132,8 @@ static bool check_bool(struct client *client, bool *value_r, const char *s)
 	return true;
 }
 
-static enum command_return handle_kill(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_kill(struct client *client, int argc, char **argv)
 {
 	bool kkill;
 	int count;
@@ -182,8 +187,8 @@ static enum command_return handle_kill(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_kill_album(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_kill_album(struct client *client, int argc, char **argv)
 {
 	bool kkill;
 	int count;
@@ -237,8 +242,8 @@ static enum command_return handle_kill_album(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_kill_artist(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_kill_artist(struct client *client, int argc, char **argv)
 {
 	bool kkill;
 	int count;
@@ -292,8 +297,8 @@ static enum command_return handle_kill_artist(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_kill_genre(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_kill_genre(struct client *client, int argc, char **argv)
 {
 	bool kkill;
 	int count;
@@ -347,8 +352,8 @@ static enum command_return handle_kill_genre(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_love(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_love(struct client *client, int argc, char **argv)
 {
 	bool love;
 	int count;
@@ -402,8 +407,8 @@ static enum command_return handle_love(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_love_album(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_love_album(struct client *client, int argc, char **argv)
 {
 	bool love;
 	int count;
@@ -457,8 +462,8 @@ static enum command_return handle_love_album(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_love_artist(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_love_artist(struct client *client, int argc, char **argv)
 {
 	bool love;
 	int count;
@@ -512,8 +517,8 @@ static enum command_return handle_love_artist(struct client *client,
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_love_genre(struct client *client,
-		int argc, char **argv)
+static enum command_return
+handle_love_genre(struct client *client, int argc, char **argv)
 {
 	bool love;
 	int count;
@@ -851,8 +856,8 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 	return COMMAND_RETURN_ERROR;
 }
 
-static enum command_return handle_password(struct client *client,
-		G_GNUC_UNUSED int argc, char **argv)
+static enum command_return
+handle_password(struct client *client, G_GNUC_UNUSED int argc, char **argv)
 {
 	gpointer perm = g_hash_table_lookup(globalconf.passwords, argv[1]);
 	if (perm != NULL) {
@@ -896,7 +901,8 @@ static const struct command commands[] = {
 
 static const unsigned num_commands = sizeof(commands) / sizeof(commands[0]);
 
-static const struct command *command_lookup(const char *name)
+static const struct command *
+command_lookup(const char *name)
 {
 	unsigned a = 0, b = num_commands, i;
 	int cmp;
@@ -917,9 +923,9 @@ static const struct command *command_lookup(const char *name)
 	return NULL;
 }
 
-static bool command_check_request(const struct command *cmd,
-		struct client *client, unsigned permission,
-		int argc, char **argv)
+static bool
+command_check_request(const struct command *cmd, struct client *client,
+		unsigned permission, int argc, char **argv)
 {
 	int min = cmd->min + 1;
 	int max = cmd->max + 1;
@@ -959,8 +965,9 @@ static bool command_check_request(const struct command *cmd,
 }
 
 
-static const struct command *command_checked_lookup(struct client *client,
-		unsigned permission, int argc, char **argv)
+static const struct command *
+command_checked_lookup(struct client *client, unsigned permission, int argc,
+		char **argv)
 {
 	static char unknown[] = "";
 	const struct command *cmd;
@@ -986,7 +993,8 @@ static const struct command *command_checked_lookup(struct client *client,
 	return cmd;
 }
 
-enum command_return command_process(struct client *client, char *line)
+enum command_return
+command_process(struct client *client, char *line)
 {
 	int argc;
 	char *argv[COMMAND_ARGV_MAX] = { NULL };

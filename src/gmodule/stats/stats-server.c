@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -44,14 +44,16 @@ static const char GREETING[] = "OK MPDCRON "PROTOCOL_VERSION"\n";
 static GSocketService *server;
 static GHashTable *clients;
 
-static void client_queue_free_callback(gpointer data, G_GNUC_UNUSED gpointer userdata)
+static void
+client_queue_free_callback(gpointer data, G_GNUC_UNUSED gpointer userdata)
 {
 	struct buffer *buf = (struct buffer *)data;
 	g_free(buf->data);
 	g_free(buf);
 }
 
-static void client_destroy(gpointer data)
+static void
+client_destroy(gpointer data)
 {
 	struct client *client = (struct client *)data;
 	g_slist_foreach(client->queue, client_queue_free_callback, NULL);
@@ -60,8 +62,9 @@ static void client_destroy(gpointer data)
 	g_free(client);
 }
 
-static void event_write(G_GNUC_UNUSED GObject *source,
-		GAsyncResult *res, gpointer clientid)
+static void
+event_write(G_GNUC_UNUSED GObject *source, GAsyncResult *res,
+		gpointer clientid)
 {
 	gssize count;
 	GError *error;
@@ -98,8 +101,9 @@ static void event_write(G_GNUC_UNUSED GObject *source,
 	}
 }
 
-static void event_read(G_GNUC_UNUSED GObject *source,
-		GAsyncResult *result, gpointer clientid)
+static void
+event_read(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
+		gpointer clientid)
 {
 	size_t length;
 	gssize count;
@@ -163,10 +167,9 @@ again:
 			event_read, clientid);
 }
 
-static gboolean event_incoming(G_GNUC_UNUSED GSocketService *srv,
-		GSocketConnection *conn,
-		G_GNUC_UNUSED GObject *source,
-		G_GNUC_UNUSED gpointer userdata)
+static gboolean
+event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
+		G_GNUC_UNUSED GObject *source, G_GNUC_UNUSED gpointer userdata)
 {
 	char *buffer;
 	size_t maxsize;
@@ -216,7 +219,8 @@ static gboolean event_incoming(G_GNUC_UNUSED GSocketService *srv,
 	return FALSE;
 }
 
-static void bind_callback(gpointer data, gpointer userdata)
+static void
+bind_callback(gpointer data, gpointer userdata)
 {
 	char *addr_string;
 	GInetAddress *addr;
@@ -248,8 +252,8 @@ static void bind_callback(gpointer data, gpointer userdata)
 	g_object_unref(saddr);
 }
 
-static void event_resolve(GObject *source, GAsyncResult *result,
-		gpointer userdata)
+static void
+event_resolve(GObject *source, GAsyncResult *result, gpointer userdata)
 {
 	GError *error;
 	GList *addrs;
@@ -278,13 +282,15 @@ static void event_resolve(GObject *source, GAsyncResult *result,
 	g_resolver_free_addresses(addrs);
 }
 
-void server_init(void)
+void
+server_init(void)
 {
 	g_type_init();
 	server = g_socket_service_new();
 }
 
-void server_bind(const char *hostname, int port)
+void
+server_bind(const char *hostname, int port)
 {
 	GError *error;
 	GSocketAddress *addr;
@@ -338,21 +344,24 @@ void server_bind(const char *hostname, int port)
 	}
 }
 
-void server_start(void)
+void
+server_start(void)
 {
 	g_signal_connect(server, "incoming", G_CALLBACK(event_incoming), NULL);
 	g_socket_service_start(server);
 	clients = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, client_destroy);
 }
 
-void server_close(void)
+void
+server_close(void)
 {
 	g_socket_service_stop(server);
 	g_object_unref(server);
 	g_hash_table_destroy(clients);
 }
 
-void server_schedule_write(struct client *client, const gchar *data, gsize count)
+void
+server_schedule_write(struct client *client, const gchar *data, gsize count)
 {
 	struct buffer *buf;
 

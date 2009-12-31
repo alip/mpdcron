@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -33,7 +33,6 @@
 
 #include <mpd/client.h>
 
-
 GMainLoop *loop = NULL;
 static GKeyFile *cfd = NULL;
 static int optv, optk;
@@ -45,12 +44,14 @@ static GOptionEntry options[] = {
 	{NULL, 0, 0, 0, NULL, NULL, NULL},
 };
 
-static void about(void)
+static void
+about(void)
 {
 	printf(PACKAGE"-"VERSION GITHEAD "\n");
 }
 
-static void internal_cleanup(bool signaled)
+static void
+internal_cleanup(bool signaled)
 {
 	module_close(signaled ? 0 : 1);
 	conf_free();
@@ -65,17 +66,20 @@ static void internal_cleanup(bool signaled)
 	}
 }
 
-static void cleanup(void)
+static void
+cleanup(void)
 {
 	internal_cleanup(false);
 }
 
-static void sig_cleanup(G_GNUC_UNUSED int signum)
+static void
+sig_cleanup(G_GNUC_UNUSED int signum)
 {
 	internal_cleanup(true);
 }
 
-int main(int argc, char **argv)
+int
+main(int argc, char **argv)
 {
 	int pid, ret;
 	struct sigaction new_action, old_action;
@@ -153,7 +157,6 @@ int main(int argc, char **argv)
 			sigaction((sig), &new_action, NULL);	\
 	} while (0)
 
-	HANDLE_SIGNAL(SIGABRT);
 	HANDLE_SIGNAL(SIGINT);
 	HANDLE_SIGNAL(SIGTERM);
 

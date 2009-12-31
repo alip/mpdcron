@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -25,7 +25,8 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-static const char *env_strstate(enum mpd_state state)
+static const char *
+env_strstate(enum mpd_state state)
 {
 	const char *strstate = NULL;
 	switch (state) {
@@ -48,7 +49,8 @@ static const char *env_strstate(enum mpd_state state)
 	return strstate;
 }
 
-static void env_export_status(struct mpd_status *status)
+static void
+env_export_status(struct mpd_status *status)
 {
 	char *envstr;
 	const struct mpd_audio_format *fmt;
@@ -134,7 +136,8 @@ static void env_export_status(struct mpd_status *status)
 	}
 }
 
-static void env_export_song(struct mpd_song *song, int envid)
+static void
+env_export_song(struct mpd_song *song, int envid)
 {
 	const char *tag;
 	char *envname, *envstr;
@@ -275,7 +278,8 @@ static void env_export_song(struct mpd_song *song, int envid)
 	}
 }
 
-int env_list_all_meta(struct mpd_connection *conn)
+int
+env_list_all_meta(struct mpd_connection *conn)
 {
 	int i;
 	char *envname;
@@ -310,7 +314,8 @@ int env_list_all_meta(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int env_list_queue_meta(struct mpd_connection *conn)
+int
+env_list_queue_meta(struct mpd_connection *conn)
 {
 	int i;
 	struct mpd_song *song;
@@ -329,7 +334,8 @@ int env_list_queue_meta(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
+int
+env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
 {
 	char *envstr;
 	time_t t;
@@ -372,7 +378,8 @@ int env_stats(struct mpd_connection *conn, struct mpd_stats **stats)
 	return 0;
 }
 
-int env_status(struct mpd_connection *conn, struct mpd_status **status)
+int
+env_status(struct mpd_connection *conn, struct mpd_status **status)
 {
 	g_assert(conn != NULL);
 	mpdcron_log(LOG_DEBUG, "Sending status command to Mpd server");
@@ -383,7 +390,8 @@ int env_status(struct mpd_connection *conn, struct mpd_status **status)
 	return 0;
 }
 
-int env_outputs(struct mpd_connection *conn)
+int
+env_outputs(struct mpd_connection *conn)
 {
 	int id;
 	const char *name;
@@ -413,7 +421,8 @@ int env_outputs(struct mpd_connection *conn)
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status)
+int
+env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status)
 {
 	g_assert (conn != NULL);
 	mpdcron_log(LOG_DEBUG, "Sending status & currentsong commands to Mpd server");
@@ -446,7 +455,8 @@ int env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, 
 	return mpd_response_finish(conn) ? 0 : -1;
 }
 
-void env_clearenv(void)
+void
+env_clearenv(void)
 {
 	int i;
 	char *envname;

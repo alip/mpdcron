@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -32,7 +32,8 @@
 
 struct config file_config;
 
-static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
+static struct scrobbler_config *
+load_scrobbler(GKeyFile *fd, const char *grp)
 {
 	char *p;
 	struct scrobbler_config *scrobbler = g_new(struct scrobbler_config, 1);
@@ -82,7 +83,8 @@ static struct scrobbler_config *load_scrobbler(GKeyFile *fd, const char *grp)
 	return scrobbler;
 }
 
-static void scrobbler_config_free_callback(gpointer data, G_GNUC_UNUSED gpointer user_data)
+static void
+scrobbler_config_free_callback(gpointer data, G_GNUC_UNUSED gpointer user_data)
 {
 	struct scrobbler_config *scrobbler = data;
 
@@ -94,18 +96,31 @@ static void scrobbler_config_free_callback(gpointer data, G_GNUC_UNUSED gpointer
 	g_free(scrobbler);
 }
 
-int file_load(GKeyFile *fd)
+int
+file_load(GKeyFile *fd)
 {
 	int s = 0;
 	struct scrobbler_config *scrobbler;
+	GError *error;
 
 	memset(&file_config, 0, sizeof(struct config));
 	file_config.journal_interval = -1;
 
-	if (!load_string(fd, MPDCRON_MODULE, "proxy", false, &file_config.proxy))
+	error = NULL;
+	if (!load_string(fd, MPDCRON_MODULE, "proxy", false, &file_config.proxy, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".proxy: %s", error->message);
+		g_error_free(error);
 		return -1;
-	if (!load_unsigned(fd, MPDCRON_MODULE, "journal_interval", false, &file_config.journal_interval))
+	}
+	if (!load_integer(fd, MPDCRON_MODULE, "journal_interval", false, &file_config.journal_interval, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".journal_interval: %s", error->message);
+		g_error_free(error);
 		return -1;
+	}
+	else if (file_config.journal_interval <= 0) {
+		mpdcron_log(LOG_ERR, "Journal interval has to be greater than zero");
+		return -1;
+	}
 
 	if ((scrobbler = load_scrobbler(fd, "libre.fm")) != NULL) {
 		file_config.scrobblers = g_slist_prepend(file_config.scrobblers, scrobbler);
@@ -127,7 +142,8 @@ int file_load(GKeyFile *fd)
 	return 0;
 }
 
-void file_cleanup(void)
+void
+file_cleanup(void)
 {
 	g_free(file_config.proxy);
 	g_slist_foreach(file_config.scrobblers, scrobbler_config_free_callback, NULL);

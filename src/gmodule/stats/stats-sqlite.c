@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -194,13 +194,15 @@ static sqlite3_stmt *SQL_UPDATE_GENRE_STMT = NULL;
 /**
  * Utility Functions
  */
-static GQuark db_quark(void)
+static GQuark
+db_quark(void)
 {
 	return g_quark_from_static_string("database");
 }
 
 G_GNUC_UNUSED
-static char *escape_string(const char *src)
+static char *
+escape_string(const char *src)
 {
 	char *q, *dest;
 
@@ -210,7 +212,8 @@ static char *escape_string(const char *src)
 	return dest;
 }
 
-static int db_step(sqlite3_stmt *stmt)
+static int
+db_step(sqlite3_stmt *stmt)
 {
 	int ret;
 
@@ -224,8 +227,8 @@ static int db_step(sqlite3_stmt *stmt)
 /**
  * Callbacks
  */
-static int cb_save(void *pArg, int argc,
-		char **argv, G_GNUC_UNUSED char **columnName)
+static int
+cb_save(void *pArg, int argc, char **argv, G_GNUC_UNUSED char **columnName)
 {
 	int i;
 	char **message;
@@ -242,7 +245,8 @@ static int cb_save(void *pArg, int argc,
 /**
  * Database Queries
  */
-static int db_has_artist(sqlite3 *db, const char *name, GError **error)
+static int
+db_has_artist(sqlite3 *db, const char *name, GError **error)
 {
 	int id, ret;
 
@@ -278,7 +282,8 @@ static int db_has_artist(sqlite3 *db, const char *name, GError **error)
 	return id;
 }
 
-static int db_has_album(sqlite3 *db, const char *name, GError **error)
+static int
+db_has_album(sqlite3 *db, const char *name, GError **error)
 {
 	int id, ret;
 
@@ -314,7 +319,8 @@ static int db_has_album(sqlite3 *db, const char *name, GError **error)
 	return id;
 }
 
-static int db_has_genre(sqlite3 *db, const char *name, GError **error)
+static int
+db_has_genre(sqlite3 *db, const char *name, GError **error)
 {
 	int id, ret;
 
@@ -350,7 +356,8 @@ static int db_has_genre(sqlite3 *db, const char *name, GError **error)
 	return id;
 }
 
-static int db_has_song(sqlite3 *db, const char *name, GError **error)
+static int
+db_has_song(sqlite3 *db, const char *name, GError **error)
 {
 	int id, ret;
 
@@ -389,8 +396,9 @@ static int db_has_song(sqlite3 *db, const char *name, GError **error)
 /**
  * Database Inserts/Updates
  */
-static bool db_insert_artist(sqlite3 *db, const struct mpd_song *song,
-		bool increment, GError **error)
+static bool
+db_insert_artist(sqlite3 *db, const struct mpd_song *song, bool increment,
+		GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -421,8 +429,9 @@ static bool db_insert_artist(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_insert_album(sqlite3 *db, const struct mpd_song *song,
-		bool increment, GError **error)
+static bool
+db_insert_album(sqlite3 *db, const struct mpd_song *song, bool increment,
+		GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -456,8 +465,9 @@ static bool db_insert_album(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_insert_genre(sqlite3 *db, const struct mpd_song *song,
-		bool increment, GError **error)
+static bool
+db_insert_genre(sqlite3 *db, const struct mpd_song *song, bool increment,
+		GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -488,8 +498,9 @@ static bool db_insert_genre(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_insert_song(sqlite3 *db, const struct mpd_song *song,
-		bool increment, GError **error)
+static bool
+db_insert_song(sqlite3 *db, const struct mpd_song *song, bool increment,
+		GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -561,8 +572,9 @@ static bool db_insert_song(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_update_artist(sqlite3 *db, const struct mpd_song *song,
-		int id, bool increment, GError **error)
+static bool
+db_update_artist(sqlite3 *db, const struct mpd_song *song, int id,
+		bool increment, GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -595,8 +607,9 @@ static bool db_update_artist(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_update_album(sqlite3 *db, const struct mpd_song *song,
-		int id, bool increment, GError **error)
+static bool
+db_update_album(sqlite3 *db, const struct mpd_song *song, int id,
+		bool increment, GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -632,8 +645,9 @@ static bool db_update_album(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_update_genre(sqlite3 *db, const struct mpd_song *song,
-		int id, bool increment, GError **error)
+static bool
+db_update_genre(sqlite3 *db, const struct mpd_song *song, int id,
+		bool increment, GError **error)
 {
 	g_assert(db != NULL);
 	g_assert(song != NULL);
@@ -666,7 +680,8 @@ static bool db_update_genre(sqlite3 *db, const struct mpd_song *song,
 	return true;
 }
 
-static bool db_update_song(sqlite3 *db, const struct mpd_song *song, int id,
+static bool
+db_update_song(sqlite3 *db, const struct mpd_song *song, int id,
 		bool increment, GError **error)
 {
 	int ret;
@@ -748,11 +763,11 @@ static bool db_update_song(sqlite3 *db, const struct mpd_song *song, int id,
 /**
  * Database Selects
  */
-static bool sql_select_entry(sqlite3 *db,
-		const char *tbl, const char *elem, const char *expr,
+static bool
+sql_select_entry(sqlite3 *db, const char *tbl, const char *elem,
+		const char *expr,
 		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
+		void *data, GError **error)
 {
 	char *errmsg, *sql;
 
@@ -774,38 +789,34 @@ static bool sql_select_entry(sqlite3 *db,
 	return true;
 }
 
-static inline bool sql_select_artist(sqlite3 *db,
-		const char *elem, const char *expr,
+static inline bool
+sql_select_artist(sqlite3 *db, const char *elem, const char *expr,
 		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
+		void *data, GError **error)
 {
 	return sql_select_entry(db, "ARTIST", elem, expr, callback, data, error);
 }
 
-static inline bool sql_select_album(sqlite3 *db,
-		const char *elem, const char *expr,
+static inline bool
+sql_select_album(sqlite3 *db, const char *elem, const char *expr,
 		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
+		void *data, GError **error)
 {
 	return sql_select_entry(db, "ALBUM", elem, expr, callback, data, error);
 }
 
-static inline bool sql_select_genre(sqlite3 *db,
-		const char *elem, const char *expr,
+static inline bool
+sql_select_genre(sqlite3 *db, const char *elem, const char *expr,
 		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
+		void *data, GError **error)
 {
 	return sql_select_entry(db, "GENRE", elem, expr, callback, data, error);
 }
 
-static inline bool sql_select_song(sqlite3 *db,
-		const char *elem, const char *expr,
+static inline
+bool sql_select_song(sqlite3 *db, const char *elem, const char *expr,
 		int (*callback)(void *, int, char **, char **),
-		void *data,
-		GError **error)
+		void *data, GError **error)
 {
 	return sql_select_entry(db, "SONG", elem, expr, callback, data, error);
 }
@@ -813,9 +824,9 @@ static inline bool sql_select_song(sqlite3 *db,
 /**
  * Database Updates
  */
-static bool sql_update_entry(sqlite3 *db, const char *tbl,
-		const char *stmt, const char *expr,
-		GError **error)
+static bool
+sql_update_entry(sqlite3 *db, const char *tbl, const char *stmt,
+		const char *expr, GError **error)
 {
 	char *errmsg, *sql;
 
@@ -837,26 +848,30 @@ static bool sql_update_entry(sqlite3 *db, const char *tbl,
 	return true;
 }
 
-static inline bool sql_update_artist(sqlite3 *db, const char *stmt,
-		const char *expr, GError **error)
+static inline bool
+sql_update_artist(sqlite3 *db, const char *stmt, const char *expr,
+		GError **error)
 {
 	return sql_update_entry(db, "ARTIST", stmt, expr, error);
 }
 
-static inline bool sql_update_album(sqlite3 *db, const char *stmt,
-		const char *expr, GError **error)
+static inline bool
+sql_update_album(sqlite3 *db, const char *stmt, const char *expr,
+		GError **error)
 {
 	return sql_update_entry(db, "ALBUM", stmt, expr, error);
 }
 
-static inline bool sql_update_genre(sqlite3 *db, const char *stmt,
-		const char *expr, GError **error)
+static inline bool
+sql_update_genre(sqlite3 *db, const char *stmt, const char *expr,
+		GError **error)
 {
 	return sql_update_entry(db, "GENRE", stmt, expr, error);
 }
 
-static inline bool sql_update_song(sqlite3 *db, const char *stmt,
-		const char *expr, GError **error)
+static inline bool
+sql_update_song(sqlite3 *db, const char *stmt, const char *expr,
+		GError **error)
 {
 	return sql_update_entry(db, "SONG", stmt, expr, error);
 }
@@ -864,7 +879,8 @@ static inline bool sql_update_song(sqlite3 *db, const char *stmt,
 /**
  * Database Maintenance
  */
-static bool db_create(sqlite3 *db, GError **error)
+static bool
+db_create(sqlite3 *db, GError **error)
 {
 	g_assert(db != NULL);
 
@@ -922,7 +938,8 @@ static bool db_create(sqlite3 *db, GError **error)
 	return true;
 }
 
-static bool db_check_ver(sqlite3 *db, GError **error)
+static bool
+db_check_ver(sqlite3 *db, GError **error)
 {
 	int ret, version;
 
@@ -960,7 +977,8 @@ static bool db_check_ver(sqlite3 *db, GError **error)
 	return true;
 }
 
-sqlite3 *db_init(const char *path, bool create, bool readonly, GError **error)
+sqlite3 *
+db_init(const char *path, bool create, bool readonly, GError **error)
 {
 	int flags;
 	gboolean new;
@@ -1036,7 +1054,8 @@ sqlite3 *db_init(const char *path, bool create, bool readonly, GError **error)
 	return db;
 }
 
-void db_close(sqlite3 *db)
+void
+db_close(sqlite3 *db)
 {
 	if (SQL_INSERT_SONG_STMT != NULL)
 		sqlite3_finalize(SQL_INSERT_SONG_STMT);
@@ -1069,7 +1088,9 @@ void db_close(sqlite3 *db)
 /**
  * Database Interaction
  */
-bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error)
+bool
+db_process(sqlite3 *db, const struct mpd_song *song, bool increment,
+		GError **error)
 {
 	int id;
 
@@ -1149,8 +1170,9 @@ bool db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError
 /**
  * Love/Hate song/artist/album/genre
  */
-bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love,
-		GSList **values, GError **error)
+bool
+db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1172,8 +1194,9 @@ bool db_love_artist_expr(sqlite3 *db, const char *expr, bool love,
 	return true;
 }
 
-bool db_love_album_expr(sqlite3 *db, const char *expr, bool love,
-		GSList **values, GError **error)
+bool
+db_love_album_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1195,8 +1218,9 @@ bool db_love_album_expr(sqlite3 *db, const char *expr, bool love,
 	return true;
 }
 
-bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love,
-		GSList **values, GError **error)
+bool
+db_love_genre_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1218,8 +1242,9 @@ bool db_love_genre_expr(sqlite3 *db, const char *expr, bool love,
 	return true;
 }
 
-bool db_love_song_expr(sqlite3 *db, const char *expr, bool love,
-		GSList **values, GError **error)
+bool
+db_love_song_expr(sqlite3 *db, const char *expr, bool love, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1244,8 +1269,9 @@ bool db_love_song_expr(sqlite3 *db, const char *expr, bool love,
 /**
  * Kill/Unkill song/artist/album/genre
  */
-bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill,
-		GSList **values, GError **error)
+bool
+db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1267,8 +1293,9 @@ bool db_kill_artist_expr(sqlite3 *db, const char *expr, bool kkill,
 	return true;
 }
 
-bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill,
-		GSList **values, GError **error)
+bool
+db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1290,8 +1317,9 @@ bool db_kill_album_expr(sqlite3 *db, const char *expr, bool kkill,
 	return true;
 }
 
-bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill,
-		GSList **values, GError **error)
+bool
+db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1313,8 +1341,9 @@ bool db_kill_genre_expr(sqlite3 *db, const char *expr, bool kkill,
 	return true;
 }
 
-bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill,
-		GSList **values, GError **error)
+bool
+db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1339,8 +1368,9 @@ bool db_kill_song_expr(sqlite3 *db, const char *expr, bool kkill,
 /**
  * Rate song/artist/album/genre
  */
-bool db_rate_artist_expr(sqlite3 *db, const char *expr, int rating,
-		GSList **values, GError **error)
+bool
+db_rate_artist_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1362,8 +1392,9 @@ bool db_rate_artist_expr(sqlite3 *db, const char *expr, int rating,
 	return true;
 }
 
-bool db_rate_album_expr(sqlite3 *db, const char *expr, int rating,
-		GSList **values, GError **error)
+bool
+db_rate_album_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1385,8 +1416,9 @@ bool db_rate_album_expr(sqlite3 *db, const char *expr, int rating,
 	return true;
 }
 
-bool db_rate_genre_expr(sqlite3 *db, const char *expr, int rating,
-		GSList **values, GError **error)
+bool
+db_rate_genre_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
+		GError **error)
 {
 	char *stmt;
 
@@ -1408,8 +1440,9 @@ bool db_rate_genre_expr(sqlite3 *db, const char *expr, int rating,
 	return true;
 }
 
-bool db_rate_song_expr(sqlite3 *db, const char *expr, int rating,
-		GSList **values, GError **error)
+bool
+db_rate_song_expr(sqlite3 *db, const char *expr, int rating, GSList **values,
+		GError **error)
 {
 	char *stmt;
 

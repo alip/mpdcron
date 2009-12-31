@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -35,8 +35,8 @@
 #endif /* !mpdcron_log */
 
 enum mpdcron_init_retval {
-	MPDCRON_INIT_SUCCESS = 0,
-	MPDCRON_INIT_FAILURE,
+	MPDCRON_INIT_SUCCESS = 0, /** Success */
+	MPDCRON_INIT_FAILURE, /** Failure */
 };
 
 enum mpdcron_event_retval {

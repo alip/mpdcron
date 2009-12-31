@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -35,7 +35,8 @@ static struct mpd_connection *conn = NULL;
 static void loop_schedule_reconnect(void);
 static void loop_schedule_idle(void);
 
-static void loop_failure(void)
+static void
+loop_failure(void)
 {
 	char *msg;
 
@@ -47,7 +48,8 @@ static void loop_failure(void)
 	conn = NULL;
 }
 
-static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
+static gboolean
+loop_reconnect(G_GNUC_UNUSED gpointer data)
 {
 	mpdcron_log(LOG_INFO, "Connecting to `%s' on port %s with timeout %d",
 			conf.hostname, conf.port, conf.timeout);
@@ -84,7 +86,8 @@ static gboolean loop_reconnect(G_GNUC_UNUSED gpointer data)
 	return FALSE;
 }
 
-static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
+static gboolean
+loop_idle(G_GNUC_UNUSED GIOChannel *source,
 		G_GNUC_UNUSED GIOCondition condition,
 		G_GNUC_UNUSED gpointer data)
 {
@@ -135,14 +138,16 @@ static gboolean loop_idle(G_GNUC_UNUSED GIOChannel *source,
 	return FALSE;
 }
 
-static void loop_schedule_reconnect(void)
+static void
+loop_schedule_reconnect(void)
 {
 	g_assert(reconnect_sid == 0);
 	mpdcron_log(LOG_INFO, "Waiting for %d seconds before reconnecting", conf.reconnect);
 	reconnect_sid = g_timeout_add_seconds(conf.reconnect, loop_reconnect, NULL);
 }
 
-static void loop_schedule_idle(void)
+static void
+loop_schedule_idle(void)
 {
 	bool ret;
 	GIOChannel *channel;
@@ -164,13 +169,15 @@ static void loop_schedule_idle(void)
 	g_io_channel_unref(channel);
 }
 
-void loop_connect(void)
+void
+loop_connect(void)
 {
 	if (loop_reconnect(NULL))
 		loop_schedule_reconnect();
 }
 
-void loop_disconnect(void)
+void
+loop_disconnect(void)
 {
 	if (idle_sid != 0)
 		g_source_remove(idle_sid);

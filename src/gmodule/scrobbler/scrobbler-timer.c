@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -22,8 +22,11 @@
 
 #include "scrobbler-defs.h"
 
-gboolean timer_save_journal(G_GNUC_UNUSED gpointer data)
+#include <glib.h>
+
+gboolean
+timer_save_journal(G_GNUC_UNUSED gpointer data)
 {
 	as_save_cache();
-	return true;
+	return TRUE;
 }

@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -28,14 +28,15 @@
 #include <glib.h>
 #include <libdaemon/dlog.h>
 
-static GQuark kf_quark(void)
+static GQuark
+kf_quark(void)
 {
 	return g_quark_from_static_string("keyfile");
 }
 
 G_GNUC_UNUSED
-static bool load_string(GKeyFile *fd, const char *grp,
-		const char *name, bool mustload,
+static bool
+load_string(GKeyFile *fd, const char *grp, const char *name, bool mustload,
 		char **value_r, GError **error)
 {
 	char *value;
@@ -71,8 +72,8 @@ static bool load_string(GKeyFile *fd, const char *grp,
 }
 
 G_GNUC_UNUSED
-static bool load_integer(GKeyFile *fd, const char *grp,
-		const char *name, int mustload,
+static bool
+load_integer(GKeyFile *fd, const char *grp, const char *name, int mustload,
 		int *value_r, GError **error)
 {
 	int value;

@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -32,53 +32,70 @@
 
 struct config file_config;
 
-int file_load(GKeyFile *fd)
+int
+file_load(GKeyFile *fd)
 {
 	int event;
 	char **values;
-	GError *parse_error;
+	GError *error;
 
 	memset(&file_config, 0, sizeof(struct config));
 
-	if (!load_string(fd, MPDCRON_MODULE, "cover_path", false, &file_config.cover_path))
+	error = NULL;
+	if (!load_string(fd, MPDCRON_MODULE, "cover_path", false, &file_config.cover_path, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".cover_path: %s", error->message);
+		g_error_free(error);
 		return -1;
-	if (!load_string(fd, MPDCRON_MODULE, "cover_suffix", false, &file_config.cover_suffix))
+	}
+	if (!load_string(fd, MPDCRON_MODULE, "cover_suffix", false, &file_config.cover_suffix, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".cover_suffix: %s", error->message);
+		g_error_free(error);
 		return -1;
-	if (!load_string(fd, MPDCRON_MODULE, "timeout", false, &file_config.timeout))
+	}
+	if (!load_string(fd, MPDCRON_MODULE, "timeout", false, &file_config.timeout, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".timeout: %s", error->message);
+		g_error_free(error);
 		return -1;
-	if (!load_string(fd, MPDCRON_MODULE, "type", false, &file_config.type))
+	}
+	if (!load_string(fd, MPDCRON_MODULE, "type", false, &file_config.type, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".type: %s", error->message);
+		g_error_free(error);
 		return -1;
-	if (!load_string(fd, MPDCRON_MODULE, "urgency", false, &file_config.urgency))
+	}
+	if (!load_string(fd, MPDCRON_MODULE, "urgency", false, &file_config.urgency, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".urgency: %s", error->message);
+		g_error_free(error);
 		return -1;
+	}
 
-	parse_error = NULL;
-	file_config.hints = g_key_file_get_string_list(fd, MPDCRON_MODULE, "hints", NULL, &parse_error);
-	if (parse_error != NULL) {
-		switch (parse_error->code) {
+	error = NULL;
+	file_config.hints = g_key_file_get_string_list(fd, MPDCRON_MODULE, "hints", NULL, &error);
+	if (error != NULL) {
+		switch (error->code) {
 			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
 			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(parse_error);
+				g_error_free(error);
 				break;
 			default:
-				/* mpdcron_log(LOG_ERR, "Failed to load %s.hints: %s",
-						MPDCRON_MODULE, parse_error->message); */
-				g_error_free(parse_error);
+				mpdcron_log(LOG_ERR, "Failed to load %s.hints: %s",
+						MPDCRON_MODULE, error->message);
+				g_error_free(error);
 				return -1;
 		}
 	}
 
-	parse_error = NULL;
-	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "events", NULL, &parse_error);
-	if (parse_error != NULL) {
-		switch (parse_error->code) {
+	error = NULL;
+	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "events", NULL, &error);
+	if (error != NULL) {
+		switch (error->code) {
 			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
 			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(parse_error);
+				g_error_free(error);
 				break;
 			default:
 				mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".events: %s",
-						parse_error->message);
-				g_error_free(parse_error);
+						error->message);
+				g_error_free(error);
 				return -1;
 		}
 	}
@@ -110,7 +127,8 @@ int file_load(GKeyFile *fd)
 	return 0;
 }
 
-void file_cleanup(void)
+void
+file_cleanup(void)
 {
 	g_free(file_config.cover_path);
 	g_free(file_config.cover_suffix);

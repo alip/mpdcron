@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -19,7 +19,8 @@
 
 #include "notification-defs.h"
 
-char *dhms(unsigned long t)
+char *
+dhms(unsigned long t)
 {
 	int days, hours, mins, secs;
 
@@ -39,5 +40,6 @@ char *dhms(unsigned long t)
 #undef SECSPERHOUR
 #undef SECSPERMIN
 
-	return g_strdup_printf("%d days, %d:%02d:%02d", days, hours, mins, secs);
+	return g_strdup_printf("%d days, %d:%02d:%02d", days, hours, mins,
+			secs);
 }

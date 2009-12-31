@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -41,13 +41,19 @@ struct config {
 
 extern struct config file_config;
 
-char *cover_find(const char *artist, const char *album);
+char *
+cover_find(const char *artist, const char *album);
 
-char *dhms(unsigned long t);
+char *
+dhms(unsigned long t);
 
-int file_load(GKeyFile *fd);
-void file_cleanup(void);
+int
+file_load(GKeyFile *fd);
 
-void notify_send(const char *icon, const char *summary, const char *body);
+void
+file_cleanup(void);
+
+void
+notify_send(const char *icon, const char *summary, const char *body);
 
 #endif /* !MPDCRON_GUARD_NOTIFICATION_DEFS_H */

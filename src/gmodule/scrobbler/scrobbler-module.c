@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -40,7 +40,8 @@ static struct mpd_song *prev = NULL;
 static GTimer *timer = NULL;
 static int save_source_id = -1;
 
-static bool played_long_enough(int elapsed, int length)
+static bool
+played_long_enough(int elapsed, int length)
 {
 	/* http://www.lastfm.de/api/submissions "The track must have been
 	   played for a duration of at least 240 seconds or half the track's
@@ -51,14 +52,16 @@ static bool played_long_enough(int elapsed, int length)
 	return elapsed > 240 || (length >= 30 && elapsed > length / 2);
 }
 
-static bool song_repeated(const struct mpd_song *song, int elapsed, int prev_elapsed)
+static bool
+song_repeated(const struct mpd_song *song, int elapsed, int prev_elapsed)
 {
 	return elapsed < 60 && prev_elapsed > elapsed &&
 		played_long_enough(prev_elapsed - elapsed,
 				mpd_song_get_duration(song));
 }
 
-static void song_changed(const struct mpd_song *song)
+static void
+song_changed(const struct mpd_song *song)
 {
 	g_assert(song != NULL);
 
@@ -83,12 +86,14 @@ static void song_changed(const struct mpd_song *song)
 			mpd_song_get_duration(song));
 }
 
-static void song_started(const struct mpd_song *song)
+static void
+song_started(const struct mpd_song *song)
 {
 	song_changed(song);
 }
 
-static void song_ended(const struct mpd_song *song)
+static void
+song_ended(const struct mpd_song *song)
 {
 	int elapsed;
 
@@ -128,7 +133,8 @@ static void song_ended(const struct mpd_song *song)
 			NULL);
 }
 
-static void song_playing(const struct mpd_song *song, unsigned elapsed)
+static void
+song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	int prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (song_repeated(song, elapsed, prev_elapsed)) {
@@ -138,26 +144,30 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 	}
 }
 
-static void song_continued(void)
+static void
+song_continued(void)
 {
 	g_timer_continue(timer);
 }
 
-static void song_paused(void)
+static void
+song_paused(void)
 {
 	if (!was_paused)
 		g_timer_stop(timer);
 	was_paused = true;
 }
 
-static void song_stopped(void)
+static void
+song_stopped(void)
 {
 	last_id = -1;
 	was_paused = false;
 }
 
 /* Module functions */
-static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
+static int
+init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	/* Parse configuration */
 	if (file_load(fd) < 0)
@@ -172,7 +182,8 @@ static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 	return MPDCRON_INIT_SUCCESS;
 }
 
-static void destroy(void)
+static void
+destroy(void)
 {
 	mpdcron_log(LOG_INFO, "Exiting");
 	file_cleanup();
@@ -185,7 +196,8 @@ static void destroy(void)
 		mpd_song_free(prev);
 }
 
-static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_song *song, const struct mpd_status *status)
 {
 	enum mpd_state state;

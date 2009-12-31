@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -35,7 +35,8 @@ struct module_data {
 
 static GSList *modules = NULL;
 
-static char *module_path(const char *modname, int *user_r)
+static char *
+module_path(const char *modname, int *user_r)
 {
 	char *name, *path;
 
@@ -68,7 +69,8 @@ static char *module_path(const char *modname, int *user_r)
 	return NULL;
 }
 
-static int module_init_one(const char *modname, GKeyFile *config_fd)
+static int
+module_init_one(const char *modname, GKeyFile *config_fd)
 {
 	struct module_data *mod;
 
@@ -112,7 +114,8 @@ static int module_init_one(const char *modname, GKeyFile *config_fd)
 	return 0;
 }
 
-static void module_destroy_one(gpointer data, gpointer userdata)
+static void
+module_destroy_one(gpointer data, gpointer userdata)
 {
 	int gclose;
 	struct module_data *mod;
@@ -129,7 +132,8 @@ static void module_destroy_one(gpointer data, gpointer userdata)
 	g_free(mod);
 }
 
-static int module_process_ret(int ret, struct module_data *mod, GSList **slink_r, GSList **slist_r)
+static int
+module_process_ret(int ret, struct module_data *mod, GSList **slink_r, GSList **slist_r)
 {
 	switch (ret) {
 		case MPDCRON_EVENT_SUCCESS:
@@ -162,19 +166,22 @@ static int module_process_ret(int ret, struct module_data *mod, GSList **slink_r
 	}
 }
 
-int module_load(const char *modname, GKeyFile *config_fd)
+int
+module_load(const char *modname, GKeyFile *config_fd)
 {
 	return module_init_one(modname, config_fd);
 }
 
-void module_close(int gclose)
+void
+module_close(int gclose)
 {
 	g_slist_foreach(modules, module_destroy_one, GINT_TO_POINTER(gclose));
 	g_slist_free(modules);
 	modules = NULL;
 }
 
-int module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats)
+int
+module_database_run(const struct mpd_connection *conn, const struct mpd_stats *stats)
 {
 	int mret, ret;
 	GSList *walk;
@@ -193,7 +200,8 @@ int module_database_run(const struct mpd_connection *conn, const struct mpd_stat
 	return ret;
 }
 
-int module_stored_playlist_run(const struct mpd_connection *conn)
+int
+module_stored_playlist_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
@@ -212,7 +220,8 @@ int module_stored_playlist_run(const struct mpd_connection *conn)
 	return ret;
 }
 
-int module_queue_run(const struct mpd_connection *conn)
+int
+module_queue_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
@@ -231,7 +240,8 @@ int module_queue_run(const struct mpd_connection *conn)
 	return ret;
 }
 
-extern int module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
+int
+module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
 		const struct mpd_status *status)
 {
 	int mret, ret;
@@ -251,7 +261,8 @@ extern int module_player_run(const struct mpd_connection *conn, const struct mpd
 	return ret;
 }
 
-int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status)
+int
+module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
 	int mret, ret;
 	GSList *walk;
@@ -270,7 +281,8 @@ int module_mixer_run(const struct mpd_connection *conn, const struct mpd_status 
 	return ret;
 }
 
-int module_output_run(const struct mpd_connection *conn)
+int
+module_output_run(const struct mpd_connection *conn)
 {
 	int mret, ret;
 	GSList *walk;
@@ -289,7 +301,8 @@ int module_output_run(const struct mpd_connection *conn)
 	return ret;
 }
 
-int module_options_run(const struct mpd_connection *conn, const struct mpd_status *status)
+int
+module_options_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
 	int mret, ret;
 	GSList *walk;
@@ -308,7 +321,8 @@ int module_options_run(const struct mpd_connection *conn, const struct mpd_statu
 	return ret;
 }
 
-int module_update_run(const struct mpd_connection *conn, const struct mpd_status *status)
+int
+module_update_run(const struct mpd_connection *conn, const struct mpd_status *status)
 {
 	int mret, ret;
 	GSList *walk;

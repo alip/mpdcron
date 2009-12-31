@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -23,7 +23,8 @@
 #include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
-static int event_database(struct mpd_connection *conn)
+static int
+event_database(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -46,7 +47,8 @@ static int event_database(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_stored_playlist(struct mpd_connection *conn)
+static int
+event_stored_playlist(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -68,7 +70,8 @@ static int event_stored_playlist(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_queue(struct mpd_connection *conn G_GNUC_UNUSED)
+static int
+event_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 {
 	int ret;
 	const char *name;
@@ -91,7 +94,8 @@ static int event_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 	return ret;
 }
 
-static int event_player(struct mpd_connection *conn)
+static int
+event_player(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -118,7 +122,8 @@ static int event_player(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_mixer(struct mpd_connection *conn)
+static int
+event_mixer(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -141,7 +146,8 @@ static int event_mixer(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_output(struct mpd_connection *conn)
+static int
+event_output(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -163,7 +169,8 @@ static int event_output(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_options(struct mpd_connection *conn)
+static int
+event_options(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -186,7 +193,8 @@ static int event_options(struct mpd_connection *conn)
 	return ret;
 }
 
-static int event_update(struct mpd_connection *conn)
+static int
+event_update(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
@@ -209,7 +217,8 @@ static int event_update(struct mpd_connection *conn)
 	return ret;
 }
 
-int event_run(struct mpd_connection *conn, enum mpd_idle event)
+int
+event_run(struct mpd_connection *conn, enum mpd_idle event)
 {
 	switch (event) {
 		case MPD_IDLE_DATABASE:

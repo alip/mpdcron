@@ -1,4 +1,4 @@
-/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet ai cin fdm=syntax : */
+/* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
  * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
@@ -39,25 +39,29 @@ static unsigned last_id = -1;
 static GTimer *timer = NULL;
 
 /* Utility functions */
-static void song_paused(void)
+static void
+song_paused(void)
 {
 	if (!was_paused)
 		g_timer_stop(timer);
 	was_paused = true;
 }
 
-static void song_stopped(void)
+static void
+song_stopped(void)
 {
 	last_id = -1;
 	was_paused = false;
 }
 
-static void song_continued(void)
+static void
+song_continued(void)
 {
 	g_timer_continue(timer);
 }
 
-static void song_changed(const struct mpd_song *song)
+static void
+song_changed(const struct mpd_song *song)
 {
 	const char *summary;
 	char *cpath, *body;
@@ -93,12 +97,14 @@ static void song_changed(const struct mpd_song *song)
 	g_free(cpath);
 }
 
-static void song_started(const struct mpd_song *song)
+static void
+song_started(const struct mpd_song *song)
 {
 	song_changed(song);
 }
 
-static void song_playing(const struct mpd_song *song, unsigned elapsed)
+static void
+song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
@@ -107,7 +113,8 @@ static void song_playing(const struct mpd_song *song, unsigned elapsed)
 	}
 }
 
-static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
+static int
+init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	was_paused = false;
 	last_id = -1;
@@ -121,14 +128,16 @@ static int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 	return MPDCRON_INIT_SUCCESS;
 }
 
-static void destroy(void)
+static void
+destroy(void)
 {
 	mpdcron_log(LOG_INFO, "Exiting");
 	file_cleanup();
 	g_timer_destroy(timer);
 }
 
-static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_stats *stats)
 {
 	time_t t;
@@ -171,7 +180,8 @@ static int event_database(G_GNUC_UNUSED const struct mpd_connection *conn,
 	return MPDCRON_EVENT_SUCCESS;
 }
 
-static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_song *song, const struct mpd_status *status)
 {
 	enum mpd_state state;
@@ -214,7 +224,8 @@ static int event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	return MPDCRON_EVENT_SUCCESS;
 }
 
-static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_status *status)
 {
 	char *summary;
@@ -230,7 +241,8 @@ static int event_mixer(G_GNUC_UNUSED const struct mpd_connection *conn,
 	return MPDCRON_EVENT_SUCCESS;
 }
 
-static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_status *status)
 {
 	char *body;
@@ -255,7 +267,8 @@ static int event_options(G_GNUC_UNUSED const struct mpd_connection *conn,
 	return MPDCRON_EVENT_SUCCESS;
 }
 
-static int event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
+static int
+event_update(G_GNUC_UNUSED const struct mpd_connection *conn,
 		const struct mpd_status *status)
 {
 	char *summary;

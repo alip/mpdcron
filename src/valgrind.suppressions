@@ -1,0 +1,450 @@
+# Valgrind suppressions file for mpdcron
+
+
+{
+	g_main_context_dispatch
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:g_source_new
+	fun:g_idle_source_new
+	fun:g_simple_async_result_complete_in_idle
+	fun:accept_ready
+	fun:g_main_context_dispatch
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_node_any_new_W
+	fun:g_type_register_static
+	fun:g_type_plugin_get_type
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_node_any_new_W
+	fun:g_type_register_static
+	fun:g_boxed_type_register_static
+	fun:g_value_array_get_type
+	fun:g_param_spec_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_node_any_new_W
+	fun:g_type_register_static
+	fun:g_gtype_get_type
+	fun:g_param_spec_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:realloc
+	fun:g_realloc
+	fun:type_node_any_new_W
+	fun:g_type_register_static
+	fun:g_param_type_register_static
+	fun:g_param_spec_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_boxed_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_boxed_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_param_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_param_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_register_fundamental
+	fun:g_param_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_object_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:malloc
+	fun:realloc
+	fun:g_realloc
+	fun:type_add_flags_W
+	fun:g_type_register_fundamental
+	fun:g_object_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_register_fundamental
+	fun:g_object_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_register_fundamental
+	fun:g_boxed_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_data_make_W
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_object_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_param_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_boxed_type_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_enum_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_type_init
+	Memcheck:Leak
+	fun:calloc
+	fun:g_malloc0
+	fun:type_node_any_new_W
+	fun:type_node_fundamental_new_W
+	fun:g_type_register_fundamental
+	fun:g_value_types_init
+	fun:g_type_init_with_debug_flags
+}
+
+{
+	g_socket_service_changed
+	Memcheck:Leak
+	fun:malloc
+	fun:g_malloc
+	fun:g_slice_alloc
+	fun:g_slice_alloc0
+	fun:g_type_create_instance
+	fun:g_object_constructor
+	fun:g_object_newv
+	fun:g_object_new_valist
+	fun:g_object_new
+	fun:g_simple_async_result_new
+	fun:g_socket_listener_accept_socket_async
+	fun:g_socket_service_changed
+}

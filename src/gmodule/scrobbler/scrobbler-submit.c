@@ -657,7 +657,7 @@ as_songchange(const char *file, const char *artist, const char *track,
 	record.time = time2 ? g_strdup(time2) : as_timestamp();
 	record.source = strstr(file, "://") == NULL ? "P" : "R";
 
-	mpdcron_log(LOG_INFO, "%s, songchange: %s - %s (%i)\n",
+	mpdcron_log(LOG_INFO, "%s, songchange: %s - %s (%i)",
 			record.time, record.artist,
 			record.track, record.length);
 

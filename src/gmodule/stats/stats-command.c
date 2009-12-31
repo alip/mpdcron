@@ -350,6 +350,207 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_list(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_song_expr(db, argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_song_data *song = (struct db_song_data *) walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		db_song_data_free(song);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_list_artist(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_artist_expr(db, argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_list_album(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_album_expr(db, argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->artist);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_list_genre(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+	sqlite3 *db;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	if (client->perm & PERMISSION_UPDATE)
+		db = db_init(globalconf.dbpath, true, false, &error);
+	else
+		db = db_init(globalconf.dbpath, false, true, &error);
+	if (db == NULL) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_genre_expr(db, argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		db_close(db);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		db_close(db);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	db_close(db);
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
 handle_love(struct client *client, int argc, char **argv)
 {
 	bool love;
@@ -870,6 +1071,11 @@ static const struct command commands[] = {
 	{ "kill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },
 	{ "kill_artist", PERMISSION_UPDATE, 1, 1, handle_kill_artist },
 	{ "kill_genre", PERMISSION_UPDATE, 1, 1, handle_kill_genre },
+
+	{ "list", PERMISSION_SELECT, 1, 1, handle_list },
+	{ "list_album", PERMISSION_SELECT, 1, 1, handle_list_album },
+	{ "list_artist", PERMISSION_SELECT, 1, 1, handle_list_artist },
+	{ "list_genre", PERMISSION_SELECT, 1, 1, handle_list_genre },
 
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },

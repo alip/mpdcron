@@ -1268,6 +1268,60 @@ db_process(sqlite3 *db, const struct mpd_song *song, bool increment,
  * Main Interface
  */
 
+/**
+ * List song/artist/album/genre
+ */
+bool
+db_list_artist_expr(sqlite3 *db, const char *expr, GSList **values,
+		GError **error)
+{
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	if (!sql_select_artist(db, "id, name", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool
+db_list_album_expr(sqlite3 *db, const char *expr, GSList **values,
+		GError **error)
+{
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	if (!sql_select_album(db, "id, name, artist", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool
+db_list_genre_expr(sqlite3 *db, const char *expr, GSList **values,
+		GError **error)
+{
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	if (!sql_select_genre(db, "id, name", expr, cb_save, values, error))
+		return false;
+	return true;
+}
+
+bool
+db_list_song_expr(sqlite3 *db, const char *expr, GSList **values,
+		GError **error)
+{
+	g_assert(db != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	if (!sql_select_song(db, "id, uri", expr, cb_save_song, values, error))
+		return false;
+	return true;
+}
 
 /**
  * Love/Hate song/artist/album/genre

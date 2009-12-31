@@ -666,6 +666,54 @@ mpdcron_password(struct mpdcron_connection *conn, const char *password)
 }
 
 bool
+mpdcron_list_album_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "list_album", expr, NULL))
+		return false;
+	return mpdcron_parse_albums(conn, values);
+}
+
+bool
+mpdcron_list_artist_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "list_artist", expr, NULL))
+		return false;
+	return mpdcron_parse_artists(conn, values);
+}
+
+bool
+mpdcron_list_genre_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "list_genre", expr, NULL))
+		return false;
+	return mpdcron_parse_genres(conn, values);
+}
+
+bool
+mpdcron_list_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "list", expr, NULL))
+		return false;
+	return mpdcron_parse_songs(conn, values);
+}
+
+bool
 mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values)
 {

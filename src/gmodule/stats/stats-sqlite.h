@@ -96,6 +96,18 @@ bool
 db_process(sqlite3 *db, const struct mpd_song *song, bool increment, GError **error);
 
 bool
+db_list_artist_expr(sqlite3 *db, const char *expr, GSList **values, GError **error);
+
+bool
+db_list_album_expr(sqlite3 *db, const char *expr, GSList **values, GError **error);
+
+bool
+db_list_genre_expr(sqlite3 *db, const char *expr, GSList **values, GError **error);
+
+bool
+db_list_song_expr(sqlite3 *db, const char *expr, GSList **values, GError **error);
+
+bool
 db_love_artist_expr(sqlite3 *db, const char *expr, bool love, GSList **values, GError **error);
 
 bool

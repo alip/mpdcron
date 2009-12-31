@@ -124,6 +124,22 @@ bool
 mpdcron_password(struct mpdcron_connection *conn, const char *password);
 
 bool
+mpdcron_list_album_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_list_artist_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_list_genre_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values);
+
+bool
+mpdcron_list_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values);
+
+bool
 mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
 		const char *expr, GSList **values);
 

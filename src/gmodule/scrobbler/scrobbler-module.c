@@ -186,10 +186,10 @@ static void
 destroy(void)
 {
 	mpdcron_log(LOG_INFO, "Exiting");
-	file_cleanup();
 	as_save_cache();
 	as_cleanup();
 	http_client_finish();
+	file_cleanup();
 	g_timer_destroy(timer);
 	g_source_remove(save_source_id);
 	if (prev != NULL)

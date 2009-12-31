@@ -117,10 +117,8 @@ file_load(GKeyFile *fd)
 		g_error_free(error);
 		return -1;
 	}
-	else if (file_config.journal_interval <= 0) {
-		mpdcron_log(LOG_ERR, "Journal interval has to be greater than zero");
-		return -1;
-	}
+	else if (file_config.journal_interval <= 0)
+		file_config.journal_interval = 60;
 
 	if ((scrobbler = load_scrobbler(fd, "libre.fm")) != NULL) {
 		file_config.scrobblers = g_slist_prepend(file_config.scrobblers, scrobbler);

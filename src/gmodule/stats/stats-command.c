@@ -46,6 +46,27 @@ struct command {
 
 static const char *current_command;
 
+static int
+command_authorizer(void *userdata, int what,
+		G_GNUC_UNUSED const char *arg1,
+		G_GNUC_UNUSED const char *arg2,
+		G_GNUC_UNUSED const char *dbname,
+		G_GNUC_UNUSED const char *view)
+{
+	struct client *client = (struct client *) userdata;
+
+	switch (what) {
+	case SQLITE_SELECT:
+		return SQLITE_OK;
+	case SQLITE_UPDATE:
+		if (client->perm & PERMISSION_UPDATE)
+			return SQLITE_OK;
+		/* fall through */
+	default:
+		return SQLITE_DENY;
+	}
+}
+
 static void
 command_ok(struct client *client)
 {
@@ -999,6 +1020,15 @@ command_process(struct client *client, char *line)
 
 	if (*line != 0) {
 		command_error(client, ACK_ERROR_ARG, "%s", error->message);
+		current_command = NULL;
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	/* Remove the previous authorizer */
+	if (!db_set_authorizer(NULL, NULL, &error) ||
+			!db_set_authorizer(command_authorizer, client, &error)) {
+		command_error(client, error->code, "%s", error->message);
 		current_command = NULL;
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;

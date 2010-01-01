@@ -66,13 +66,14 @@ enum dback {
 	ACK_ERROR_DATABASE_OPEN = 100,
 	ACK_ERROR_DATABASE_CREATE = 101,
 	ACK_ERROR_DATABASE_VERSION = 102,
-	ACK_ERROR_DATABASE_INSERT = 103,
-	ACK_ERROR_DATABASE_SELECT = 104,
-	ACK_ERROR_DATABASE_UPDATE = 105,
-	ACK_ERROR_DATABASE_PREPARE = 106,
-	ACK_ERROR_DATABASE_BIND = 107,
-	ACK_ERROR_DATABASE_STEP = 108,
-	ACK_ERROR_DATABASE_RESET = 109,
+	ACK_ERROR_DATABASE_AUTH = 103,
+	ACK_ERROR_DATABASE_INSERT = 104,
+	ACK_ERROR_DATABASE_SELECT = 105,
+	ACK_ERROR_DATABASE_UPDATE = 106,
+	ACK_ERROR_DATABASE_PREPARE = 107,
+	ACK_ERROR_DATABASE_BIND = 108,
+	ACK_ERROR_DATABASE_STEP = 109,
+	ACK_ERROR_DATABASE_RESET = 110,
 
 	ACK_ERROR_NO_EXIST = 150,
 	ACK_ERROR_NO_TAGS = 151,
@@ -95,6 +96,10 @@ db_init(const char *path, bool create, bool readonly, GError **error);
 
 void
 db_close(void);
+
+bool
+db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *, const char *,const char *),
+		void *userdata, GError **error);
 
 bool
 db_start_transaction(GError **error);

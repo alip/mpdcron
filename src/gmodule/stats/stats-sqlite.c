@@ -1168,6 +1168,22 @@ db_close(void)
 	gdb = NULL;
 }
 
+bool
+db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *,
+			const char *,const char *),
+		void *userdata, GError **error)
+{
+	g_assert(gdb != NULL);
+
+	if (sqlite3_set_authorizer(gdb, xAuth, userdata) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_AUTH,
+				"sqlite3_set_authorizer: %s",
+				sqlite3_errmsg(gdb));
+		return false;
+	}
+	return true;
+}
+
 /**
  * Database Interaction
  */

@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -224,12 +224,19 @@ main(int argc, char **argv)
 
 		/* Send OK to parent process */
 		daemon_retval_send(0);
-		/* Load modules, connect and start the main loop */
+
+		/* Create the main loop */
+		loop = g_main_loop_new(NULL, FALSE);
+
+		/* Add initial events */
+		loop_connect();
+
+		/* Load modules which may add initial events as well.*/
 		keyfile_load_modules(&cfd);
 		g_key_file_free(cfd);
 		cfd = NULL;
-		loop = g_main_loop_new(NULL, FALSE);
-		loop_connect();
+
+		/* Run the main loop */
 		g_main_loop_run(loop);
 		cleanup();
 		return EXIT_SUCCESS;

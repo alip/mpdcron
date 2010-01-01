@@ -172,12 +172,18 @@ main(int argc, char **argv)
 #undef HANDLE_SIGNAL
 
 	if (conf.no_daemon) {
-		/* Load modules, connect and start the main loop. */
+		/* Create the main loop */
+		loop = g_main_loop_new(NULL, FALSE);
+
+		/* Add initial events */
+		loop_connect();
+
+		/* Load modules which may add initial events as well.*/
 		keyfile_load_modules(&cfd);
 		g_key_file_free(cfd);
 		cfd = NULL;
-		loop = g_main_loop_new(NULL, FALSE);
-		loop_connect();
+
+		/* Run the main loop */
 		g_main_loop_run(loop);
 		cleanup();
 		return EXIT_SUCCESS;

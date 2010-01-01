@@ -56,6 +56,7 @@ command_authorizer(void *userdata, int what,
 	struct client *client = (struct client *) userdata;
 
 	switch (what) {
+	case SQLITE_READ:
 	case SQLITE_SELECT:
 		return SQLITE_OK;
 	case SQLITE_UPDATE:

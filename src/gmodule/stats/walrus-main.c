@@ -25,7 +25,6 @@
 
 #include <glib.h>
 #include <mpd/client.h>
-#include <sqlite3.h>
 
 static char *dbpath = NULL;
 static int keepgoing = 0;
@@ -37,7 +36,7 @@ static GOptionEntry options[] = {
 };
 
 static bool
-run_update(sqlite3 *db, int kg, const char *path)
+run_update(int kg, const char *path)
 {
 	const char *hostname;
 	const char *port;
@@ -85,7 +84,7 @@ run_update(sqlite3 *db, int kg, const char *path)
 		if (mpd_entity_get_type(entity) == MPD_ENTITY_TYPE_SONG) {
 			song = mpd_entity_get_song(entity);
 			error = NULL;
-			if (!db_process(db, song, false, &error)) {
+			if (!db_process(song, false, &error)) {
 				g_printerr("Failed to process song %s: %s\n",
 						mpd_song_get_uri(song),
 						error->message);
@@ -107,10 +106,8 @@ run_update(sqlite3 *db, int kg, const char *path)
 int
 main(int argc, char **argv)
 {
-	char *errmsg;
 	GOptionContext *ctx;
 	GError *error;
-	sqlite3 *db;
 
 	ctx = g_option_context_new("[PATH...]");
 	g_option_context_add_main_entries(ctx, options, "walrus");
@@ -128,7 +125,7 @@ main(int argc, char **argv)
 		dbpath = xload_dbpath();
 
 	error = NULL;
-	if ((db = db_init(dbpath, true, false, &error)) == NULL) {
+	if (!db_init(dbpath, true, false, &error)) {
 		g_printerr("Failed to load database `%s': %s\n", dbpath, error->message);
 		g_error_free(error);
 		g_free(dbpath);
@@ -136,36 +133,39 @@ main(int argc, char **argv)
 	}
 	g_free(dbpath);
 
-	if (sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, &errmsg) != SQLITE_OK) {
-		g_printerr("Failed to begin transaction: %s\n", errmsg);
-		sqlite3_free(errmsg);
-		sqlite3_close(db);
+	error = NULL;
+	if (!db_start_transaction(&error)) {
+		g_printerr("Failed to begin transaction: %s\n", error->message);
+		g_error_free(error);
+		db_close();
 		return 1;
 	}
 
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {
 			fprintf(stderr, "* Updating %s\n", argv[i]);
-			if (!run_update(db, keepgoing, argv[i])) {
-				sqlite3_close(db);
+			if (!run_update(keepgoing, argv[i])) {
+				db_close();
 				return 1;
 			}
 		}
 	}
 	else {
 		fprintf(stderr, "* Updating /\n");
-		if (!run_update(db, keepgoing, NULL)) {
-			sqlite3_close(db);
+		if (!run_update(keepgoing, NULL)) {
+			db_close();
 			return 1;
 		}
 	}
 
-	if (sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, &errmsg) != SQLITE_OK) {
-		g_printerr("Failed to end transaction: %s\n", errmsg);
-		sqlite3_free(errmsg);
-		sqlite3_close(db);
+	error = NULL;
+	if (!db_end_transaction(&error)) {
+		g_printerr("Failed to end transaction: %s\n", error->message);
+		g_error_free(error);
+		db_close();
 		return 1;
 	}
-	sqlite3_close(db);
+
+	db_close();
 	return 0;
 }

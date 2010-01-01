@@ -139,29 +139,16 @@ handle_kill(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_kill_song_expr(db, argv[1], kkill, &values, &error)) {
+	if (!db_kill_song_expr(argv[1], kkill, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -178,11 +165,9 @@ handle_kill(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -193,29 +178,16 @@ handle_kill_album(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_album") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_kill_album_expr(db, argv[1], kkill, &values, &error)) {
+	if (!db_kill_album_expr(argv[1], kkill, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -233,11 +205,9 @@ handle_kill_album(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -248,29 +218,16 @@ handle_kill_artist(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_artist") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_kill_artist_expr(db, argv[1], kkill, &values, &error)) {
+	if (!db_kill_artist_expr(argv[1], kkill, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -287,11 +244,9 @@ handle_kill_artist(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -302,29 +257,17 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_genre") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_kill_genre_expr(db, argv[1], kkill, &values, &error)) {
+	if (!db_kill_genre_expr(argv[1], kkill, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
+		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -341,11 +284,9 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -355,27 +296,15 @@ handle_list(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_list_song_expr(db, argv[1], &values, &error)) {
+	if (!db_list_song_expr(argv[1], &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
+		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -391,11 +320,9 @@ handle_list(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -405,27 +332,14 @@ handle_list_artist(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_list_artist_expr(db, argv[1], &values, &error)) {
+	if (!db_list_artist_expr(argv[1], &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -441,11 +355,9 @@ handle_list_artist(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -455,27 +367,14 @@ handle_list_album(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_list_album_expr(db, argv[1], &values, &error)) {
+	if (!db_list_album_expr(argv[1], &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -492,11 +391,9 @@ handle_list_album(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -506,27 +403,14 @@ handle_list_genre(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_list_genre_expr(db, argv[1], &values, &error)) {
+	if (!db_list_genre_expr(argv[1], &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -542,11 +426,9 @@ handle_list_genre(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -557,29 +439,17 @@ handle_love(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_love_song_expr(db, argv[1], love, &values, &error)) {
+	if (!db_love_song_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
+		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -596,11 +466,9 @@ handle_love(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -611,29 +479,17 @@ handle_love_album(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_album") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_love_album_expr(db, argv[1], love, &values, &error)) {
+	if (!db_love_album_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
+		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -651,11 +507,9 @@ handle_love_album(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -666,29 +520,17 @@ handle_love_artist(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_artist") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_love_artist_expr(db, argv[1], love, &values, &error)) {
+	if (!db_love_artist_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
+		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -705,11 +547,9 @@ handle_love_artist(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -720,29 +560,16 @@ handle_love_genre(struct client *client, int argc, char **argv)
 	int count;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_genre") == 0);
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_love_genre_expr(db, argv[1], love, &values, &error)) {
+	if (!db_love_genre_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -759,11 +586,9 @@ handle_love_genre(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -775,7 +600,6 @@ handle_rate(struct client *client, int argc, char **argv)
 	char *endptr;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 3);
 
@@ -797,22 +621,10 @@ handle_rate(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_rate_song_expr(db, argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_song_expr(argv[1], (int)rating, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -829,11 +641,9 @@ handle_rate(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -845,7 +655,6 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 	char *endptr;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 3);
 
@@ -867,22 +676,10 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_rate_artist_expr(db, argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_artist_expr(argv[1], (int)rating, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -899,11 +696,9 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -915,7 +710,6 @@ handle_rate_album(struct client *client, int argc, char **argv)
 	char *endptr;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 3);
 
@@ -937,22 +731,10 @@ handle_rate_album(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_rate_album_expr(db, argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_album_expr(argv[1], (int)rating, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -970,11 +752,9 @@ handle_rate_album(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 
@@ -986,7 +766,6 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 	char *endptr;
 	GError *error;
 	GSList *values, *walk;
-	sqlite3 *db;
 
 	g_assert(argc == 3);
 
@@ -1008,22 +787,10 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (client->perm & PERMISSION_UPDATE)
-		db = db_init(globalconf.dbpath, true, false, &error);
-	else
-		db = db_init(globalconf.dbpath, false, true, &error);
-	if (db == NULL) {
-		command_error(client, error->code, "%s", error->message);
-		g_error_free(error);
-		return COMMAND_RETURN_ERROR;
-	}
-
-	error = NULL;
 	values = NULL;
-	if (!db_rate_genre_expr(db, argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_genre_expr(argv[1], (int)rating, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close(db);
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -1039,11 +806,9 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 
 	if (count > 0) {
 		command_ok(client);
-		db_close(db);
 		return COMMAND_RETURN_OK;
 	}
 	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	db_close(db);
 	return COMMAND_RETURN_ERROR;
 }
 

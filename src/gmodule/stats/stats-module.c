@@ -62,7 +62,6 @@ song_ended(const struct mpd_song *song)
 {
 	int elapsed;
 	GError *error;
-	sqlite3 *db;
 
 	g_assert(song != NULL);
 
@@ -82,19 +81,10 @@ song_ended(const struct mpd_song *song)
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
 	error = NULL;
-	if ((db = db_init(globalconf.dbpath, true, false, &error)) == NULL) {
-		mpdcron_log(LOG_WARNING, "%s", error->message);
+	if (!db_process(song, true, &error)) {
+		mpdcron_log(LOG_WARNING, "Saving old song failed: %s", error->message);
 		g_error_free(error);
-		return;
 	}
-
-	error = NULL;
-	if (!db_process(db, song, true, &error)) {
-		mpdcron_log(LOG_WARNING, "%s", error->message);
-		g_error_free(error);
-		sqlite3_close(db);
-	}
-	db_close(db);
 }
 
 static void
@@ -133,12 +123,24 @@ song_stopped(void)
 static int
 init(const struct mpdcron_config *conf, GKeyFile *fd)
 {
+	GError *error;
 	mpdcron_log(LOG_INFO, "Initializing");
 
 	/* Load configuration */
 	if (file_load(conf, fd) < 0)
 		return MPDCRON_INIT_FAILURE;
 
+	/* Initialize database */
+	error = NULL;
+	if (!db_init(globalconf.dbpath, true, false, &error)) {
+		mpdcron_log(LOG_ERR, "Failed to initialize database `%s': %s",
+				globalconf.dbpath, error->message);
+		g_error_free(error);
+		file_cleanup();
+		return MPDCRON_INIT_FAILURE;
+	}
+
+	/* Initialize, bind and start the server */
 	server_init();
 	for (unsigned int i = 0; globalconf.addrs[i] != NULL; i++) {
 		if (strncmp(globalconf.addrs[i], "any", 4) == 0)
@@ -161,8 +163,9 @@ destroy(void)
 	if (prev != NULL)
 		mpd_song_free(prev);
 	g_timer_destroy(timer);
-	file_cleanup();
 	server_close();
+	db_close();
+	file_cleanup();
 }
 
 static int

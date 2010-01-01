@@ -764,7 +764,7 @@ db_update_song(const struct mpd_song *song, int id,
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_int(db_stmt[SQL_UPDATE_SONG], 18, id)) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_BIND,
-				"%s", sqlite3_errmsg(gdb));
+				"sqlite3_bind: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
@@ -774,7 +774,7 @@ db_update_song(const struct mpd_song *song, int id,
 
 	if (ret != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
-				"%s", sqlite3_errmsg(gdb));
+				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 	return true;

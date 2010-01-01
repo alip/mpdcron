@@ -80,7 +80,7 @@ quote(const char *src)
 
 	while (*p != 0) {
 		if (*p == '\'')
-			g_string_append(dest, "\\\'");
+			g_string_append(dest, "''");
 		else
 			g_string_append_c(dest, *p);
 		++p;

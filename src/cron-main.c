@@ -175,13 +175,13 @@ main(int argc, char **argv)
 		/* Create the main loop */
 		loop = g_main_loop_new(NULL, FALSE);
 
-		/* Add initial events */
-		loop_connect();
-
-		/* Load modules which may add initial events as well.*/
+		/* Load modules which may add initial events */
 		keyfile_load_modules(&cfd);
 		g_key_file_free(cfd);
 		cfd = NULL;
+
+		/* Add default initial events */
+		loop_connect();
 
 		/* Run the main loop */
 		g_main_loop_run(loop);
@@ -234,13 +234,13 @@ main(int argc, char **argv)
 		/* Create the main loop */
 		loop = g_main_loop_new(NULL, FALSE);
 
-		/* Add initial events */
-		loop_connect();
-
-		/* Load modules which may add initial events as well.*/
+		/* Load modules which may add initial events */
 		keyfile_load_modules(&cfd);
 		g_key_file_free(cfd);
 		cfd = NULL;
+
+		/* Add default initial events */
+		loop_connect();
 
 		/* Run the main loop */
 		g_main_loop_run(loop);

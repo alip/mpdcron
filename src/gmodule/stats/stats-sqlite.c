@@ -61,9 +61,9 @@ enum {
 	SQL_UPDATE_GENRE,
 };
 
-#define DB_VERSION	8
+#define DB_VERSION	9
 static const char * const db_sql_maint[] = {
-	[SQL_SET_VERSION] = "PRAGMA user_version = 8;",
+	[SQL_SET_VERSION] = "PRAGMA user_version = 9;",
 	[SQL_GET_VERSION] = "PRAGMA user_version;",
 
 	[SQL_SET_ENCODING] = "PRAGMA encoding = \"UTF-8\";",
@@ -110,7 +110,7 @@ static const char * const db_sql_maint[] = {
 			"\trating          INTEGER);\n",
 	[SQL_DB_CREATE_GENRE] =
 		"create table genre(\n"
-			"\tid              INTEGER_PRIMARY_KEY,\n"
+			"\tid              INTEGER PRIMARY KEY,\n"
 			"\tplay_count      INTEGER,\n"
 			"\tname            TEXT UNIQUE NOT NULL,\n"
 			"\tlove            INTEGER,\n"

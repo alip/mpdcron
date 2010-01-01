@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon libmpdclient which is:
  *   Copyright (c) 2003-2009 The Music Player Daemon Project
  *
@@ -277,6 +277,10 @@ mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 				g_assert(album != NULL);
 				album->rating = atoi(conn->parser->u.pair.value);
 			}
+			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+				g_assert(album != NULL);
+				album->play_count = atoi(conn->parser->u.pair.value);
+			}
 			g_free(line);
 			break;
 		}
@@ -343,6 +347,10 @@ mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
 				g_assert(artist != NULL);
 				artist->rating = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+				g_assert(artist != NULL);
+				artist->play_count = atoi(conn->parser->u.pair.value);
 			}
 			g_free(line);
 			break;
@@ -411,6 +419,10 @@ mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 					g_assert(genre != NULL);
 					genre->rating = atoi(conn->parser->u.pair.value);
 				}
+				else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+					g_assert(genre != NULL);
+					genre->play_count = atoi(conn->parser->u.pair.value);
+				}
 				g_free(line);
 				break;
 		}
@@ -477,6 +489,10 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
 				g_assert(song != NULL);
 				song->rating = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+				g_assert(song != NULL);
+				song->play_count = atoi(conn->parser->u.pair.value);
 			}
 			g_free(line);
 			break;
@@ -712,6 +728,55 @@ mpdcron_list_expr(struct mpdcron_connection *conn,
 		return false;
 	return mpdcron_parse_songs(conn, values);
 }
+
+bool
+mpdcron_listinfo_album_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "listinfo_album", expr, NULL))
+		return false;
+	return mpdcron_parse_albums(conn, values);
+}
+
+bool
+mpdcron_listinfo_artist_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "listinfo_artist", expr, NULL))
+		return false;
+	return mpdcron_parse_artists(conn, values);
+}
+
+bool
+mpdcron_listinfo_genre_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "listinfo_genre", expr, NULL))
+		return false;
+	return mpdcron_parse_genres(conn, values);
+}
+
+bool
+mpdcron_listinfo_expr(struct mpdcron_connection *conn,
+		const char *expr, GSList **values)
+{
+	g_assert(conn != NULL);
+	g_assert(values != NULL);
+
+	if (!mpdcron_send_command(conn, "listinfo", expr, NULL))
+		return false;
+	return mpdcron_parse_songs(conn, values);
+}
+
 
 bool
 mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,

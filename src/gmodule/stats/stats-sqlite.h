@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -29,6 +29,7 @@
 
 struct db_generic_data {
 	int id;
+	int play_count;
 	int love;
 	int kill;
 	int rating;
@@ -121,6 +122,18 @@ db_list_genre_expr(const char *expr, GSList **values, GError **error);
 
 bool
 db_list_song_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_listinfo_artist_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_listinfo_album_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_listinfo_genre_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_listinfo_song_expr(const char *expr, GSList **values, GError **error);
 
 bool
 db_love_artist_expr(const char *expr, bool love, GSList **values, GError **error);

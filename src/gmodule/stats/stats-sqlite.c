@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -22,7 +22,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include <glib.h>
 #include <libdaemon/dlog.h>
@@ -62,9 +61,9 @@ enum {
 	SQL_UPDATE_GENRE,
 };
 
-#define DB_VERSION	7
+#define DB_VERSION	8
 static const char * const db_sql_maint[] = {
-	[SQL_SET_VERSION] = "PRAGMA user_version = 7;",
+	[SQL_SET_VERSION] = "PRAGMA user_version = 8;",
 	[SQL_GET_VERSION] = "PRAGMA user_version;",
 
 	[SQL_SET_ENCODING] = "PRAGMA encoding = \"UTF-8\";",
@@ -94,7 +93,7 @@ static const char * const db_sql_maint[] = {
 			"\tmb_trackid      TEXT);\n",
 	[SQL_DB_CREATE_ARTIST] =
 		"create table artist(\n"
-			"\tid              INTEGER_PRIMARY_KEY,\n"
+			"\tid              INTEGER PRIMARY KEY,\n"
 			"\tplay_count      INTEGER,\n"
 			"\tname            TEXT UNIQUE NOT NULL,\n"
 			"\tlove            INTEGER,\n"
@@ -102,7 +101,7 @@ static const char * const db_sql_maint[] = {
 			"\trating          INTEGER);\n",
 	[SQL_DB_CREATE_ALBUM] =
 		"create table album(\n"
-			"\tid              INTEGER_PRIMARY_KEY,\n"
+			"\tid              INTEGER PRIMARY KEY,\n"
 			"\tplay_count      INTEGER,\n"
 			"\tartist          TEXT,\n"
 			"\tname            TEXT UNIQUE NOT NULL,\n"
@@ -1198,10 +1197,12 @@ db_list_artist_expr(const char *expr, GSList **values,
 		default:
 			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 					"sqlite3_step: %s", sqlite3_errmsg(gdb));
+			sqlite3_finalize(stmt);
 			return false;
 		}
 	} while (ret != SQLITE_DONE);
 
+	sqlite3_finalize(stmt);
 	return true;
 }
 
@@ -1331,6 +1332,223 @@ db_list_song_expr(const char *expr, GSList **values,
 			song = g_new0(struct db_song_data, 1);
 			song->id = sqlite3_column_int(stmt, 0);
 			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 1));
+			*values = g_slist_prepend(*values, song);
+			break;
+		case SQLITE_DONE:
+			break;
+		case SQLITE_BUSY:
+			/* no-op */
+			break;
+		default:
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step: %s", sqlite3_errmsg(gdb));
+			sqlite3_finalize(stmt);
+			return false;
+		}
+	} while (ret != SQLITE_DONE);
+
+	sqlite3_finalize(stmt);
+	return true;
+}
+
+bool
+db_listinfo_artist_expr(const char *expr, GSList **values,
+		GError **error)
+{
+	int ret;
+	char *sql;
+	sqlite3_stmt *stmt;
+	struct db_generic_data *data;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	sql = g_strdup_printf("select "
+			"id, play_count, name, love, kill, rating "
+			"from artist where %s ;", expr);
+	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+				"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+		g_free(sql);
+		return false;
+	}
+	g_free(sql);
+
+	do {
+		ret = sqlite3_step(stmt);
+		switch (ret) {
+		case SQLITE_ROW:
+			data = g_new0(struct db_generic_data, 1);
+			data->id = sqlite3_column_int(stmt, 0);
+			data->play_count = sqlite3_column_int(stmt, 1);
+			data->name = g_strdup((const char *)sqlite3_column_text(stmt, 2));
+			data->love = sqlite3_column_int(stmt, 3);
+			data->kill = sqlite3_column_int(stmt, 4);
+			data->rating = sqlite3_column_int(stmt, 5);
+			*values = g_slist_prepend(*values, data);
+			break;
+		case SQLITE_DONE:
+			break;
+		case SQLITE_BUSY:
+			/* no-op */
+			break;
+		default:
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step: %s", sqlite3_errmsg(gdb));
+			sqlite3_finalize(stmt);
+			return false;
+		}
+	} while (ret != SQLITE_DONE);
+
+	sqlite3_finalize(stmt);
+	return true;
+}
+
+bool
+db_listinfo_album_expr(const char *expr, GSList **values,
+		GError **error)
+{
+	int ret;
+	char *sql;
+	sqlite3_stmt *stmt;
+	struct db_generic_data *data;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	sql = g_strdup_printf("select "
+			"id, play_count, name, artist, love, kill, rating "
+			"from album where %s ;", expr);
+	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+				"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+		g_free(sql);
+		return false;
+	}
+	g_free(sql);
+
+	do {
+		ret = sqlite3_step(stmt);
+		switch (ret) {
+		case SQLITE_ROW:
+			data = g_new0(struct db_generic_data, 1);
+			data->id = sqlite3_column_int(stmt, 0);
+			data->play_count = sqlite3_column_int(stmt, 1);
+			data->name = g_strdup((const char *)sqlite3_column_text(stmt, 2));
+			data->artist = g_strdup((const char *)sqlite3_column_text(stmt, 3));
+			data->love = sqlite3_column_int(stmt, 4);
+			data->kill = sqlite3_column_int(stmt, 5);
+			data->rating = sqlite3_column_int(stmt, 6);
+			*values = g_slist_prepend(*values, data);
+			break;
+		case SQLITE_DONE:
+			break;
+		case SQLITE_BUSY:
+			/* no-op */
+			break;
+		default:
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step: %s", sqlite3_errmsg(gdb));
+			sqlite3_finalize(stmt);
+			return false;
+		}
+	} while (ret != SQLITE_DONE);
+
+	sqlite3_finalize(stmt);
+	return true;
+}
+
+bool
+db_listinfo_genre_expr(const char *expr, GSList **values,
+		GError **error)
+{
+	int ret;
+	char *sql;
+	sqlite3_stmt *stmt;
+	struct db_generic_data *data;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	sql = g_strdup_printf("select "
+			"id, play_count, name, love, kill, rating "
+			"from genre where %s ;", expr);
+	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+				"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+		g_free(sql);
+		return false;
+	}
+	g_free(sql);
+
+	do {
+		ret = sqlite3_step(stmt);
+		switch (ret) {
+		case SQLITE_ROW:
+			data = g_new0(struct db_generic_data, 1);
+			data->id = sqlite3_column_int(stmt, 0);
+			data->play_count = sqlite3_column_int(stmt, 1);
+			data->name = g_strdup((const char *)sqlite3_column_text(stmt, 2));
+			data->love = sqlite3_column_int(stmt, 3);
+			data->kill = sqlite3_column_int(stmt, 4);
+			data->rating = sqlite3_column_int(stmt, 5);
+			*values = g_slist_prepend(*values, data);
+			break;
+		case SQLITE_DONE:
+			break;
+		case SQLITE_BUSY:
+			/* no-op */
+			break;
+		default:
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step: %s", sqlite3_errmsg(gdb));
+			sqlite3_finalize(stmt);
+			return false;
+		}
+	} while (ret != SQLITE_DONE);
+
+	sqlite3_finalize(stmt);
+	return true;
+}
+
+bool
+db_listinfo_song_expr(const char *expr, GSList **values,
+		GError **error)
+{
+	int ret;
+	char *sql;
+	struct db_song_data *song;
+	sqlite3_stmt *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(values != NULL);
+
+	sql = g_strdup_printf("select "
+			"id, play_count, love, kill, rating, uri "
+			"from song where %s ;", expr);
+	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+				"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+		g_free(sql);
+		return false;
+	}
+	g_free(sql);
+
+	do {
+		ret = sqlite3_step(stmt);
+		switch (ret) {
+		case SQLITE_ROW:
+			song = g_new0(struct db_song_data, 1);
+			song->id = sqlite3_column_int(stmt, 0);
+			song->play_count = sqlite3_column_int(stmt, 1);
+			song->love = sqlite3_column_int(stmt, 2);
+			song->kill = sqlite3_column_int(stmt, 3);
+			song->rating = sqlite3_column_int(stmt, 4);
+			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 5));
 			*values = g_slist_prepend(*values, song);
 			break;
 		case SQLITE_DONE:

@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpd which is:
  *   Copyright (C) 2003-2009 The Music Player Daemon Project
  *
@@ -289,7 +289,6 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 	if (!db_kill_genre_expr(argv[1], kkill, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -326,7 +325,6 @@ handle_list(struct client *client, int argc, char **argv)
 	if (!db_list_song_expr(argv[1], &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -455,6 +453,163 @@ handle_list_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_listinfo(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_listinfo_song_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_song_data *song = (struct db_song_data *) walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		command_puts(client, "Play Count: %d", song->play_count);
+		command_puts(client, "Love: %d", song->love);
+		command_puts(client, "Kill: %d", song->kill);
+		command_puts(client, "Rating: %d", song->rating);
+		db_song_data_free(song);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listinfo_artist(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_listinfo_artist_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		command_puts(client, "Play Count: %d", data->play_count);
+		command_puts(client, "Love: %d", data->love);
+		command_puts(client, "Kill: %d", data->kill);
+		command_puts(client, "Rating: %d", data->rating);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listinfo_album(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_listinfo_album_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->artist);
+		command_puts(client, "Play Count: %d", data->play_count);
+		command_puts(client, "Love: %d", data->love);
+		command_puts(client, "Kill: %d", data->kill);
+		command_puts(client, "Rating: %d", data->rating);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listinfo_genre(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_listinfo_genre_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *) walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		command_puts(client, "Play Count: %d", data->play_count);
+		command_puts(client, "Love: %d", data->love);
+		command_puts(client, "Kill: %d", data->kill);
+		command_puts(client, "Rating: %d", data->rating);
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
 handle_love(struct client *client, int argc, char **argv)
 {
 	bool love;
@@ -471,7 +626,6 @@ handle_love(struct client *client, int argc, char **argv)
 	if (!db_love_song_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -511,7 +665,6 @@ handle_love_album(struct client *client, int argc, char **argv)
 	if (!db_love_album_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -552,7 +705,6 @@ handle_love_artist(struct client *client, int argc, char **argv)
 	if (!db_love_artist_expr(argv[1], love, &values, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
-		db_close();
 		return COMMAND_RETURN_ERROR;
 	}
 
@@ -863,6 +1015,11 @@ static const struct command commands[] = {
 	{ "list_album", PERMISSION_SELECT, 1, 1, handle_list_album },
 	{ "list_artist", PERMISSION_SELECT, 1, 1, handle_list_artist },
 	{ "list_genre", PERMISSION_SELECT, 1, 1, handle_list_genre },
+
+	{ "listinfo", PERMISSION_SELECT, 1, 1, handle_listinfo },
+	{ "listinfo_album", PERMISSION_SELECT, 1, 1, handle_listinfo_album },
+	{ "listinfo_artist", PERMISSION_SELECT, 1, 1, handle_listinfo_artist },
+	{ "listinfo_genre", PERMISSION_SELECT, 1, 1, handle_listinfo_genre },
 
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },

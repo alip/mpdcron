@@ -194,21 +194,25 @@ mpdcron_parse_single(struct mpdcron_connection *conn)
 	ret = mpdcron_parser_feed(conn->parser, line);
 	switch (ret) {
 		case MPDCRON_PARSER_SUCCESS:
+			g_free(line);
 			return true;
 		case MPDCRON_PARSER_ERROR:
 			g_set_error(&conn->error, connection_quark(),
 					conn->parser->u.error.server,
 					"%s", conn->parser->u.error.message);
+			g_free(line);
 			return false;
 		case MPDCRON_PARSER_MALFORMED:
 			g_set_error(&conn->error, connection_quark(),
 					MPDCRON_ERROR_MALFORMED,
 					"Malformed line `%s' received from server", line);
+			g_free(line);
 			return false;
 		default:
 			g_set_error(&conn->error, connection_quark(),
 					MPDCRON_ERROR_MALFORMED,
 					"Received unexpected name/value pair `%s'", line);
+			g_free(line);
 			return false;
 	}
 	/* never reached */

@@ -59,6 +59,11 @@ command_authorizer(void *userdata, int what,
 	case SQLITE_READ:
 	case SQLITE_SELECT:
 		return SQLITE_OK;
+	case SQLITE_FUNCTION:
+		/* We allow everything but load_extension() */
+		if (strcmp(arg2, "load_extension") == 0)
+			return SQLITE_DENY;
+		return SQLITE_OK;
 	case SQLITE_UPDATE:
 		if (client->perm & PERMISSION_UPDATE)
 			return SQLITE_OK;

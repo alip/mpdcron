@@ -50,6 +50,12 @@ A short explanation of the error. Maybe void.
         <td>The given password was wrong</td>
     </tr>
     <tr>
+        <td>ACK_ERROR_PERMISSION</td>
+        <!-- _ -->
+        <td>3</td>
+        <td>The client doesn't have permission for the requested command</td>
+    </tr>
+    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

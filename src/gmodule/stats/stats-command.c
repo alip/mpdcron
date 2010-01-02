@@ -29,7 +29,6 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-#include <sqlite3.h>
 
 #define PROTOCOL_OK	"OK"
 #define PROCOTOL_ACK	"ACK"

@@ -22,7 +22,8 @@ Syntax:
 
     ACK [<int errorid>@<int position>] {command} description
 
-where:  
+where:
+
 - errorid:  
 An integer indicating which kind of error occured.  
 

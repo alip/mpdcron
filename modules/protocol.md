@@ -80,6 +80,24 @@ A short explanation of the error. Maybe void.
         <td>Database version mismatch</td>
     </tr>
     <tr>
+        <td>ACK_ERROR_DATABASE_AUTH</td>
+        <!-- _ -->
+        <td>53</td>
+        <td>Setting authorizer failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_INSERT</td>
+        <!-- _ -->
+        <td>54</td>
+        <td>Inserting to the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_SELECT</td>
+        <!-- _ -->
+        <td>55</td>
+        <td>Selecting from the database failed</td>
+    </tr>
+    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

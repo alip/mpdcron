@@ -29,7 +29,10 @@ walrus_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!
 noinst_HEADERS+= eugene-defs.h
 bin_PROGRAMS+= eugene
-eugene_SOURCES= fifo_buffer.c eugene-connection.c eugene-main.c
+eugene_SOURCES= fifo_buffer.c eugene-connection.c eugene-addtag.c \
+		eugene-kill.c eugene-list.c eugene-listinfo.c \
+		eugene-listtags.c eugene-love.c eugene-rate.c \
+		eugene-rmtag.c eugene-utils.c eugene-main.c
 # Hack to workaround the error:
 #     object x created both with libtool and without.
 # See: http://bit.ly/libtool_both

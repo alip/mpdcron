@@ -987,6 +987,299 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_addtag(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_add_song_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_addtag_album(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_add_album_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_addtag_artist(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_add_artist_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_addtag_genre(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_add_genre_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rmtag(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_remove_song_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rmtag_album(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_remove_album_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rmtag_artist(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_remove_artist_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rmtag_genre(struct client *client, int argc, char **argv)
+{
+	GError *error;
+
+	g_assert(argc == 3);
+
+	error = NULL;
+	if (!db_remove_genre_tag_expr(argv[1], argv[2], &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_listtags(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_song_tag_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_song_data *song = (struct db_song_data *)walk->data;
+		command_puts(client, "id: %d", song->id);
+		command_puts(client, "file: %s", song->uri);
+		for (unsigned int i = 0; song->tags[i] != NULL; i++) {
+			if (song->tags[i][0] != '\0')
+				command_puts(client, "Tag: %s", song->tags[i]);
+		}
+		db_song_data_free(song);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listtags_album(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_album_tag_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Album: %s", data->name);
+		command_puts(client, "Artist: %s", data->artist);
+		for (unsigned int i = 0; data->tags[i] != NULL; i++) {
+			if (data->tags[i][0] != '\0')
+				command_puts(client, "Tag: %s", data->tags[i]);
+		}
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listtags_artist(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_artist_tag_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Artist: %s", data->name);
+		for (unsigned int i = 0; data->tags[i] != NULL; i++) {
+			if (data->tags[i][0] != '\0')
+				command_puts(client, "Tag: %s", data->tags[i]);
+		}
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
+handle_listtags_genre(struct client *client, int argc, char **argv)
+{
+	int count;
+	GError *error;
+	GSList *values, *walk;
+
+	g_assert(argc == 2);
+
+	error = NULL;
+	values = NULL;
+	if (!db_list_genre_tag_expr(argv[1], &values, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	count = 0;
+	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
+		struct db_generic_data *data = (struct db_generic_data *)walk->data;
+		command_puts(client, "id: %d", data->id);
+		command_puts(client, "Genre: %s", data->name);
+		for (unsigned int i = 0; data->tags[i] != NULL; i++) {
+			if (data->tags[i][0] != '\0')
+				command_puts(client, "Tag: %s", data->tags[i]);
+		}
+		db_generic_data_free(data);
+		++count;
+	}
+	g_slist_free(values);
+
+	if (count > 0) {
+		command_ok(client);
+		return COMMAND_RETURN_OK;
+	}
+	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
+	return COMMAND_RETURN_ERROR;
+}
+
+static enum command_return
 handle_password(struct client *client, G_GNUC_UNUSED int argc, char **argv)
 {
 	gpointer perm = g_hash_table_lookup(globalconf.passwords, argv[1]);
@@ -1001,6 +1294,11 @@ handle_password(struct client *client, G_GNUC_UNUSED int argc, char **argv)
 
 /* This has to be sorted! */
 static const struct command commands[] = {
+	{ "addtag", PERMISSION_UPDATE, 2, 2, handle_addtag },
+	{ "addtag_album", PERMISSION_UPDATE, 2, 2, handle_addtag_album },
+	{ "addtag_artist", PERMISSION_UPDATE, 2, 2, handle_addtag_artist },
+	{ "addtag_genre", PERMISSION_UPDATE, 2, 2, handle_addtag_genre },
+
 	{ "hate", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "hate_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "hate_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
@@ -1021,6 +1319,11 @@ static const struct command commands[] = {
 	{ "listinfo_artist", PERMISSION_SELECT, 1, 1, handle_listinfo_artist },
 	{ "listinfo_genre", PERMISSION_SELECT, 1, 1, handle_listinfo_genre },
 
+	{ "listtags", PERMISSION_SELECT, 1, 1, handle_listtags },
+	{ "listtags_album", PERMISSION_SELECT, 1, 1, handle_listtags_album },
+	{ "listtags_artist", PERMISSION_SELECT, 1, 1, handle_listtags_artist },
+	{ "listtags_genre", PERMISSION_SELECT, 1, 1, handle_listtags_genre },
+
 	{ "love", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "love_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "love_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
@@ -1032,6 +1335,11 @@ static const struct command commands[] = {
 	{ "rate_album", PERMISSION_UPDATE, 2, 2, handle_rate_album },
 	{ "rate_artist", PERMISSION_UPDATE, 2, 2, handle_rate_artist },
 	{ "rate_genre", PERMISSION_UPDATE, 2, 2, handle_rate_genre },
+
+	{ "rmtag", PERMISSION_UPDATE, 2, 2, handle_rmtag },
+	{ "rmtag_album", PERMISSION_UPDATE, 2, 2, handle_rmtag_album },
+	{ "rmtag_artist", PERMISSION_UPDATE, 2, 2, handle_rmtag_artist },
+	{ "rmtag_genre", PERMISSION_UPDATE, 2, 2, handle_rmtag_genre },
 
 	{ "unkill", PERMISSION_UPDATE, 1, 1, handle_kill },
 	{ "unkill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },

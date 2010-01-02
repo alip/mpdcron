@@ -36,6 +36,8 @@ struct db_generic_data {
 
 	char *name;
 	char *artist;
+
+	char **tags;
 };
 
 struct db_song_data {
@@ -61,6 +63,8 @@ struct db_song_data {
 	char *mb_artist_id;	/** Musicbrainz artist ID */
 	char *mb_album_id;	/** Musicbrainz album ID */
 	char *mb_track_id;	/** Musicbrainz track ID */
+
+	char **tags;
 };
 
 enum dback {
@@ -78,6 +82,7 @@ enum dback {
 
 	ACK_ERROR_NO_EXIST = 150,
 	ACK_ERROR_NO_TAGS = 151,
+	ACK_ERROR_INVALID_TAG = 152,
 };
 
 /**
@@ -170,5 +175,41 @@ db_rate_genre_expr(const char *expr, int rating, GSList **values, GError **error
 
 bool
 db_rate_song_expr(const char *expr, int rating, GSList **values, GError **error);
+
+bool
+db_add_artist_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_add_album_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_add_genre_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_add_song_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_remove_album_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_remove_song_tag_expr(const char *expr, const char *tag, GError **error);
+
+bool
+db_list_artist_tag_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_list_album_tag_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_list_genre_tag_expr(const char *expr, GSList **values, GError **error);
+
+bool
+db_list_song_tag_expr(const char *expr, GSList **values, GError **error);
 
 #endif /* !MPDCRON_GUARD_STATS_SQLITE_H */

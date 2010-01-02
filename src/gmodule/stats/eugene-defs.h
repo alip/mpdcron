@@ -25,10 +25,15 @@
 #include "fifo_buffer.h"
 
 #include <stdbool.h>
-#include <syslog.h>
 
 #include <glib.h>
 #include <gio/gio.h>
+
+#define ENV_MPDCRON_HOST	"MPDCRON_HOST"
+#define ENV_MPDCRON_PORT	"MPDCRON_PORT"
+#define ENV_MPDCRON_PASSWORD	"MPDCRON_PASSWORD"
+#define DEFAULT_HOSTNAME	"localhost"
+#define DEFAULT_PORT		6601
 
 enum mpdcron_error {
 	MPDCRON_ERROR_NO_UNIX,
@@ -70,6 +75,7 @@ struct mpdcron_song {
 	int love;
 	int kill;
 	int rating;
+	GSList *tags;
 };
 
 struct mpdcron_entity {
@@ -80,6 +86,7 @@ struct mpdcron_entity {
 	int love;
 	int kill;
 	int rating;
+	GSList *tags;
 };
 
 struct mpdcron_parser;
@@ -204,6 +211,90 @@ mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
 bool
 mpdcron_rate_expr(struct mpdcron_connection *conn,
 		const char *rating, const char *expr, GSList **values);
+
+bool
+mpdcron_addtag_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_addtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_addtag_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_addtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_rmtag_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_rmtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_rmtag_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_rmtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *tag);
+
+bool
+mpdcron_listtags_expr(struct mpdcron_connection *conn, const char *expr,
+		GSList **values);
+
+bool
+mpdcron_listtags_album_expr(struct mpdcron_connection *conn, const char *expr,
+		GSList **values);
+
+bool
+mpdcron_listtags_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		GSList **values);
+
+bool
+mpdcron_listtags_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		GSList **values);
+
+char *
+quote(const char *src);
+
+struct mpd_song *
+load_current_song(void);
+
+int
+cmd_hate(int argc, char **argv);
+
+int
+cmd_love(int argc, char **argv);
+
+int
+cmd_kill(int argc, char **argv);
+
+int
+cmd_unkill(int argc, char **argv);
+
+int
+cmd_rate(int argc, char **argv);
+
+int
+cmd_list(int argc, char **argv);
+
+int
+cmd_listinfo(int argc, char **argv);
+
+int
+cmd_addtag(int argc, char **argv);
+
+int
+cmd_rmtag(int argc, char **argv);
+
+int
+cmd_listtags(int argc, char **argv);
 
 void
 eulog(int level, const char *fmt, ...);

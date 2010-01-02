@@ -51,9 +51,15 @@ about(void)
 }
 
 static void
-internal_cleanup(bool signaled)
+internal_cleanup(
+#ifndef HAVE_GMODULE
+		G_GNUC_UNUSED
+#endif /* !HAVE_GMODULE */
+		bool signaled)
 {
+#ifdef HAVE_GMODULE
 	module_close(signaled ? 0 : 1);
+#endif /* HAVE_GMODULE */
 	conf_free();
 	if (cfd != NULL) {
 		g_key_file_free(cfd);
@@ -175,8 +181,10 @@ main(int argc, char **argv)
 		/* Create the main loop */
 		loop = g_main_loop_new(NULL, FALSE);
 
+#ifdef HAVE_GMODULE
 		/* Load modules which may add initial events */
 		keyfile_load_modules(&cfd);
+#endif /* HAVE_GMODULE */
 		g_key_file_free(cfd);
 		cfd = NULL;
 
@@ -234,8 +242,10 @@ main(int argc, char **argv)
 		/* Create the main loop */
 		loop = g_main_loop_new(NULL, FALSE);
 
+#ifdef HAVE_GMODULE
 		/* Load modules which may add initial events */
 		keyfile_load_modules(&cfd);
+#endif /* HAVE_GMODULE */
 		g_key_file_free(cfd);
 		cfd = NULL;
 

@@ -31,13 +31,6 @@
 static sqlite3 *gdb = NULL;
 
 enum {
-	TABLE_ARTIST,
-	TABLE_ALBUM,
-	TABLE_GENRE,
-	TABLE_SONG,
-};
-
-enum {
 	SQL_SET_VERSION,
 	SQL_GET_VERSION,
 	SQL_SET_ENCODING,
@@ -51,6 +44,9 @@ enum {
 enum {
 	SQL_BEGIN_TRANSACTION,
 	SQL_END_TRANSACTION,
+
+	SQL_PRAGMA_SYNC_ON,
+	SQL_PRAGMA_SYNC_OFF,
 
 	SQL_HAS_SONG,
 	SQL_HAS_ARTIST,
@@ -133,6 +129,9 @@ static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
 static const char * const db_sql[] = {
 	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
 	[SQL_END_TRANSACTION] = "END TRANSACTION;",
+
+	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
+	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
 
 	[SQL_HAS_SONG] = "select id from song where uri=?",
 	[SQL_HAS_ARTIST] = "select id from artist where name=?",
@@ -1130,6 +1129,30 @@ db_end_transaction(GError **error)
 }
 
 bool
+db_set_sync(bool on, GError **error)
+{
+	sqlite3_stmt *stmt;
+
+	g_assert(gdb != NULL);
+
+	stmt = on ? db_stmt[SQL_PRAGMA_SYNC_ON] : db_stmt[SQL_PRAGMA_SYNC_OFF];
+
+	if (sqlite3_reset(stmt) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
+				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
+		return false;
+	}
+
+	if (db_step(stmt) != SQLITE_DONE) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+				"sqlite3_step: %s", sqlite3_errmsg(gdb));
+		return false;
+	}
+
+	return true;
+}
+
+bool
 db_process(const struct mpd_song *song, bool increment,
 		GError **error)
 {
@@ -2031,6 +2054,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GErro
 	if (changes != NULL)
 		*changes = 0;
 
+	db_set_sync(false, NULL);
 	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
@@ -2052,6 +2076,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GErro
 	}
 	g_slist_free(ids);
 	db_end_transaction(NULL);
+	db_set_sync(true, NULL);
 
 	return ret;
 }
@@ -2111,6 +2136,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError
 	if (changes != NULL)
 		*changes = 0;
 
+	db_set_sync(false, NULL);
 	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
@@ -2132,6 +2158,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError
 	}
 	g_slist_free(ids);
 	db_end_transaction(NULL);
+	db_set_sync(true, NULL);
 
 	return ret;
 }
@@ -2191,6 +2218,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError
 	if (changes != NULL)
 		*changes = 0;
 
+	db_set_sync(false, NULL);
 	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
@@ -2212,6 +2240,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError
 	}
 	g_slist_free(ids);
 	db_end_transaction(NULL);
+	db_set_sync(true, NULL);
 
 	return ret;
 }
@@ -2271,6 +2300,7 @@ db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError 
 	if (changes != NULL)
 		*changes = 0;
 
+	db_set_sync(false, NULL);
 	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
@@ -2292,6 +2322,7 @@ db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError 
 	}
 	g_slist_free(ids);
 	db_end_transaction(NULL);
+	db_set_sync(true, NULL);
 
 	return ret;
 }

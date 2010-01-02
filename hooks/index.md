@@ -14,22 +14,36 @@ Here's a list of hooks and commands run before them:
     </tr>
     <tr>
         <td>hooks/database</td>
-        <td>hooks/stored\_playlist</td>
-        <td>hooks/playlist</td>
-        <td>hooks/player</td>
-        <td>hooks/mixer</td>
-        <td>hooks/output</td>
-        <td>hooks/options</td>
-        <td>hooks/update</td>
+        <td>stats</td>
     </tr>
     <tr>
-        <td>stats</td>
-        <td>list\_all\_meta</td>
-        <td>list\_queue\_meta</td>
+        <td>hooks/stored_playlist</td>
+        <td>list_all_meta</td>
+        <!-- _  -->
+    </tr>
+    <tr>
+        <td>hooks/playlist</td>
+        <td>list_queue_meta</td>
+        <!-- _ -->
+    </tr>
+    <tr>
+        <td>hooks/player</td>
         <td>status</td>
+    </tr>
+    <tr>
+        <td>hooks/mixer</td>
         <td>status</td>
+    </tr>
+    <tr>
+        <td>hooks/output</td>
         <td>outputs</td>
+    </tr>
+    <tr>
+        <td>hooks/options</td>
         <td>status</td>
+    </tr>
+    <tr>
+        <td>hooks/update</td>
         <td>status</td>
     </tr>
 </table>

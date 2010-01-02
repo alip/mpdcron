@@ -332,14 +332,32 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
     </tr>
 </table>
 
+### list\_all\_meta
+<table border="1">
+    <tr>
+        <th>Environment variable</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>MPD_PLAYLIST_%d_PATH</td>
+        <!-- _ -->
+        <td>Specifies the path of the playlist
+            <br />(%d is replaced with a number starting from 1)
+        </td>
+    </tr>
+    <tr>
+        <td>MPD_PLAYLIST_%d_LAST_MODIFIED</td>
+        <!-- _ -->
+        <td>Specifies the last modification time
+            <br />(format: "%Y-%m-%d %H-%M-%S %Z")
+            <br />(%d is replaced with a number starting from 1)
+        </td>
+    </tr>
+</table>
+
 ### list\_queue\_meta
 * All songs in the queue are set in environment. The variables are like in **currentsong**
   except they get a number like: 
   **MPD\_SONG\_URI** becomes **MPD\_SONG\_%d\_URI** where **%d** is a number starting from 1.
-### list\_all\_meta
-* **MPD\_PLAYLIST\_%d\_PATH**: Where **%d** is a number starting from 1. Specifies the path of
-  the playlist.
-* **MPD\_PLAYLIST\_%d\_LAST\_MODIFIED**: Where **%d** is a number starting from 1. Specifies the
-  last modification time (in format: "%Y-%m-%d %H-%M-%S %Z")
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

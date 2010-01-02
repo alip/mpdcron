@@ -27,8 +27,8 @@ Configuration file is in standard .ini format.
     # By default mpdcron waits for all events.
     # Valid events are:
     # database: Song database has been updated.
-    # stored_playlist*: A stored playlist has been modified, created, deleted or renamed.
-    # playlist*: The queue has been modified.
+    # stored_playlist: A stored playlist has been modified, created, deleted or renamed.
+    # playlist: The queue has been modified.
     # player: The player state has been changed: play, stop, pause, seek, ...
     # mixer: The volume has been modified.
     # output: An audio output device has been enabled or disabled.

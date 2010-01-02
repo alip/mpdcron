@@ -27,200 +27,154 @@
 static int
 kill_artist(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
-	GSList *values, *walk;
+	char *esc_artist, *myexpr;
+	struct mpd_song *song;
 
-	values = NULL;
 	if (expr != NULL) {
-		if (!mpdcron_kill_artist_expr(conn, kkill, expr, &values)) {
+		if (!mpdcron_kill_artist_expr(conn, kkill, expr)) {
 			eulog(LOG_ERR, "Failed to %s artist: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
+		return 0;
 	}
-	else {
-		char *esc_artist, *myexpr;
-		struct mpd_song *song;
 
-		if ((song = load_current_song()) == NULL)
-			return 1;
-		else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
-			eulog(LOG_ERR, "Current playing song has no artist tag!");
-			mpd_song_free(song);
-			return 1;
-		}
-
-		esc_artist = quote(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
-		myexpr = g_strdup_printf("name=%s", esc_artist);
-		g_free(esc_artist);
+	if ((song = load_current_song()) == NULL)
+		return 1;
+	else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
+		eulog(LOG_ERR, "Current playing song has no artist tag!");
 		mpd_song_free(song);
+		return 1;
+	}
 
-		if (!mpdcron_kill_artist_expr(conn, kkill, myexpr, &values)) {
-			eulog(LOG_ERR, "Failed to %s current playing artist: %s",
-					kkill ? "kill" : "unkill",
-					conn->error->message);
-			g_free(myexpr);
-			return 1;
-		}
+	esc_artist = quote(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
+	myexpr = g_strdup_printf("name=%s", esc_artist);
+	g_free(esc_artist);
+	mpd_song_free(song);
+
+	if (!mpdcron_kill_artist_expr(conn, kkill, myexpr)) {
+		eulog(LOG_ERR, "Failed to %s current playing artist: %s",
+				kkill ? "kill" : "unkill",
+				conn->error->message);
 		g_free(myexpr);
+		return 1;
 	}
-
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
-		g_free(e->name);
-		g_free(e);
-	}
-	g_slist_free(values);
+	g_free(myexpr);
 	return 0;
 }
 
 static int
 kill_album(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
-	GSList *values, *walk;
+	char *esc_album, *myexpr;
+	struct mpd_song *song;
 
-	values = NULL;
 	if (expr != NULL) {
-		if (!mpdcron_kill_album_expr(conn, kkill, expr, &values)) {
+		if (!mpdcron_kill_album_expr(conn, kkill, expr)) {
 			eulog(LOG_ERR, "Failed to %s album: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
 	}
-	else {
-		char *esc_album, *myexpr;
-		struct mpd_song *song;
 
-		if ((song = load_current_song()) == NULL)
-			return 1;
-		else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
-			eulog(LOG_ERR, "Current playing song has no album tag!");
-			mpd_song_free(song);
-			return 1;
-		}
-
-		esc_album = quote(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
-		myexpr = g_strdup_printf("name=%s", esc_album);
-		g_free(esc_album);
+	if ((song = load_current_song()) == NULL)
+		return 1;
+	else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
+		eulog(LOG_ERR, "Current playing song has no album tag!");
 		mpd_song_free(song);
+		return 1;
+	}
 
-		if (!mpdcron_kill_album_expr(conn, kkill, myexpr, &values)) {
-			eulog(LOG_ERR, "Failed to %s current playing album: %s",
-					kkill ? "kill" : "unkill",
-					conn->error->message);
-			g_free(myexpr);
-			return 1;
-		}
+	esc_album = quote(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
+	myexpr = g_strdup_printf("name=%s", esc_album);
+	g_free(esc_album);
+	mpd_song_free(song);
+
+	if (!mpdcron_kill_album_expr(conn, kkill, myexpr)) {
+		eulog(LOG_ERR, "Failed to %s current playing album: %s",
+				kkill ? "kill" : "unkill",
+				conn->error->message);
 		g_free(myexpr);
+		return 1;
 	}
-
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
-		g_free(e->name);
-		g_free(e->artist); /* TODO: We don't print artist right now */
-		g_free(e);
-	}
-	g_slist_free(values);
+	g_free(myexpr);
 	return 0;
 }
 
 static int
 kill_genre(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
-	GSList *values, *walk;
+	char *esc_genre, *myexpr;
+	struct mpd_song *song;
 
-	values = NULL;
 	if (expr != NULL) {
-		if (!mpdcron_kill_genre_expr(conn, kkill, expr, &values)) {
+		if (!mpdcron_kill_genre_expr(conn, kkill, expr)) {
 			eulog(LOG_ERR, "Failed to %s genre: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
+		return 0;
 	}
-	else {
-		char *esc_genre, *myexpr;
-		struct mpd_song *song;
 
-		if ((song = load_current_song()) == NULL)
-			return 1;
-		else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
-			eulog(LOG_ERR, "Current playing song has no genre tag!");
-			mpd_song_free(song);
-			return 1;
-		}
-
-		esc_genre = quote(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
-		myexpr = g_strdup_printf("name=%s", esc_genre);
-		g_free(esc_genre);
+	if ((song = load_current_song()) == NULL)
+		return 1;
+	else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
+		eulog(LOG_ERR, "Current playing song has no genre tag!");
 		mpd_song_free(song);
+		return 1;
+	}
 
-		if (!mpdcron_kill_genre_expr(conn, kkill, myexpr, &values)) {
-			eulog(LOG_ERR, "Failed to %s current playing genre: %s",
-					kkill ? "kill" : "unkill",
-					conn->error->message);
-			g_free(myexpr);
-			return 1;
-		}
+	esc_genre = quote(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
+	myexpr = g_strdup_printf("name=%s", esc_genre);
+	g_free(esc_genre);
+	mpd_song_free(song);
+
+	if (!mpdcron_kill_genre_expr(conn, kkill, myexpr)) {
+		eulog(LOG_ERR, "Failed to %s current playing genre: %s",
+				kkill ? "kill" : "unkill",
+				conn->error->message);
 		g_free(myexpr);
+		return 1;
 	}
-
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_entity *e = walk->data;
-		printf("%d: Kill:%d %s\n", e->id, e->kill, e->name);
-		g_free(e->name);
-		g_free(e);
-	}
-	g_slist_free(values);
+	g_free(myexpr);
 	return 0;
 }
 
 static int
 kill_song(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
-	GSList *values, *walk;
+	char *esc_uri, *myexpr;
+	struct mpd_song *song;
 
-	values = NULL;
 	if (expr != NULL) {
-		if (!mpdcron_kill_expr(conn, kkill, expr, &values)) {
+		if (!mpdcron_kill_expr(conn, kkill, expr)) {
 			eulog(LOG_ERR, "Failed to %s song: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
+		return 0;
 	}
-	else {
-		char *esc_uri, *myexpr;
-		struct mpd_song *song;
 
-		if ((song = load_current_song()) == NULL)
-			return 1;
+	if ((song = load_current_song()) == NULL)
+		return 1;
 
-		esc_uri = quote(mpd_song_get_uri(song));
-		myexpr = g_strdup_printf("uri=%s", esc_uri);
-		g_free(esc_uri);
-		mpd_song_free(song);
+	esc_uri = quote(mpd_song_get_uri(song));
+	myexpr = g_strdup_printf("uri=%s", esc_uri);
+	g_free(esc_uri);
+	mpd_song_free(song);
 
-		if (!mpdcron_kill_expr(conn, kkill, myexpr, &values)) {
-			eulog(LOG_ERR, "Failed to %s current playing song: %s",
-					kkill ? "kill" : "unkill",
-					conn->error->message);
-			g_free(myexpr);
-			return 1;
-		}
+	if (!mpdcron_kill_expr(conn, kkill, myexpr)) {
+		eulog(LOG_ERR, "Failed to %s current playing song: %s",
+				kkill ? "kill" : "unkill",
+				conn->error->message);
 		g_free(myexpr);
+		return 1;
 	}
-
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct mpdcron_song *e = walk->data;
-		printf("%d: Kill:%d %s\n", e->id, e->kill, e->uri);
-		g_free(e->uri);
-		g_free(e);
-	}
-	g_slist_free(values);
+	g_free(myexpr);
 	return 0;
 }
 

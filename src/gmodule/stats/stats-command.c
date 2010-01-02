@@ -158,157 +158,80 @@ static enum command_return
 handle_kill(struct client *client, int argc, char **argv)
 {
 	bool kkill;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_kill_song_expr(argv[1], kkill, &values, &error)) {
+	if (!db_kill_song_expr(argv[1], kkill, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_song_data *song = (struct db_song_data *) walk->data;
-		command_puts(client, "id: %d", song->id);
-		command_puts(client, "file: %s", song->uri);
-		command_puts(client, "Kill: %d", song->kill);
-		db_song_data_free(song);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_kill_album(struct client *client, int argc, char **argv)
 {
 	bool kkill;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_album") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_kill_album_expr(argv[1], kkill, &values, &error)) {
+	if (!db_kill_album_expr(argv[1], kkill, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Album: %s", data->name);
-		command_puts(client, "Artist: %s", data->artist);
-		command_puts(client, "Kill: %d", data->kill);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_kill_artist(struct client *client, int argc, char **argv)
 {
 	bool kkill;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_artist") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_kill_artist_expr(argv[1], kkill, &values, &error)) {
+	if (!db_kill_artist_expr(argv[1], kkill, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Artist: %s", data->name);
-		command_puts(client, "Kill: %d", data->kill);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_kill_genre(struct client *client, int argc, char **argv)
 {
 	bool kkill;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	kkill = (strcmp(argv[0], "kill_genre") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_kill_genre_expr(argv[1], kkill, &values, &error)) {
+	if (!db_kill_genre_expr(argv[1], kkill, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Genre: %s", data->name);
-		command_puts(client, "Kill: %d", data->kill);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
@@ -613,167 +536,88 @@ static enum command_return
 handle_love(struct client *client, int argc, char **argv)
 {
 	bool love;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_love_song_expr(argv[1], love, &values, &error)) {
+	if (!db_love_song_expr(argv[1], love, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_song_data *song = (struct db_song_data *) walk->data;
-		command_puts(client, "id: %d", song->id);
-		command_puts(client, "file: %s", song->uri);
-		command_puts(client, "Love: %d", song->love);
-		db_song_data_free(song);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_love_album(struct client *client, int argc, char **argv)
 {
 	bool love;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_album") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_love_album_expr(argv[1], love, &values, &error)) {
+	if (!db_love_album_expr(argv[1], love, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Album: %s", data->name);
-		command_puts(client, "Artist: %s", data->artist);
-		command_puts(client, "Love: %d", data->love);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_love_artist(struct client *client, int argc, char **argv)
 {
 	bool love;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_artist") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_love_artist_expr(argv[1], love, &values, &error)) {
+	if (!db_love_artist_expr(argv[1], love, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Artist: %s", data->name);
-		command_puts(client, "Love: %d", data->love);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_love_genre(struct client *client, int argc, char **argv)
 {
 	bool love;
-	int count;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 2);
 
 	love = (strcmp(argv[0], "love_genre") == 0);
 
 	error = NULL;
-	values = NULL;
-	if (!db_love_genre_expr(argv[1], love, &values, &error)) {
+	if (!db_love_genre_expr(argv[1], love, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Genre: %s", data->name);
-		command_puts(client, "Love: %d", data->love);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_rate(struct client *client, int argc, char **argv)
 {
-	int count;
 	long rating;
 	char *endptr;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 3);
 
@@ -787,6 +631,10 @@ handle_rate(struct client *client, int argc, char **argv)
 				g_strerror(errno));
 		return COMMAND_RETURN_ERROR;
 	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
 	else if (rating > INT_MAX || rating < INT_MIN) {
 		command_error(client, ACK_ERROR_ARG,
 				"Number too %s",
@@ -795,40 +643,21 @@ handle_rate(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	values = NULL;
-	if (!db_rate_song_expr(argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_song_expr(argv[1], (int)rating, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_song_data *song = (struct db_song_data *) walk->data;
-		command_puts(client, "id: %d", song->id);
-		command_puts(client, "file: %s", song->uri);
-		command_puts(client, "Rating: %d", song->rating);
-		db_song_data_free(song);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_rate_artist(struct client *client, int argc, char **argv)
 {
-	int count;
 	long rating;
 	char *endptr;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 3);
 
@@ -842,6 +671,10 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 				g_strerror(errno));
 		return COMMAND_RETURN_ERROR;
 	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
 	else if (rating > INT_MAX || rating < INT_MIN) {
 		command_error(client, ACK_ERROR_ARG,
 				"Number too %s",
@@ -850,40 +683,21 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	values = NULL;
-	if (!db_rate_artist_expr(argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_artist_expr(argv[1], (int)rating, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Artist: %s", data->name);
-		command_puts(client, "Rating: %d", data->rating);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_rate_album(struct client *client, int argc, char **argv)
 {
-	int count;
 	long rating;
 	char *endptr;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 3);
 
@@ -897,6 +711,10 @@ handle_rate_album(struct client *client, int argc, char **argv)
 				g_strerror(errno));
 		return COMMAND_RETURN_ERROR;
 	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
 	else if (rating > INT_MAX || rating < INT_MIN) {
 		command_error(client, ACK_ERROR_ARG,
 				"Number too %s",
@@ -905,41 +723,21 @@ handle_rate_album(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	values = NULL;
-	if (!db_rate_album_expr(argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_album_expr(argv[1], (int)rating, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Album: %s", data->name);
-		command_puts(client, "Artist: %s", data->name);
-		command_puts(client, "Rating: %d", data->rating);
-		db_generic_data_free(data);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_rate_genre(struct client *client, int argc, char **argv)
 {
-	int count;
 	long rating;
 	char *endptr;
 	GError *error;
-	GSList *values, *walk;
 
 	g_assert(argc == 3);
 
@@ -953,6 +751,10 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 				g_strerror(errno));
 		return COMMAND_RETURN_ERROR;
 	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
 	else if (rating > INT_MAX || rating < INT_MIN) {
 		command_error(client, ACK_ERROR_ARG,
 				"Number too %s",
@@ -961,29 +763,13 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	values = NULL;
-	if (!db_rate_genre_expr(argv[1], (int)rating, &values, &error)) {
+	if (!db_rate_genre_expr(argv[1], (int)rating, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
-
-	count = 0;
-	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
-		struct db_generic_data *data = (struct db_generic_data *)walk->data;
-		command_puts(client, "id: %d", data->id);
-		command_puts(client, "Genre: %s", data->name);
-		command_puts(client, "Rating: %d", data->rating);
-		++count;
-	}
-	g_slist_free(values);
-
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return

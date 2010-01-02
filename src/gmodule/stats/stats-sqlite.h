@@ -141,40 +141,40 @@ bool
 db_listinfo_song_expr(const char *expr, GSList **values, GError **error);
 
 bool
-db_love_artist_expr(const char *expr, bool love, GSList **values, GError **error);
+db_love_artist_expr(const char *expr, bool love, GError **error);
 
 bool
-db_love_album_expr(const char *expr, bool love, GSList **values, GError **error);
+db_love_album_expr(const char *expr, bool love, GError **error);
 
 bool
-db_love_genre_expr(const char *expr, bool love, GSList **values, GError **error);
+db_love_genre_expr(const char *expr, bool love, GError **error);
 
 bool
-db_love_song_expr(const char *expr, bool love, GSList **values, GError **error);
+db_love_song_expr(const char *expr, bool love, GError **error);
 
 bool
-db_kill_artist_expr(const char *expr, bool kkill, GSList **values, GError **error);
+db_kill_artist_expr(const char *expr, bool kkill, GError **error);
 
 bool
-db_kill_album_expr(const char *expr, bool kkill, GSList **values, GError **error);
+db_kill_album_expr(const char *expr, bool kkill, GError **error);
 
 bool
-db_kill_genre_expr(const char *expr, bool kkill, GSList **values, GError **error);
+db_kill_genre_expr(const char *expr, bool kkill, GError **error);
 
 bool
-db_kill_song_expr(const char *expr, bool kkill, GSList **values, GError **error);
+db_kill_song_expr(const char *expr, bool kkill, GError **error);
 
 bool
-db_rate_artist_expr(const char *expr, int rating, GSList **values, GError **error);
+db_rate_artist_expr(const char *expr, int rating, GError **error);
 
 bool
-db_rate_album_expr(const char *expr, int rating, GSList **values, GError **error);
+db_rate_album_expr(const char *expr, int rating, GError **error);
 
 bool
-db_rate_genre_expr(const char *expr, int rating, GSList **values, GError **error);
+db_rate_genre_expr(const char *expr, int rating, GError **error);
 
 bool
-db_rate_song_expr(const char *expr, int rating, GSList **values, GError **error);
+db_rate_song_expr(const char *expr, int rating, GError **error);
 
 bool
 db_add_artist_tag_expr(const char *expr, const char *tag, GError **error);

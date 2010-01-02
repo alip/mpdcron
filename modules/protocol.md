@@ -44,6 +44,12 @@ A short explanation of the error. Maybe void.
         <td>Argument error</td>
     </tr>
     <tr>
+        <td>ACK_ERROR_PASSWORD</td>
+        <!-- _ -->
+        <td>2</td>
+        <td>The given password was wrong</td>
+    </tr>
+    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

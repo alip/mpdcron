@@ -16,6 +16,22 @@ The command syntax is:
 A command returns <tt>OK</tt> on completion or <tt>ACK</tt> some error on failure.  
 These denote the end of command execution.
 
+### ACK Responses
+
+Syntax:
+
+    ACK [<int errorid>@<int position>] {command} description
+
+where:  
+- errorid:  
+An integer indicating which kind of error occured.  
+
+- position:  
+Command lists not implemented thus always 0.
+
+- description:  
+A short explanation of the error. Maybe void.
+
 ## Command Reference
 Expression arguments are direct [sqlite](http://www.sqlite.org/) statements.
 See [http://www.sqlite.org/lang_expr.html](http://www.sqlite.org/lang_expr.html)

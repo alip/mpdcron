@@ -147,7 +147,9 @@ A short explanation of the error. Maybe void.
 ## Command Reference
 Expression arguments are direct [sqlite](http://www.sqlite.org/) statements.
 See [http://www.sqlite.org/lang_expr.html](http://www.sqlite.org/lang_expr.html)
-for the expression syntax.
+for the expression syntax. For the layout of the databases check the sql
+statements in the beginning of
+[stats-sqlite.c](http://github.com/alip/mpdcron/blob/master/src/gmodule/stats/stats-sqlite.c).
 
 ### Querying the database
 - list EXPRESSION  

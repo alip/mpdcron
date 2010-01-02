@@ -3,7 +3,7 @@ layout: default
 title: Stats Protocol
 ---
 
-The procotol is very similar to mpd's protocol with minor differences.
+The procotol is very similar to mpd's protocol with minor differences.  
 This page describes protocol version 0.1.
 
 ## Welcome

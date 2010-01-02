@@ -68,6 +68,18 @@ A short explanation of the error. Maybe void.
         <td>Opening the database failed</td>
     </tr>
     <tr>
+        <td>ACK_ERROR_DATABASE_CREATE</td>
+        <!-- _ -->
+        <td>51</td>
+        <td>Creating the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_VERSION</td>
+        <!-- _ -->
+        <td>52</td>
+        <td>Database version mismatch</td>
+    </tr>
+    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

@@ -69,7 +69,7 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     modules = scrobbler
 
     [scrobbler]
-    # Http proxy to use, the module also respect http_proxy environment
+    # Http proxy to use, the module also respects http_proxy environment
     # variable.
     proxy = http://127.0.0.1:8080
     # Journal interval in seconds

@@ -38,6 +38,7 @@ static GOptionEntry options[] = {
 static bool
 run_update(int kg, const char *path)
 {
+	int count;
 	const char *hostname;
 	const char *port;
 	const char *password;
@@ -80,6 +81,7 @@ run_update(int kg, const char *path)
 		return false;
 	}
 
+	count = 0;
 	while ((entity = mpd_recv_entity(conn)) != NULL) {
 		if (mpd_entity_get_type(entity) == MPD_ENTITY_TYPE_SONG) {
 			song = mpd_entity_get_song(entity);
@@ -93,6 +95,7 @@ run_update(int kg, const char *path)
 					continue;
 				return false;
 			}
+			++count;
 			printf("%s\n", mpd_song_get_uri(song));
 		}
 		mpd_entity_free(entity);
@@ -100,6 +103,7 @@ run_update(int kg, const char *path)
 
 	mpd_response_finish(conn);
 	mpd_connection_free(conn);
+	printf("Successfully processed %d songs\n", count);
 	return true;
 }
 

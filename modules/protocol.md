@@ -44,59 +44,6 @@ A short explanation of the error. Maybe void.
         <td>Argument error</td>
     </tr>
     <tr>
-        <td>ACK_ERROR_PASSWORD</td>
-        <!-- _ -->
-        <td>2</td>
-        <td>The given password was wrong</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_PERMISSION</td>
-        <!-- _ -->
-        <td>3</td>
-        <td>The client doesn't have permission for the requested command</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_UNKNOWN</td>
-        <!-- _ -->
-        <td>4</td>
-        <td>Unknown error</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_DATABASE_OPEN</td>
-        <!-- _ -->
-        <td>50</td>
-        <td>Opening the database failed</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_DATABASE_CREATE</td>
-        <!-- _ -->
-        <td>51</td>
-        <td>Creating the database failed</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_DATABASE_VERSION</td>
-        <!-- _ -->
-        <td>52</td>
-        <td>Database version mismatch</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_DATABASE_AUTH</td>
-        <!-- _ -->
-        <td>53</td>
-        <td>Setting authorizer failed</td>
-    </tr>
-    <tr>
-        <td>ACK_ERROR_DATABASE_INSERT</td>
-        <!-- _ -->
-        <td>54</td>
-        <td>Inserting to the database failed</td>
-    </tr>
-        <td>ACK_ERROR_DATABASE_SELECT</td>
-        <!-- _ -->
-        <td>55</td>
-        <td>Selecting from the database failed</td>
-    </tr>
-    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

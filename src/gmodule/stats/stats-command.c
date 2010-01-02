@@ -250,7 +250,6 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 static enum command_return
 handle_list(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -264,28 +263,21 @@ handle_list(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_song_data *song = (struct db_song_data *) walk->data;
 		command_puts(client, "id: %d", song->id);
 		command_puts(client, "file: %s", song->uri);
 		db_song_data_free(song);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_list_artist(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -299,28 +291,21 @@ handle_list_artist(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
 		command_puts(client, "Artist: %s", data->name);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_list_album(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -334,29 +319,22 @@ handle_list_album(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
 		command_puts(client, "Album: %s", data->name);
 		command_puts(client, "Artist: %s", data->artist);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_list_genre(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -370,28 +348,21 @@ handle_list_genre(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
 		command_puts(client, "Genre: %s", data->name);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listinfo(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -405,7 +376,6 @@ handle_listinfo(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_song_data *song = (struct db_song_data *) walk->data;
 		command_puts(client, "id: %d", song->id);
@@ -415,22 +385,16 @@ handle_listinfo(struct client *client, int argc, char **argv)
 		command_puts(client, "Kill: %d", song->kill);
 		command_puts(client, "Rating: %d", song->rating);
 		db_song_data_free(song);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listinfo_artist(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -444,7 +408,6 @@ handle_listinfo_artist(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -454,22 +417,16 @@ handle_listinfo_artist(struct client *client, int argc, char **argv)
 		command_puts(client, "Kill: %d", data->kill);
 		command_puts(client, "Rating: %d", data->rating);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listinfo_album(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -483,7 +440,6 @@ handle_listinfo_album(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -494,22 +450,16 @@ handle_listinfo_album(struct client *client, int argc, char **argv)
 		command_puts(client, "Kill: %d", data->kill);
 		command_puts(client, "Rating: %d", data->rating);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listinfo_genre(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -523,7 +473,6 @@ handle_listinfo_genre(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *) walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -533,16 +482,11 @@ handle_listinfo_genre(struct client *client, int argc, char **argv)
 		command_puts(client, "Kill: %d", data->kill);
 		command_puts(client, "Rating: %d", data->rating);
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
@@ -956,7 +900,6 @@ handle_rmtag_genre(struct client *client, int argc, char **argv)
 static enum command_return
 handle_listtags(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -970,7 +913,6 @@ handle_listtags(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_song_data *song = (struct db_song_data *)walk->data;
 		command_puts(client, "id: %d", song->id);
@@ -980,22 +922,16 @@ handle_listtags(struct client *client, int argc, char **argv)
 				command_puts(client, "Tag: %s", song->tags[i]);
 		}
 		db_song_data_free(song);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listtags_album(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -1009,7 +945,6 @@ handle_listtags_album(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *)walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -1020,22 +955,16 @@ handle_listtags_album(struct client *client, int argc, char **argv)
 				command_puts(client, "Tag: %s", data->tags[i]);
 		}
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listtags_artist(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -1049,7 +978,6 @@ handle_listtags_artist(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *)walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -1059,22 +987,16 @@ handle_listtags_artist(struct client *client, int argc, char **argv)
 				command_puts(client, "Tag: %s", data->tags[i]);
 		}
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return
 handle_listtags_genre(struct client *client, int argc, char **argv)
 {
-	int count;
 	GError *error;
 	GSList *values, *walk;
 
@@ -1088,7 +1010,6 @@ handle_listtags_genre(struct client *client, int argc, char **argv)
 		return COMMAND_RETURN_ERROR;
 	}
 
-	count = 0;
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct db_generic_data *data = (struct db_generic_data *)walk->data;
 		command_puts(client, "id: %d", data->id);
@@ -1098,16 +1019,11 @@ handle_listtags_genre(struct client *client, int argc, char **argv)
 				command_puts(client, "Tag: %s", data->tags[i]);
 		}
 		db_generic_data_free(data);
-		++count;
 	}
 	g_slist_free(values);
 
-	if (count > 0) {
-		command_ok(client);
-		return COMMAND_RETURN_OK;
-	}
-	command_error(client, ACK_ERROR_NO_EXIST, "Expression didn't match");
-	return COMMAND_RETURN_ERROR;
+	command_ok(client);
+	return COMMAND_RETURN_OK;
 }
 
 static enum command_return

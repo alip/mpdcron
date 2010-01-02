@@ -281,6 +281,5 @@ cmd_addtag(int argc, char **argv)
 		ret = cmd_addtag_internal(argv[1], argv[2], opta, optA, optg);
 	else
 		ret = cmd_addtag_internal(argv[1], NULL, opta, optA, optg);
-
 	return ret;
 }

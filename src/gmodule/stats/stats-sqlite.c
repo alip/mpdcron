@@ -2036,7 +2036,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GErro
 		map = (struct map *) walk->data;
 		if (ret) {
 			char *esc_tags = escape_string(map->tags);
-			stmt = g_strdup_printf("tags = '%s'", esc_tags);
+			stmt = g_strdup_printf("tags = %s", esc_tags);
 			g_free(esc_tags);
 
 			sql = g_strdup_printf("id = %d", map->id);
@@ -2114,7 +2114,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError
 		map = (struct map *) walk->data;
 		if (ret) {
 			char *esc_tags = escape_string(map->tags);
-			stmt = g_strdup_printf("tags = '%s'", esc_tags);
+			stmt = g_strdup_printf("tags = %s'", esc_tags);
 			g_free(esc_tags);
 
 			sql = g_strdup_printf("id = %d", map->id);
@@ -2192,7 +2192,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError
 		map = (struct map *) walk->data;
 		if (ret) {
 			char *esc_tags = escape_string(map->tags);
-			stmt = g_strdup_printf("tags = '%s'", esc_tags);
+			stmt = g_strdup_printf("tags = %s", esc_tags);
 			g_free(esc_tags);
 
 			sql = g_strdup_printf("id = %d", map->id);

@@ -66,11 +66,10 @@ struct client {
 };
 
 enum ack {
-	ACK_ERROR_ARG = 2,
-	ACK_ERROR_PASSWORD = 3,
-	ACK_ERROR_PERMISSION = 4,
-	ACK_ERROR_FORMAT = 5,
-	ACK_ERROR_UNKNOWN = 7,
+	ACK_ERROR_ARG = 1,
+	ACK_ERROR_PASSWORD = 2,
+	ACK_ERROR_PERMISSION = 3,
+	ACK_ERROR_UNKNOWN = 4,
 };
 
 enum command_return {

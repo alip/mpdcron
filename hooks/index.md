@@ -7,14 +7,32 @@ Hooks are executed depending on the event received from <tt>mpd</tt>. Hooks are
 stored under MPDCRON\_DIR/hooks where **MPDCRON\_DIR** is ~/.mpdcron by default.
 Here's a list of hooks and commands run before them:  
   
-- **hooks/database**: <tt>mpdcron</tt> calls **stats** before this and updates the environment.
-- **hooks/stored\_playlist**: <tt>mpdcron</tt> calls **list\_all\_meta** command and updates the environment.
-- **hooks/playlist**: <tt>mpdcron</tt> calls **list\_queue\_meta** and updates the environment.
-- **hooks/player**: <tt>mpdcron</tt> calls **status** and **currentsong** and updates the environment.
-- **hooks/mixer**: <tt>mpdcron</tt> calls **status** and updates the environment.
-- **hooks/output**: <tt>mpdcron</tt> calls **outputs** and updates the environment.
-- **hooks/options**: <tt>mpdcron</tt> calls **status** and updates the environment.
-- **hooks/update**: <tt>mpdcron</tt> calls **status** and updates the environment.
+<table border="1">
+    <tr>
+        <th>Hook</th>
+        <th>Command</th>
+    </tr>
+    <tr>
+        <td>hooks/database</td>
+        <td>hooks/stored\_playlist</td>
+        <td>hooks/playlist</td>
+        <td>hooks/player</td>
+        <td>hooks/mixer</td>
+        <td>hooks/output</td>
+        <td>hooks/options</td>
+        <td>hooks/update</td>
+    </tr>
+    <tr>
+        <td>stats</td>
+        <td>list\_all\_meta</td>
+        <td>list\_queue\_meta</td>
+        <td>status</td>
+        <td>status</td>
+        <td>outputs</td>
+        <td>status</td>
+        <td>status</td>
+    </tr>
+</table>
 
 ## Environment variables
 

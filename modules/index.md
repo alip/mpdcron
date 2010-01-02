@@ -148,11 +148,11 @@ These denote the end of command execution.
 #### Command Reference
 Expression arguments are direct [sqlite](http://www.sqlite.org/) statements.
 See [http://www.sqlite.org/lang_expr.html](http://www.sqlite.org/lang_expr.html)
-for expression syntax.
+for the expression syntax.
 
 #### Querying the database
-- list EXPRESSION
-Lists the songs matching the given expression.
+- list EXPRESSION  
+Lists the songs matching the given expression.  
 Returns:
 <table border="1">
     <tr>
@@ -171,6 +171,7 @@ Returns:
         <td>URI of the song</td>
     </tr>
 </table>
+
 Example:
 
     alip@harikalardiyari> echo list '"id=83"' | netcat localhost 6601
@@ -179,8 +180,8 @@ Example:
     file: aerosmith/big_ones/11-the_other_side.ogg
     OK
 
-- list\_album EXPRESSION
-Lists the albums matching the given expression.
+- list\_album EXPRESSION  
+Lists the albums matching the given expression.  
 Returns:
 <table border="1">
     <tr>
@@ -214,8 +215,8 @@ Example:
     Artist: Anathema
     OK
 
-- list\_artist EXPRESSION
-Lists the artists matching the given expression.
+- list\_artist EXPRESSION  
+Lists the artists matching the given expression.  
 Returns:
 <table border="1">
     <tr>
@@ -243,8 +244,8 @@ Example:
     Artist: The Beatles
     OK
 
-- list\_genre EXPRESSION
-Lists the genres matching the given expression.
+- list\_genre EXPRESSION  
+Lists the genres matching the given expression.  
 Returns:
 <table border="1">
     <tr>
@@ -273,8 +274,8 @@ Example:
     OK
 
 
-- listinfo EXPRESSION
-Lists information of the songs matching the given expression.
+- listinfo EXPRESSION  
+Lists information of the songs matching the given expression.  
 Returns:
 <table>
     <tr>
@@ -326,8 +327,8 @@ Example:
     Rating: 10
     OK
 
-- listinfo\_album EXPRESSION
-Lists information of the albums matching the given expression.
+- listinfo\_album EXPRESSION  
+Lists information of the albums matching the given expression.  
 Returns:
 <table>
     <tr>
@@ -386,8 +387,8 @@ Example:
     OK
 
 
-- listinfo\_artist EXPRESSION
-Lists information of the artists matching the given expression.
+- listinfo\_artist EXPRESSION  
+Lists information of the artists matching the given expression.  
 Returns:
 <table>
     <tr>
@@ -439,8 +440,8 @@ Example:
     Rating: 100
     OK
 
-- listinfo\_genre EXPRESSION
-Lists information of the genres matching the given expression.
+- listinfo\_genre EXPRESSION  
+Lists information of the genres matching the given expression.  
 Returns:
 <table>
     <tr>
@@ -493,8 +494,9 @@ Example:
     OK
 
 #### Updating the database
-- hate EXPRESSION
-Decreases the love count of songs matching the given expression by one.
+
+- hate EXPRESSION  
+Decreases the love count of songs matching the given expression by one.  
 Returns:
 <table border="1">
     <tr>
@@ -516,83 +518,83 @@ Example:
     changes: 58
     OK
 
-- hate\_album EXPRESSION
-Decreases the love count of albums matching the given expression by one.
+- hate\_album EXPRESSION  
+Decreases the love count of albums matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- hate\_artist EXPRESSION
-Decreases the love count of artists matching the given expression by one.
+- hate\_artist EXPRESSION  
+Decreases the love count of artists matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- hate\_genre EXPRESSION
-Decreases the love count of genres matching the given expression by one.
+- hate\_genre EXPRESSION  
+Decreases the love count of genres matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- love EXPRESSION
-Increases the love count of songs matching the given expression by one.
+- love EXPRESSION  
+Increases the love count of songs matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- love\_album EXPRESSION
-Increases the love count of albums matching the given expression by one.
+- love\_album EXPRESSION  
+Increases the love count of albums matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- love\_artist EXPRESSION
-Increases the love count of artists matching the given expression by one.
+- love\_artist EXPRESSION  
+Increases the love count of artists matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- love\_genre EXPRESSION
-Increases the love count of genres matching the given expression by one.
+- love\_genre EXPRESSION  
+Increases the love count of genres matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- kill EXPRESSION
-Increases the kill count of songs matching the given expression by one.
+- kill EXPRESSION  
+Increases the kill count of songs matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- kill\_album EXPRESSION
-Increases the kill count of albums matching the given expression by one.
+- kill\_album EXPRESSION  
+Increases the kill count of albums matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- kill\_artist EXPRESSION
-Increases the kill count of artists matching the given expression by one.
+- kill\_artist EXPRESSION  
+Increases the kill count of artists matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- kill\_genre EXPRESSION
-Increases the kill count of genres matching the given expression by one.
+- kill\_genre EXPRESSION  
+Increases the kill count of genres matching the given expression by one.  
 Returns: (same as <tt>hate</tt>)
 
-- unkill EXPRESSION
-Decreases the kill count of songs matching the given expression to zero.
+- unkill EXPRESSION  
+Decreases the kill count of songs matching the given expression to zero.  
 Returns: (same as <tt>hate</tt>)
 
-- unkill\_album EXPRESSION
-Decreases the kill count of albums matching the given expression to zero.
+- unkill\_album EXPRESSION  
+Decreases the kill count of albums matching the given expression to zero.  
 Returns: (same as <tt>hate</tt>)
 
-- unkill\_artist EXPRESSION
-Decreases the kill count of artists matching the given expression to zero.
+- unkill\_artist EXPRESSION  
+Decreases the kill count of artists matching the given expression to zero.  
 Returns: (same as <tt>hate</tt>)
 
-- unkill\_genre EXPRESSION
-Decreases the kill count of genres matching the given expression to zero.
+- unkill\_genre EXPRESSION  
+Decreases the kill count of genres matching the given expression to zero.  
 Returns: (same as <tt>hate</tt>)
 
-- rate EXPRESSION NUMBER
-Adds the given number to the rating of songs matching the given expression.
-Use a negative number to decrease the rating.
+- rate EXPRESSION NUMBER  
+Adds the given number to the rating of songs matching the given expression.  
+Use a negative number to decrease the rating.  
 Returns: (same as <tt>hate</tt>)
 
-- rate\_album EXPRESSION NUMBER
-Adds the given number to the rating of albums matching the given expression.
-Use a negative number to decrease the rating.
+- rate\_album EXPRESSION NUMBER  
+Adds the given number to the rating of albums matching the given expression.  
+Use a negative number to decrease the rating.  
 Returns: (same as <tt>hate</tt>)
 
-- rate\_artist EXPRESSION NUMBER
-Adds the given number to the rating of artists matching the given expression.
-Use a negative number to decrease the rating.
+- rate\_artist EXPRESSION NUMBER  
+Adds the given number to the rating of artists matching the given expression.  
+Use a negative number to decrease the rating.  
 Returns: (same as <tt>hate</tt>)
 
-- rate\_genre EXPRESSION NUMBER
-Adds the given number to the rating of genres matching the given expression.
+- rate\_genre EXPRESSION NUMBER  
+Adds the given number to the rating of genres matching the given expression.  
 Use a negative number to decrease the rating.
 Returns: (same as <tt>hate</tt>)
 

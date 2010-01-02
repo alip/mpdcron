@@ -182,7 +182,7 @@ mpdcron_parser_feed(struct mpdcron_parser *parser, char *line)
 }
 
 static bool
-mpdcron_parse_password(struct mpdcron_connection *conn)
+mpdcron_parse_single(struct mpdcron_connection *conn)
 {
 	int ret;
 	char *line;
@@ -695,7 +695,7 @@ mpdcron_password(struct mpdcron_connection *conn, const char *password)
 
 	if (!mpdcron_send_command(conn, "password", password, NULL))
 		return false;
-	return mpdcron_parse_password(conn);
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -949,7 +949,7 @@ mpdcron_addtag_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "addtag", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -962,7 +962,7 @@ mpdcron_addtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "addtag_artist", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -975,7 +975,7 @@ mpdcron_addtag_album_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "addtag_album", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -988,7 +988,7 @@ mpdcron_addtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "addtag_genre", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -1001,7 +1001,7 @@ mpdcron_rmtag_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "rmtag", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -1014,7 +1014,7 @@ mpdcron_rmtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "rmtag_artist", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -1027,7 +1027,7 @@ mpdcron_rmtag_album_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "rmtag_album", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool
@@ -1040,7 +1040,7 @@ mpdcron_rmtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
 
 	if (!mpdcron_send_command(conn, "rmtag_genre", expr, tag, NULL))
 		return false;
-	return true;
+	return mpdcron_parse_single(conn);
 }
 
 bool

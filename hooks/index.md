@@ -312,7 +312,7 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
 </table>
 
 ### outputs
-<table>
+<table border="1">
     <tr>
         <th>Environment variable</th>
         <th>Explanation</th>

@@ -66,7 +66,7 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
     <tr>
         <td>MPD_SONG_LAST_MODIFIED</td>
         <!-- _ -->
-        <td>Time of last modification (format: "%Y-%m-%d %H-%M-%S %Z")</td>
+        <td>Time of last modification<br />(format: "%Y-%m-%d %H-%M-%S %Z")</td>
     </tr>
     <tr>
         <td>MPD_SONG_DURATION</td>

@@ -4,6 +4,15 @@ title: Stats Protocol
 ---
 
 The procotol is very similar to mpd's protocol with minor differences.
+This page describes protocol version 0.1.
+
+## Welcome
+At the beginning of every session the stats module sends the greeting:
+
+    OK MPDCRON PROTOCOL_VERSION
+
+where PROTOCOL\_VERSION is the version of the protocol in format
+major\_version.minor\_version
 
 ## Requests
 If arguments contain spaces, they should be surrounded by double quotation marks.
@@ -165,7 +174,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo list '"id=83"' | netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 83
     file: aerosmith/big_ones/11-the_other_side.ogg
     OK
@@ -199,7 +208,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo list_album '"id=83"' |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 83
     Album: The Silent Enigma
     Artist: Anathema
@@ -229,7 +238,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo list_artist '"id=83"' | netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 83
     Artist: The Beatles
     OK
@@ -258,7 +267,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo list_genre '"id=83"' |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 83
     Genre: Vocal
     OK
@@ -308,7 +317,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listinfo '"id=102"' |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 102
     file: aerosmith/ultimate_hits/disc_1/15-love_in_an_elevator.ogg
     Play Count: 3
@@ -366,7 +375,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listinfo_album "\"name='Animals'\"" |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 722
     Album: Animals
     Artist: Pink Floyd
@@ -421,7 +430,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listinfo_artist '"id=102"' |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 102
     Artist: Can
     Play Count: 10
@@ -474,7 +483,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listinfo_genre "\"name like '%Psych%'\"" | netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 89
     Genre: Psychadelic Trance
     Play Count: 0
@@ -514,7 +523,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listtags "\"title='The House At Pooneil Corners'\"" |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 4270
     file: jefferson_airplane/ignition/cd4/11-the_house_at_pooneil_corners.ogg
     Tag: nowar
@@ -557,7 +566,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listtags_album "\"name='Animals'\"" |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 722
     Album: Animals
     Artist: Pink Floyd
@@ -594,7 +603,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listtags_artist "\"name like '%Syd%'\"" |netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 421
     Artist: Syd Barrett
     Tag: crazy
@@ -631,7 +640,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo listtags_genre "\"name like '%Trance%'\"" |netcat localhost 6601 
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     id: 88
     Genre: Psychedelic Trance
     Tag: best
@@ -659,7 +668,7 @@ Returns:
 Example:
 
     alip@harikalardiyari> echo hate "\"genre='Pop'\"" | netcat localhost 6601
-    OK MPDCRON 0.2
+    OK MPDCRON 0.1
     changes: 58
     OK
 

@@ -30,6 +30,110 @@ An integer indicating which kind of error occured.
 - description:  
 A short explanation of the error. Maybe void.
 
+#### Error codes
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Number</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_ARG</td>
+        <!-- _ -->
+        <td>1</td>
+        <td>Argument error</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_PASSWORD</td>
+        <!-- _ -->
+        <td>2</td>
+        <td>The given password was wrong</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_PERMISSION</td>
+        <!-- _ -->
+        <td>3</td>
+        <td>The client doesn't have permission for the requested command</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_UNKNOWN</td>
+        <!-- _ -->
+        <td>4</td>
+        <td>Unknown error</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_OPEN</td>
+        <!-- _ -->
+        <td>50</td>
+        <td>Opening the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_CREATE</td>
+        <!-- _ -->
+        <td>51</td>
+        <td>Creating the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_VERSION</td>
+        <!-- _ -->
+        <td>52</td>
+        <td>Database version mismatch</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_AUTH</td>
+        <!-- _ -->
+        <td>53</td>
+        <td>Setting authorizer failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_INSERT</td>
+        <!-- _ -->
+        <td>54</td>
+        <td>Inserting to the database failed</td>
+    </tr>
+        <td>ACK_ERROR_DATABASE_SELECT</td>
+        <!-- _ -->
+        <td>55</td>
+        <td>Selecting from the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_UPDATE</td>
+        <!-- _ -->
+        <td>56</td>
+        <td>Updating the database failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_PREPARE</td>
+        <!-- _ -->
+        <td>57</td>
+        <td>Preparing statement failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_BIND</td>
+        <!-- _ -->
+        <td>58</td>
+        <td>Binding values to the statement failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_STEP</td>
+        <!-- _ -->
+        <td>59</td>
+        <td>Stepping the statement failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_RESET</td>
+        <!-- _ -->
+        <td>60</td>
+        <td>Resetting the statement failed</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_INVALID_TAG</td>
+        <!-- _ -->
+        <td>101</td>
+        <td>The given tag is invalid</td>
+    </tr>
+</table>
+
 ## Command Reference
 Expression arguments are direct [sqlite](http://www.sqlite.org/) statements.
 See [http://www.sqlite.org/lang_expr.html](http://www.sqlite.org/lang_expr.html)
@@ -378,6 +482,161 @@ Example:
     Rating: 0
     OK
 
+- listtags EXPRESSION
+List tags of songs matching the given expression.  
+Returns:
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td>The database ID of the song</td>
+    </tr>
+    <tr>
+        <td>file</td>
+        <td>String</td>
+        <td>The URI of the song</td>
+    </tr>
+    <tr>
+        <td>Tag</td>
+        <td>String</td>
+        <td>A tag of the song</td>
+    </tr>
+</table>
+
+**Note**: If the song has no tags no <tt>Tag</tt> is sent!
+
+Example:
+
+    alip@harikalardiyari> echo listtags "\"title='The House At Pooneil Corners'\"" |netcat localhost 6601
+    OK MPDCRON 0.2
+    id: 4270
+    file: jefferson_airplane/ignition/cd4/11-the_house_at_pooneil_corners.ogg
+    Tag: nowar
+    OK
+
+
+- listtags\_album EXPRESSION
+List tags of albums matching the given expression.  
+Returns:
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td>The database ID of the album</td>
+    </tr>
+    <tr>
+        <td>Album</td>
+        <td>String</td>
+        <td>The name of the album</td>
+    </tr>
+    <tr>
+        <td>Artist</td>
+        <td>String</td>
+        <td>The name of the artist</td>
+    </tr>
+    <tr>
+        <td>Tag</td>
+        <td>String</td>
+        <td>A tag of the album</td>
+    </tr>
+</table>
+
+**Note**: If the album has no tags no <tt>Tag</tt> is sent!
+
+Example:
+
+    alip@harikalardiyari> echo listtags_album "\"name='Animals'\"" |netcat localhost 6601
+    OK MPDCRON 0.2
+    id: 722
+    Album: Animals
+    Artist: Pink Floyd
+    Tag: best
+
+- listtags\_artist EXPRESSION
+List tags of artists matching the given expression.  
+Returns:
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td>The database ID of the artist</td>
+    </tr>
+    <tr>
+        <td>Artist</td>
+        <td>String</td>
+        <td>The name of the artist</td>
+    </tr>
+    <tr>
+        <td>Tag</td>
+        <td>String</td>
+        <td>A tag of the artist</td>
+    </tr>
+</table>
+
+**Note**: If the artist has no tags no <tt>Tag</tt> is sent!
+
+Example:
+
+    alip@harikalardiyari> echo listtags_artist "\"name like '%Syd%'\"" |netcat localhost 6601
+    OK MPDCRON 0.2
+    id: 421
+    Artist: Syd Barrett
+    Tag: crazy
+    OK
+
+- listtags\_genre EXPRESSION
+List tags of genres matching the given expression.  
+Returns:
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>id</td>
+        <td>String</td>
+        <td>The database ID of the genre</td>
+    </tr>
+    <tr>
+        <td>Genre</td>
+        <td>String</td>
+        <td>The name of the genre</td>
+    </tr>
+    <tr>
+        <td>Tag</td>
+        <td>String</td>
+        <td>A tag of the genre</td>
+    </tr>
+</table>
+
+**Note**: If the genre has no tags no <tt>Tag</tt> is sent!
+
+Example:
+
+    alip@harikalardiyari> echo listtags_genre "\"name like '%Trance%'\"" |netcat localhost 6601 
+    OK MPDCRON 0.2
+    id: 88
+    Genre: Psychedelic Trance
+    Tag: best
+    OK
+
+
 ### Updating the database
 
 - hate EXPRESSION  
@@ -481,6 +740,38 @@ Returns: (same as <tt>hate</tt>)
 - rate\_genre EXPRESSION NUMBER  
 Adds the given number to the rating of genres matching the given expression.  
 Use a negative number to decrease the rating.  
+Returns: (same as <tt>hate</tt>)
+
+- addtag EXPRESSION TAG  
+Adds the given tag to the songs matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- addtag\_album EXPRESSION TAG  
+Adds the given tag to the albums matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- addtag\_artist EXPRESSION TAG  
+Adds the given tag to the artists matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- addtag\_genre EXPRESSION TAG  
+Adds the given tag to the genres matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- rmtag EXPRESSION TAG  
+Removes the given tag from the songs matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- rmtag\_album EXPRESSION TAG  
+Removes the given tag from the albums matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- rmtag\_artist EXPRESSION TAG  
+Removes the given tag from the artists matching the given expression.  
+Returns: (same as <tt>hate</tt>)
+
+- rmtag\_genre EXPRESSION TAG  
+Removes the given tag from the genres matching the given expression.  
 Returns: (same as <tt>hate</tt>)
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

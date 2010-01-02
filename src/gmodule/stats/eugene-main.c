@@ -56,6 +56,9 @@ usage(FILE *outf, int exitval)
 "kill          Kill song/artist/album/genre\n"
 "unkill        Unkill song/artist/album/genre\n"
 "rate          Rate song/artist/album/genre\n"
+"addtag        Add tag to song/artist/album/genre\n"
+"rmtag         Remove tag from song/artist/album/genre\n"
+"listtags      List tags of song/artist/album/genre\n"
 "\n"
 "See eugene COMMAND --help for more information\n");
 	exit(exitval);

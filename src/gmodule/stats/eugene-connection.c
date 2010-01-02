@@ -562,6 +562,25 @@ mpdcron_parse_welcome(struct mpdcron_connection *conn, const char *output)
 /**
  * Sending data
  */
+static char *
+escape(const char *src)
+{
+	const char *p;
+	GString *dest;
+
+	g_return_val_if_fail(src != NULL, NULL);
+
+	dest = g_string_new("");
+	p = src;
+	while (*p != 0) {
+		if (*p == '"' || *p == '\\')
+			g_string_append_c(dest, '\\');
+		g_string_append_c(dest, *p);
+		++p;
+	}
+	return g_string_free(dest, FALSE);
+}
+
 static bool
 mpdcron_send_commandv(struct mpdcron_connection *conn, const char *command,
 		va_list args)
@@ -581,7 +600,7 @@ mpdcron_send_commandv(struct mpdcron_connection *conn, const char *command,
 		/* Escape and quote the argument */
 		g_string_append_c(cmd, '"');
 
-		esc_arg = g_strescape(arg, "");
+		esc_arg = escape(arg);
 		g_string_append(cmd, esc_arg);
 		g_free(esc_arg);
 

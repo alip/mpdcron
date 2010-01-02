@@ -2031,6 +2031,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GErro
 	if (changes != NULL)
 		*changes = 0;
 
+	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2050,6 +2051,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GErro
 		g_free(map);
 	}
 	g_slist_free(ids);
+	db_end_transaction(NULL);
 
 	return ret;
 }
@@ -2109,6 +2111,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError
 	if (changes != NULL)
 		*changes = 0;
 
+	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2128,6 +2131,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError
 		g_free(map);
 	}
 	g_slist_free(ids);
+	db_end_transaction(NULL);
 
 	return ret;
 }
@@ -2187,6 +2191,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError
 	if (changes != NULL)
 		*changes = 0;
 
+	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2206,6 +2211,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError
 		g_free(map);
 	}
 	g_slist_free(ids);
+	db_end_transaction(NULL);
 
 	return ret;
 }
@@ -2265,6 +2271,7 @@ db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError 
 	if (changes != NULL)
 		*changes = 0;
 
+	db_start_transaction(NULL);
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2284,6 +2291,7 @@ db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError 
 		g_free(map);
 	}
 	g_slist_free(ids);
+	db_end_transaction(NULL);
 
 	return ret;
 }

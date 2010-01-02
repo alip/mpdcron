@@ -137,13 +137,8 @@ main(int argc, char **argv)
 	}
 	g_free(dbpath);
 
-	error = NULL;
-	if (!db_start_transaction(&error)) {
-		g_printerr("Failed to begin transaction: %s\n", error->message);
-		g_error_free(error);
-		db_close();
-		return 1;
-	}
+	db_set_sync(false, NULL);
+	db_start_transaction(NULL);
 
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {
@@ -162,14 +157,8 @@ main(int argc, char **argv)
 		}
 	}
 
-	error = NULL;
-	if (!db_end_transaction(&error)) {
-		g_printerr("Failed to end transaction: %s\n", error->message);
-		g_error_free(error);
-		db_close();
-		return 1;
-	}
-
+	db_end_transaction(NULL);
 	db_close();
+
 	return 0;
 }

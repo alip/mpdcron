@@ -56,6 +56,18 @@ A short explanation of the error. Maybe void.
         <td>The client doesn't have permission for the requested command</td>
     </tr>
     <tr>
+        <td>ACK_ERROR_UNKNOWN</td>
+        <!-- _ -->
+        <td>4</td>
+        <td>Unknown error</td>
+    </tr>
+    <tr>
+        <td>ACK_ERROR_DATABASE_OPEN</td>
+        <!-- _ -->
+        <td>50</td>
+        <td>Opening the database failed</td>
+    </tr>
+    <tr>
         <td>ACK_ERROR_DATABASE_UPDATE</td>
         <!-- _ -->
         <td>56</td>

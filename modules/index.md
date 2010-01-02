@@ -134,16 +134,14 @@ information.
 #### Protocol
 The procotol is very similar to mpd's protocol with minor differences.
 
-##### General protocol syntax
-
-##### Requests
+#### Requests
 If arguments contain spaces, they should be surrounded by double quotation marks.
 All data between the client and the server is encoded in UTF-8.
 The command syntax is:
 
     COMMAND [ARG...]
 
-##### Responses
+#### Responses
 A command returns <tt>OK</tt> on completion or <tt>ACK</tt> some error on failure.  
 These denote the end of command execution.
 
@@ -152,7 +150,7 @@ Expression arguments are direct [sqlite](http://www.sqlite.org/) statements.
 See [http://www.sqlite.org/lang_expr.html](http://www.sqlite.org/lang_expr.html)
 for expression syntax.
 
-##### Querying the database
+#### Querying the database
 - list EXPRESSION
 Lists the songs matching the given expression.
 Returns:
@@ -494,7 +492,7 @@ Example:
     Rating: 0
     OK
 
-##### Updating the database
+#### Updating the database
 - hate EXPRESSION
 Decreases the love count of songs matching the given expression by one.
 Returns:

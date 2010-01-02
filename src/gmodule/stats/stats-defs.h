@@ -38,7 +38,7 @@
 
 #include "stats-sqlite.h"
 
-#define PROTOCOL_VERSION VERSION
+#define PROTOCOL_VERSION "0.1"
 #define DEFAULT_HOST "any"
 #define DEFAULT_PORT 6601
 

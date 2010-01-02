@@ -163,6 +163,7 @@ static enum command_return
 handle_kill(struct client *client, int argc, char **argv)
 {
 	bool kkill;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -170,11 +171,12 @@ handle_kill(struct client *client, int argc, char **argv)
 	kkill = (strcmp(argv[0], "kill") == 0);
 
 	error = NULL;
-	if (!db_kill_song_expr(argv[1], kkill, &error)) {
+	if (!db_kill_song_expr(argv[1], kkill, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -183,6 +185,7 @@ static enum command_return
 handle_kill_album(struct client *client, int argc, char **argv)
 {
 	bool kkill;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -190,11 +193,12 @@ handle_kill_album(struct client *client, int argc, char **argv)
 	kkill = (strcmp(argv[0], "kill_album") == 0);
 
 	error = NULL;
-	if (!db_kill_album_expr(argv[1], kkill, &error)) {
+	if (!db_kill_album_expr(argv[1], kkill, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -203,6 +207,7 @@ static enum command_return
 handle_kill_artist(struct client *client, int argc, char **argv)
 {
 	bool kkill;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -210,11 +215,12 @@ handle_kill_artist(struct client *client, int argc, char **argv)
 	kkill = (strcmp(argv[0], "kill_artist") == 0);
 
 	error = NULL;
-	if (!db_kill_artist_expr(argv[1], kkill, &error)) {
+	if (!db_kill_artist_expr(argv[1], kkill, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -223,6 +229,7 @@ static enum command_return
 handle_kill_genre(struct client *client, int argc, char **argv)
 {
 	bool kkill;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -230,11 +237,12 @@ handle_kill_genre(struct client *client, int argc, char **argv)
 	kkill = (strcmp(argv[0], "kill_genre") == 0);
 
 	error = NULL;
-	if (!db_kill_genre_expr(argv[1], kkill, &error)) {
+	if (!db_kill_genre_expr(argv[1], kkill, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -541,6 +549,7 @@ static enum command_return
 handle_love(struct client *client, int argc, char **argv)
 {
 	bool love;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -548,11 +557,12 @@ handle_love(struct client *client, int argc, char **argv)
 	love = (strcmp(argv[0], "love") == 0);
 
 	error = NULL;
-	if (!db_love_song_expr(argv[1], love, &error)) {
+	if (!db_love_song_expr(argv[1], love, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -561,6 +571,7 @@ static enum command_return
 handle_love_album(struct client *client, int argc, char **argv)
 {
 	bool love;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -568,11 +579,12 @@ handle_love_album(struct client *client, int argc, char **argv)
 	love = (strcmp(argv[0], "love_album") == 0);
 
 	error = NULL;
-	if (!db_love_album_expr(argv[1], love, &error)) {
+	if (!db_love_album_expr(argv[1], love, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -581,6 +593,7 @@ static enum command_return
 handle_love_artist(struct client *client, int argc, char **argv)
 {
 	bool love;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -588,11 +601,12 @@ handle_love_artist(struct client *client, int argc, char **argv)
 	love = (strcmp(argv[0], "love_artist") == 0);
 
 	error = NULL;
-	if (!db_love_artist_expr(argv[1], love, &error)) {
+	if (!db_love_artist_expr(argv[1], love, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -601,6 +615,7 @@ static enum command_return
 handle_love_genre(struct client *client, int argc, char **argv)
 {
 	bool love;
+	int changes;
 	GError *error;
 
 	g_assert(argc == 2);
@@ -608,11 +623,12 @@ handle_love_genre(struct client *client, int argc, char **argv)
 	love = (strcmp(argv[0], "love_genre") == 0);
 
 	error = NULL;
-	if (!db_love_genre_expr(argv[1], love, &error)) {
+	if (!db_love_genre_expr(argv[1], love, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -620,6 +636,7 @@ handle_love_genre(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rate(struct client *client, int argc, char **argv)
 {
+	int changes;
 	long rating;
 	char *endptr;
 	GError *error;
@@ -648,11 +665,12 @@ handle_rate(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (!db_rate_song_expr(argv[1], (int)rating, &error)) {
+	if (!db_rate_song_expr(argv[1], (int)rating, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -660,6 +678,7 @@ handle_rate(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rate_artist(struct client *client, int argc, char **argv)
 {
+	int changes;
 	long rating;
 	char *endptr;
 	GError *error;
@@ -688,11 +707,12 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (!db_rate_artist_expr(argv[1], (int)rating, &error)) {
+	if (!db_rate_artist_expr(argv[1], (int)rating, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -700,6 +720,7 @@ handle_rate_artist(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rate_album(struct client *client, int argc, char **argv)
 {
+	int changes;
 	long rating;
 	char *endptr;
 	GError *error;
@@ -728,11 +749,12 @@ handle_rate_album(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (!db_rate_album_expr(argv[1], (int)rating, &error)) {
+	if (!db_rate_album_expr(argv[1], (int)rating, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -740,6 +762,7 @@ handle_rate_album(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rate_genre(struct client *client, int argc, char **argv)
 {
+	int changes;
 	long rating;
 	char *endptr;
 	GError *error;
@@ -768,11 +791,12 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 	}
 
 	error = NULL;
-	if (!db_rate_genre_expr(argv[1], (int)rating, &error)) {
+	if (!db_rate_genre_expr(argv[1], (int)rating, &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -780,16 +804,18 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 static enum command_return
 handle_addtag(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_add_song_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_add_song_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -797,16 +823,18 @@ handle_addtag(struct client *client, int argc, char **argv)
 static enum command_return
 handle_addtag_album(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_add_album_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_add_album_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -814,16 +842,18 @@ handle_addtag_album(struct client *client, int argc, char **argv)
 static enum command_return
 handle_addtag_artist(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_add_artist_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_add_artist_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -831,16 +861,18 @@ handle_addtag_artist(struct client *client, int argc, char **argv)
 static enum command_return
 handle_addtag_genre(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_add_genre_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_add_genre_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -848,16 +880,18 @@ handle_addtag_genre(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rmtag(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_remove_song_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_remove_song_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -865,16 +899,18 @@ handle_rmtag(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rmtag_album(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_remove_album_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_remove_album_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -882,16 +918,18 @@ handle_rmtag_album(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rmtag_artist(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_remove_artist_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_remove_artist_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }
@@ -899,16 +937,18 @@ handle_rmtag_artist(struct client *client, int argc, char **argv)
 static enum command_return
 handle_rmtag_genre(struct client *client, int argc, char **argv)
 {
+	int changes;
 	GError *error;
 
 	g_assert(argc == 3);
 
 	error = NULL;
-	if (!db_remove_genre_tag_expr(argv[1], argv[2], &error)) {
+	if (!db_remove_genre_tag_expr(argv[1], argv[2], &changes, &error)) {
 		command_error(client, error->code, "%s", error->message);
 		g_error_free(error);
 		return COMMAND_RETURN_ERROR;
 	}
+	command_puts(client, "changes: %d", changes);
 	command_ok(client);
 	return COMMAND_RETURN_OK;
 }

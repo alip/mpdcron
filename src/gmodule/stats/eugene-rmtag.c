@@ -27,8 +27,10 @@
 static int
 rmtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_rmtag_artist_expr(conn, expr, tag)) {
+		if (!mpdcron_rmtag_artist_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from artist: %s",
 					conn->error->message);
 			return 1;
@@ -51,7 +53,7 @@ rmtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_rmtag_artist_expr(conn, myexpr, tag)) {
+		if (!mpdcron_rmtag_artist_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from current playing artist: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -59,14 +61,17 @@ rmtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 rmtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_rmtag_album_expr(conn, expr, tag)) {
+		if (!mpdcron_rmtag_album_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from album: %s",
 					conn->error->message);
 			return 1;
@@ -96,7 +101,7 @@ rmtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_rmtag_album_expr(conn, myexpr, tag)) {
+		if (!mpdcron_rmtag_album_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from current playing album: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -104,14 +109,17 @@ rmtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 rmtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_rmtag_genre_expr(conn, expr, tag)) {
+		if (!mpdcron_rmtag_genre_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from genre: %s",
 					conn->error->message);
 			return 1;
@@ -134,7 +142,7 @@ rmtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_genre);
 		mpd_song_free(song);
 
-		if (!mpdcron_rmtag_genre_expr(conn, myexpr, tag)) {
+		if (!mpdcron_rmtag_genre_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from current playing genre: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -142,14 +150,17 @@ rmtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 rmtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_rmtag_expr(conn, expr, tag)) {
+		if (!mpdcron_rmtag_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from song: %s",
 					conn->error->message);
 			return 1;
@@ -167,7 +178,7 @@ rmtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_uri);
 		mpd_song_free(song);
 
-		if (!mpdcron_rmtag_expr(conn, myexpr, tag)) {
+		if (!mpdcron_rmtag_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to remove tag from current playing song: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -175,6 +186,7 @@ rmtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 

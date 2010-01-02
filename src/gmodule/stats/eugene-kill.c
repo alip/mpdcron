@@ -27,154 +27,163 @@
 static int
 kill_artist(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
+	int changes;
 	char *esc_artist, *myexpr;
 	struct mpd_song *song;
 
 	if (expr != NULL) {
-		if (!mpdcron_kill_artist_expr(conn, kkill, expr)) {
+		if (!mpdcron_kill_artist_expr(conn, kkill, expr, &changes)) {
 			eulog(LOG_ERR, "Failed to %s artist: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
-		return 0;
 	}
+	else {
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no artist tag!");
+			mpd_song_free(song);
+			return 1;
+		}
 
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	else if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL) {
-		eulog(LOG_ERR, "Current playing song has no artist tag!");
+		esc_artist = quote(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
+		myexpr = g_strdup_printf("name=%s", esc_artist);
+		g_free(esc_artist);
 		mpd_song_free(song);
-		return 1;
-	}
 
-	esc_artist = quote(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
-	myexpr = g_strdup_printf("name=%s", esc_artist);
-	g_free(esc_artist);
-	mpd_song_free(song);
-
-	if (!mpdcron_kill_artist_expr(conn, kkill, myexpr)) {
-		eulog(LOG_ERR, "Failed to %s current playing artist: %s",
-				kkill ? "kill" : "unkill",
-				conn->error->message);
+		if (!mpdcron_kill_artist_expr(conn, kkill, myexpr, &changes)) {
+			eulog(LOG_ERR, "Failed to %s current playing artist: %s",
+					kkill ? "kill" : "unkill",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
 		g_free(myexpr);
-		return 1;
 	}
-	g_free(myexpr);
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 kill_album(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
+	int changes;
 	char *esc_album, *myexpr;
 	struct mpd_song *song;
 
 	if (expr != NULL) {
-		if (!mpdcron_kill_album_expr(conn, kkill, expr)) {
+		if (!mpdcron_kill_album_expr(conn, kkill, expr, &changes)) {
 			eulog(LOG_ERR, "Failed to %s album: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
 	}
+	else {
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no album tag!");
+			mpd_song_free(song);
+			return 1;
+		}
 
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	else if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) == NULL) {
-		eulog(LOG_ERR, "Current playing song has no album tag!");
+		esc_album = quote(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
+		myexpr = g_strdup_printf("name=%s", esc_album);
+		g_free(esc_album);
 		mpd_song_free(song);
-		return 1;
-	}
 
-	esc_album = quote(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
-	myexpr = g_strdup_printf("name=%s", esc_album);
-	g_free(esc_album);
-	mpd_song_free(song);
-
-	if (!mpdcron_kill_album_expr(conn, kkill, myexpr)) {
-		eulog(LOG_ERR, "Failed to %s current playing album: %s",
-				kkill ? "kill" : "unkill",
-				conn->error->message);
+		if (!mpdcron_kill_album_expr(conn, kkill, myexpr, &changes)) {
+			eulog(LOG_ERR, "Failed to %s current playing album: %s",
+					kkill ? "kill" : "unkill",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
 		g_free(myexpr);
-		return 1;
 	}
-	g_free(myexpr);
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 kill_genre(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
+	int changes;
 	char *esc_genre, *myexpr;
 	struct mpd_song *song;
 
 	if (expr != NULL) {
-		if (!mpdcron_kill_genre_expr(conn, kkill, expr)) {
+		if (!mpdcron_kill_genre_expr(conn, kkill, expr, &changes)) {
 			eulog(LOG_ERR, "Failed to %s genre: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
-		return 0;
 	}
+	else {
+		if ((song = load_current_song()) == NULL)
+			return 1;
+		else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
+			eulog(LOG_ERR, "Current playing song has no genre tag!");
+			mpd_song_free(song);
+			return 1;
+		}
 
-	if ((song = load_current_song()) == NULL)
-		return 1;
-	else if (mpd_song_get_tag(song, MPD_TAG_GENRE, 0) == NULL) {
-		eulog(LOG_ERR, "Current playing song has no genre tag!");
+		esc_genre = quote(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
+		myexpr = g_strdup_printf("name=%s", esc_genre);
+		g_free(esc_genre);
 		mpd_song_free(song);
-		return 1;
-	}
 
-	esc_genre = quote(mpd_song_get_tag(song, MPD_TAG_GENRE, 0));
-	myexpr = g_strdup_printf("name=%s", esc_genre);
-	g_free(esc_genre);
-	mpd_song_free(song);
-
-	if (!mpdcron_kill_genre_expr(conn, kkill, myexpr)) {
-		eulog(LOG_ERR, "Failed to %s current playing genre: %s",
-				kkill ? "kill" : "unkill",
-				conn->error->message);
+		if (!mpdcron_kill_genre_expr(conn, kkill, myexpr, &changes)) {
+			eulog(LOG_ERR, "Failed to %s current playing genre: %s",
+					kkill ? "kill" : "unkill",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
 		g_free(myexpr);
-		return 1;
 	}
-	g_free(myexpr);
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 kill_song(struct mpdcron_connection *conn, bool kkill, const char *expr)
 {
+	int changes;
 	char *esc_uri, *myexpr;
 	struct mpd_song *song;
 
 	if (expr != NULL) {
-		if (!mpdcron_kill_expr(conn, kkill, expr)) {
+		if (!mpdcron_kill_expr(conn, kkill, expr, &changes)) {
 			eulog(LOG_ERR, "Failed to %s song: %s",
 					kkill ? "kill" : "unkill",
 					conn->error->message);
 			return 1;
 		}
-		return 0;
 	}
+	else {
+		if ((song = load_current_song()) == NULL)
+			return 1;
 
-	if ((song = load_current_song()) == NULL)
-		return 1;
+		esc_uri = quote(mpd_song_get_uri(song));
+		myexpr = g_strdup_printf("uri=%s", esc_uri);
+		g_free(esc_uri);
+		mpd_song_free(song);
 
-	esc_uri = quote(mpd_song_get_uri(song));
-	myexpr = g_strdup_printf("uri=%s", esc_uri);
-	g_free(esc_uri);
-	mpd_song_free(song);
-
-	if (!mpdcron_kill_expr(conn, kkill, myexpr)) {
-		eulog(LOG_ERR, "Failed to %s current playing song: %s",
-				kkill ? "kill" : "unkill",
-				conn->error->message);
+		if (!mpdcron_kill_expr(conn, kkill, myexpr, &changes)) {
+			eulog(LOG_ERR, "Failed to %s current playing song: %s",
+					kkill ? "kill" : "unkill",
+					conn->error->message);
+			g_free(myexpr);
+			return 1;
+		}
 		g_free(myexpr);
-		return 1;
 	}
-	g_free(myexpr);
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 

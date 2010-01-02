@@ -141,64 +141,64 @@ bool
 db_listinfo_song_expr(const char *expr, GSList **values, GError **error);
 
 bool
-db_love_artist_expr(const char *expr, bool love, GError **error);
+db_love_artist_expr(const char *expr, bool love, int *changes, GError **error);
 
 bool
-db_love_album_expr(const char *expr, bool love, GError **error);
+db_love_album_expr(const char *expr, bool love, int *changes, GError **error);
 
 bool
-db_love_genre_expr(const char *expr, bool love, GError **error);
+db_love_genre_expr(const char *expr, bool love, int *changes, GError **error);
 
 bool
-db_love_song_expr(const char *expr, bool love, GError **error);
+db_love_song_expr(const char *expr, bool love, int *changes, GError **error);
 
 bool
-db_kill_artist_expr(const char *expr, bool kkill, GError **error);
+db_kill_artist_expr(const char *expr, bool kkill, int *changes, GError **error);
 
 bool
-db_kill_album_expr(const char *expr, bool kkill, GError **error);
+db_kill_album_expr(const char *expr, bool kkill, int *changes, GError **error);
 
 bool
-db_kill_genre_expr(const char *expr, bool kkill, GError **error);
+db_kill_genre_expr(const char *expr, bool kkill, int *changes, GError **error);
 
 bool
-db_kill_song_expr(const char *expr, bool kkill, GError **error);
+db_kill_song_expr(const char *expr, bool kkill, int *changes, GError **error);
 
 bool
-db_rate_artist_expr(const char *expr, int rating, GError **error);
+db_rate_artist_expr(const char *expr, int rating, int *changes, GError **error);
 
 bool
-db_rate_album_expr(const char *expr, int rating, GError **error);
+db_rate_album_expr(const char *expr, int rating, int *changes, GError **error);
 
 bool
-db_rate_genre_expr(const char *expr, int rating, GError **error);
+db_rate_genre_expr(const char *expr, int rating, int *changes, GError **error);
 
 bool
-db_rate_song_expr(const char *expr, int rating, GError **error);
+db_rate_song_expr(const char *expr, int rating, int *changes, GError **error);
 
 bool
-db_add_artist_tag_expr(const char *expr, const char *tag, GError **error);
+db_add_artist_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_add_album_tag_expr(const char *expr, const char *tag, GError **error);
+db_add_album_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_add_genre_tag_expr(const char *expr, const char *tag, GError **error);
+db_add_genre_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_add_song_tag_expr(const char *expr, const char *tag, GError **error);
+db_add_song_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error);
+db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_remove_album_tag_expr(const char *expr, const char *tag, GError **error);
+db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error);
+db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
-db_remove_song_tag_expr(const char *expr, const char *tag, GError **error);
+db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool
 db_list_artist_tag_expr(const char *expr, GSList **values, GError **error);

@@ -27,8 +27,10 @@
 static int
 addtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_addtag_artist_expr(conn, expr, tag)) {
+		if (!mpdcron_addtag_artist_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to artist: %s",
 					conn->error->message);
 			return 1;
@@ -51,7 +53,7 @@ addtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_artist_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_artist_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing artist: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -59,14 +61,17 @@ addtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 addtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_addtag_album_expr(conn, expr, tag)) {
+		if (!mpdcron_addtag_album_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to album: %s",
 					conn->error->message);
 			return 1;
@@ -96,7 +101,7 @@ addtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_album_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_album_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing album: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -104,14 +109,17 @@ addtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 addtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_addtag_genre_expr(conn, expr, tag)) {
+		if (!mpdcron_addtag_genre_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to genre: %s",
 					conn->error->message);
 			return 1;
@@ -134,7 +142,7 @@ addtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_genre);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_genre_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_genre_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing genre: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -142,14 +150,17 @@ addtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 
 static int
 addtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 {
+	int changes;
+
 	if (expr != NULL) {
-		if (!mpdcron_addtag_expr(conn, expr, tag)) {
+		if (!mpdcron_addtag_expr(conn, expr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to song: %s",
 					conn->error->message);
 			return 1;
@@ -167,7 +178,7 @@ addtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_uri);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_expr(conn, myexpr, tag, &changes)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing song: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -175,6 +186,7 @@ addtag_song(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		}
 		g_free(myexpr);
 	}
+	printf("Modified %d entries\n", changes);
 	return 0;
 }
 

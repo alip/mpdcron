@@ -166,83 +166,87 @@ mpdcron_listinfo_expr(struct mpdcron_connection *conn,
 
 bool
 mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_love_artist_expr(struct mpdcron_connection *conn, bool love,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_love_genre_expr(struct mpdcron_connection *conn, bool love,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_love_expr(struct mpdcron_connection *conn, bool love,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_kill_album_expr(struct mpdcron_connection *conn, bool kkill,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_kill_artist_expr(struct mpdcron_connection *conn, bool kkill,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_kill_genre_expr(struct mpdcron_connection *conn, bool kkill,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_kill_expr(struct mpdcron_connection *conn, bool kkill,
-		const char *expr);
+		const char *expr, int *changes);
 
 bool
 mpdcron_rate_album_expr(struct mpdcron_connection *conn,
-		const char *rating, const char *expr);
+		const char *rating, const char *expr,
+		int *changes);
 
 bool
 mpdcron_rate_artist_expr(struct mpdcron_connection *conn,
-		const char *rating, const char *expr);
+		const char *rating, const char *expr,
+		int *changes);
 
 bool
 mpdcron_rate_genre_expr(struct mpdcron_connection *conn,
-		const char *rating, const char *expr);
+		const char *rating, const char *expr,
+		int *changes);
 
 bool
 mpdcron_rate_expr(struct mpdcron_connection *conn,
-		const char *rating, const char *expr);
+		const char *rating, const char *expr,
+		int *changes);
 
 bool
 mpdcron_addtag_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_addtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_addtag_album_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_addtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_rmtag_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_rmtag_artist_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_rmtag_album_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_rmtag_genre_expr(struct mpdcron_connection *conn, const char *expr,
-		const char *tag);
+		const char *tag, int *changes);
 
 bool
 mpdcron_listtags_expr(struct mpdcron_connection *conn, const char *expr,

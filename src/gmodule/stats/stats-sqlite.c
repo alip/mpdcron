@@ -1620,7 +1620,7 @@ db_listinfo_song_expr(const char *expr, GSList **values,
  * Love/Hate song/artist/album/genre
  */
 bool
-db_love_artist_expr(const char *expr, bool love, GError **error)
+db_love_artist_expr(const char *expr, bool love, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1634,11 +1634,14 @@ db_love_artist_expr(const char *expr, bool love, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_love_album_expr(const char *expr, bool love, GError **error)
+db_love_album_expr(const char *expr, bool love, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1652,11 +1655,14 @@ db_love_album_expr(const char *expr, bool love, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_love_genre_expr(const char *expr, bool love, GError **error)
+db_love_genre_expr(const char *expr, bool love, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1670,11 +1676,14 @@ db_love_genre_expr(const char *expr, bool love, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_love_song_expr(const char *expr, bool love, GError **error)
+db_love_song_expr(const char *expr, bool love, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1687,6 +1696,9 @@ db_love_song_expr(const char *expr, bool love, GError **error)
 		return false;
 	}
 	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
 
 	return true;
 }
@@ -1695,7 +1707,7 @@ db_love_song_expr(const char *expr, bool love, GError **error)
  * Kill/Unkill song/artist/album/genre
  */
 bool
-db_kill_artist_expr(const char *expr, bool kkill, GError **error)
+db_kill_artist_expr(const char *expr, bool kkill, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1709,11 +1721,14 @@ db_kill_artist_expr(const char *expr, bool kkill, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_kill_album_expr(const char *expr, bool kkill, GError **error)
+db_kill_album_expr(const char *expr, bool kkill, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1727,11 +1742,14 @@ db_kill_album_expr(const char *expr, bool kkill, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_kill_genre_expr(const char *expr, bool kkill, GError **error)
+db_kill_genre_expr(const char *expr, bool kkill, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1745,11 +1763,14 @@ db_kill_genre_expr(const char *expr, bool kkill, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_kill_song_expr(const char *expr, bool kkill, GError **error)
+db_kill_song_expr(const char *expr, bool kkill, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1762,6 +1783,9 @@ db_kill_song_expr(const char *expr, bool kkill, GError **error)
 		return false;
 	}
 	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
 
 	return true;
 }
@@ -1770,7 +1794,7 @@ db_kill_song_expr(const char *expr, bool kkill, GError **error)
  * Rate song/artist/album/genre
  */
 bool
-db_rate_artist_expr(const char *expr, int rating, GError **error)
+db_rate_artist_expr(const char *expr, int rating, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1784,11 +1808,14 @@ db_rate_artist_expr(const char *expr, int rating, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_rate_album_expr(const char *expr, int rating, GError **error)
+db_rate_album_expr(const char *expr, int rating, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1802,11 +1829,14 @@ db_rate_album_expr(const char *expr, int rating, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_rate_genre_expr(const char *expr, int rating, GError **error)
+db_rate_genre_expr(const char *expr, int rating, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1820,11 +1850,14 @@ db_rate_genre_expr(const char *expr, int rating, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_rate_song_expr(const char *expr, int rating, GError **error)
+db_rate_song_expr(const char *expr, int rating, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1837,6 +1870,9 @@ db_rate_song_expr(const char *expr, int rating, GError **error)
 		return false;
 	}
 	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
 
 	return true;
 }
@@ -1845,7 +1881,7 @@ db_rate_song_expr(const char *expr, int rating, GError **error)
  * Tags management
  */
 bool
-db_add_artist_tag_expr(const char *expr, const char *tag, GError **error)
+db_add_artist_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1862,11 +1898,14 @@ db_add_artist_tag_expr(const char *expr, const char *tag, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_add_album_tag_expr(const char *expr, const char *tag, GError **error)
+db_add_album_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1883,11 +1922,14 @@ db_add_album_tag_expr(const char *expr, const char *tag, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_add_genre_tag_expr(const char *expr, const char *tag, GError **error)
+db_add_genre_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1904,11 +1946,14 @@ db_add_genre_tag_expr(const char *expr, const char *tag, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_add_song_tag_expr(const char *expr, const char *tag, GError **error)
+db_add_song_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	char *stmt;
 
@@ -1925,11 +1970,14 @@ db_add_song_tag_expr(const char *expr, const char *tag, GError **error)
 	}
 	g_free(stmt);
 
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
 	return true;
 }
 
 bool
-db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error)
+db_remove_artist_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	int ret;
 	char *stmt, *sql;
@@ -1980,6 +2028,9 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error)
 
 	sqlite3_finalize(sql_stmt);
 
+	if (changes != NULL)
+		*changes = 0;
+
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -1991,6 +2042,9 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error)
 			sql = g_strdup_printf("id = %d", map->id);
 			ret = sql_update_artist(stmt, sql, error);
 			g_free(sql);
+
+			if (changes != NULL)
+				*changes += sqlite3_changes(gdb);
 		}
 		g_free(map->tags);
 		g_free(map);
@@ -2001,7 +2055,7 @@ db_remove_artist_tag_expr(const char *expr, const char *tag, GError **error)
 }
 
 bool
-db_remove_album_tag_expr(const char *expr, const char *tag, GError **error)
+db_remove_album_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	int ret;
 	char *stmt, *sql;
@@ -2052,6 +2106,9 @@ db_remove_album_tag_expr(const char *expr, const char *tag, GError **error)
 
 	sqlite3_finalize(sql_stmt);
 
+	if (changes != NULL)
+		*changes = 0;
+
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2063,6 +2120,9 @@ db_remove_album_tag_expr(const char *expr, const char *tag, GError **error)
 			sql = g_strdup_printf("id = %d", map->id);
 			ret = sql_update_album(stmt, sql, error);
 			g_free(sql);
+
+			if (changes != NULL)
+				*changes += sqlite3_changes(gdb);
 		}
 		g_free(map->tags);
 		g_free(map);
@@ -2073,7 +2133,7 @@ db_remove_album_tag_expr(const char *expr, const char *tag, GError **error)
 }
 
 bool
-db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error)
+db_remove_genre_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	int ret;
 	char *stmt, *sql;
@@ -2124,6 +2184,9 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error)
 
 	sqlite3_finalize(sql_stmt);
 
+	if (changes != NULL)
+		*changes = 0;
+
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2135,6 +2198,9 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error)
 			sql = g_strdup_printf("id = %d", map->id);
 			ret = sql_update_genre(stmt, sql, error);
 			g_free(sql);
+
+			if (changes != NULL)
+				*changes += sqlite3_changes(gdb);
 		}
 		g_free(map->tags);
 		g_free(map);
@@ -2145,7 +2211,7 @@ db_remove_genre_tag_expr(const char *expr, const char *tag, GError **error)
 }
 
 bool
-db_remove_song_tag_expr(const char *expr, const char *tag, GError **error)
+db_remove_song_tag_expr(const char *expr, const char *tag, int *changes, GError **error)
 {
 	int ret;
 	char *stmt, *sql;
@@ -2196,6 +2262,9 @@ db_remove_song_tag_expr(const char *expr, const char *tag, GError **error)
 
 	sqlite3_finalize(sql_stmt);
 
+	if (changes != NULL)
+		*changes = 0;
+
 	ret = true;
 	for (walk = ids; walk != NULL; walk = g_slist_next(walk)) {
 		map = (struct map *) walk->data;
@@ -2207,6 +2276,9 @@ db_remove_song_tag_expr(const char *expr, const char *tag, GError **error)
 			sql = g_strdup_printf("id = %d", map->id);
 			ret = sql_update_song(stmt, sql, error);
 			g_free(sql);
+
+			if (changes != NULL)
+				*changes += sqlite3_changes(gdb);
 		}
 		g_free(map->tags);
 		g_free(map);

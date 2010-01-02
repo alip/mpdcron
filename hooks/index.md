@@ -53,28 +53,118 @@ Here's a list of hooks and commands run before them:
 Here's a list of environment variables <tt>mpdcron</tt> sets depending on the command sent:
 
 ### currentsong
-* **MPD\_SONG\_URI**: URI of the song.
-* **MPD\_SONG\_LAST\_MODIFIED**: Time of last modification.  
-  (in format: "%Y-%m-%d %H-%M-%S %Z")
-* **MPD\_SONG\_DURATION**: Duration in seconds of the song.
-* **MPD\_SONG\_POS**: Position of this song in the queue.
-* **MPD\_SONG\_ID**: ID of the song.
-* **MPD\_SONG\_TAG\_ARTIST**: Artist tag of the song.
-* **MPD\_SONG\_TAG\_ALBUM**: Album tag of the song.
-* **MPD\_SONG\_TAG\_ALBUM\_ARTIST**: Album artist tag of the song.
-* **MPD\_SONG\_TAG\_TITLE**: Title tag of the song.
-* **MPD\_SONG\_TAG\_TRACK**: Track number tag of the song.
-* **MPD\_SONG\_TAG\_NAME**: Name tag of the song.
-* **MPD\_SONG\_TAG\_GENRE**: Genre tag of the song.
-* **MPD\_SONG\_TAG\_DATE**: Date tag of the song.
-* **MPD\_SONG\_TAG\_COMPOSER**: Composer tag of the song.
-* **MPD\_SONG\_TAG\_PERFORMER**: Performer tag of the song.
-* **MPD\_SONG\_TAG\_COMMENT**: Comment tag of the song.
-* **MPD\_SONG\_TAG\_DISC**: Disc tag of the song.
-* **MPD\_SONG\_TAG\_MUSICBRAINZ\_ARTISTID**: Musicbrainz Artist ID tag of the song.
-* **MPD\_SONG\_TAG\_MUSICBRAINZ\_ALBUMID**: Musicbrainz Album ID tag of the song.
-* **MPD\_SONG\_TAG\_MUSICBRAINZ\_ALBUMARTISTID**: Musicbrainz Album artist ID tag of the song.
-* **MPD\_SONG\_TAG\_MUSICBRAINZ\_TRACKID**: Musicbrainz Track ID tag of the song.
+<table border="1">
+    <tr>
+        <th>Environment variable</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>MPD_SONG_URI</td>
+        <!-- _ -->
+        <td>URI of the song</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_LAST_MODIFIED</td>
+        <!-- _ -->
+        <td>Time of last modification (format: "%Y-%m-%d %H-%M-%S %Z")</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_DURATION</td>
+        <!-- _ -->
+        <td>Duration of the song in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_DURATION</td>
+        <!-- _ -->
+        <td>Duration of the song in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_POS</td>
+        <!-- _ -->
+        <td>Position of the song in the queue</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_ID</td>
+        <!-- _ -->
+        <td>Song ID</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_ARTIST</td>
+        <!-- _ -->
+        <td>Artist tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_ALBUM</td>
+        <!-- _ -->
+        <td>Album tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_ALBUM_ARTIST</td>
+        <!-- _ -->
+        <td>Album artist tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_TITLE</td>
+        <!-- _ -->
+        <td>Title tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_TRACK</td>
+        <!-- _ -->
+        <td>Track tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_NAME</td>
+        <!-- _ -->
+        <td>Name tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_GENRE</td>
+        <!-- _ -->
+        <td>Genre tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_DATE</td>
+        <!-- _ -->
+        <td>Date tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_COMPOSER</td>
+        <!-- _ -->
+        <td>Composer tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_COMMENT</td>
+        <!-- _ -->
+        <td>Comment tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_DISC</td>
+        <!-- _ -->
+        <td>Disc tag</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_MUSICBRAINZ_ARTISTID</td>
+        <!-- _ -->
+        <td>Musicbrainz artist ID</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_MUSICBRAINZ_ALBUMID</td>
+        <!-- _ -->
+        <td>Musicbrainz album ID</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_MUSICBRAINZ_ALBUMARTISTID</td>
+        <!-- _ -->
+        <td>Musicbrainz album artist ID</td>
+    </tr>
+    <tr>
+        <td>MPD_SONG_TAG_MUSICBRAINZ_TRACKID</td>
+        <!-- _ -->
+        <td>Musicbrainz track ID</td>
+    </tr>
+</table>
+
 ### stats
 * **MPD\_DATABASE\_UPDATE\_TIME**: A date specifying last update time.  
   (in format: "%Y-%m-%d %H-%M-%S %Z")

@@ -116,6 +116,9 @@ bool
 db_set_sync(bool on, GError **error);
 
 bool
+db_vacuum(GError **error);
+
+bool
 db_process(const struct mpd_song *song, bool increment, GError **error);
 
 bool

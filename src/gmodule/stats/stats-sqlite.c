@@ -48,6 +48,8 @@ enum {
 	SQL_PRAGMA_SYNC_ON,
 	SQL_PRAGMA_SYNC_OFF,
 
+	SQL_VACUUM,
+
 	SQL_HAS_SONG,
 	SQL_HAS_ARTIST,
 	SQL_HAS_ALBUM,
@@ -132,6 +134,8 @@ static const char * const db_sql[] = {
 
 	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
 	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
+
+	[SQL_VACUUM] = "VACUUM;",
 
 	[SQL_HAS_SONG] = "select id from song where uri=?",
 	[SQL_HAS_ARTIST] = "select id from artist where name=?",
@@ -1144,6 +1148,26 @@ db_set_sync(bool on, GError **error)
 	}
 
 	if (db_step(stmt) != SQLITE_DONE) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+				"sqlite3_step: %s", sqlite3_errmsg(gdb));
+		return false;
+	}
+
+	return true;
+}
+
+bool
+db_vacuum(GError **error)
+{
+	g_assert(gdb != NULL);
+
+	if (sqlite3_reset(db_stmt[SQL_VACUUM]) != SQLITE_OK) {
+		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
+				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
+		return false;
+	}
+
+	if (db_step(db_stmt[SQL_VACUUM]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;

@@ -158,6 +158,7 @@ main(int argc, char **argv)
 	}
 
 	db_end_transaction(NULL);
+	db_vacuum(NULL);
 	db_close();
 
 	return 0;

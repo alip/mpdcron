@@ -312,9 +312,26 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
 </table>
 
 ### outputs
-* **MPD\_OUTPUT\_ID\_%d**: Where **%d** is a number (starting from 1), specifies the name of the given output ID.
-* **MPD\_OUTPUT\_ID\_%d\_ENABLED:** Where **%d** is a number (starting from 1), specifies
-  whether the output is enabled (boolean, 0 or 1)
+<table>
+    <tr>
+        <th>Environment variable</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>MPD_OUTPUT_ID_%d</td>
+        <td>Specifies the name of the given output ID
+            <br />(%d is replaced with a number starting from 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_OUTPUT_ID_%d_ENABLED</td>
+        <!-- _ -->
+        <td>Specifies the name of the given output ID
+            <br />(boolean, 0 or 1)
+            <br />(%d is replaced with a number starting from 1)
+        </td>
+    </tr>
+</table>
+
 ### list\_queue\_meta
 * All songs in the queue are set in environment. The variables are like in **currentsong**
   except they get a number like: 

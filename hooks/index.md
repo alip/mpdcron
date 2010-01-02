@@ -166,34 +166,151 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
 </table>
 
 ### stats
-* **MPD\_DATABASE\_UPDATE\_TIME**: A date specifying last update time.  
-  (in format: "%Y-%m-%d %H-%M-%S %Z")
-* **MPD\_DATABASE\_ARTISTS**: Number of artists in the database.
-* **MPD\_DATABASE\_ALBUMS**: Number of albums in the database.
-* **MPD\_DATABASE\_SONGS**: Number of songs in the database.
-* **MPD\_DATABASE\_PLAY\_TIME**: Accumulated time mpd was playing music since the process was started.
-* **MPD\_DATABASE\_UPTIME**: Uptime of mpd in seconds.
-* **MPD\_DATABASE\_DB\_PLAY\_TIME**: Accumulated duration of all songs in the database.
+<table border="1">
+    <tr>
+        <th>Environment variable</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_UPDATE_TIME</td>
+        <!-- _ -->
+        <td>Date specifying last update time<br />(format: "%Y-%m-%d %H-%M-%S %Z")</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_ARTISTS</td>
+        <!-- _ -->
+        <td>Number of artists</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_ALBUMS</td>
+        <!-- _ -->
+        <td>Number of albums</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_SONGS</td>
+        <!-- _ -->
+        <td>Number of songs</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_PLAY_TIME</td>
+        <!-- _ -->
+        <td>Accumulated time <tt>mpd</tt> was playing music since the process was started</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_UPTIME</td>
+        <!-- _ -->
+        <td>Uptime of <tt>mpd</tt> in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_DATABASE_DB_PLAY_TIME</td>
+        <!-- _ -->
+        <td>Accumulated duration of all songs</td>
+    </tr>
+</table>
+
 ### status
-* **MPD\_STATUS\_VOLUME**: Volume
-* **MPD\_STATUS\_REPEAT**: Repeat (boolean, 0 or 1)
-* **MPD\_STATUS\_RANDOM**: Random (boolean, 0 or 1)
-* **MPD\_STATUS\_SINGLE**: Single (boolean, 0 or 1)
-* **MPD\_STATUS\_CONSUME**: Consume (boolean, 0 or 1)
-* **MPD\_STATUS\_QUEUE\_LENGTH**: Queue/Playlist length.
-* **MPD\_STATUS\_CROSSFADE**: Crossfade in seconds.
-* **MPD\_STATUS\_SONG\_POS**: Position of the current playing song.
-* **MPD\_STATUS\_SONG\_ID**: ID of the current playing song.
-* **MPD\_STATUS\_ELAPSED\_TIME**: Elapsed time in seconds
-* **MPD\_STATUS\_ELAPSED\_MS**: Elapsed time in milliseconds.
-* **MPD\_STATUS\_TOTAL\_TIME**: Total time in seconds.
-* **MPD\_STATUS\_KBIT\_RATE**: Current bit rate in kbps.
-* **MPD\_STATUS\_UPDATE\_ID**: The ID of the update.
-* **MPD\_STATUS\_STATE**: State, one of **play**, **pause**, **stop** or **unknown**
-* **MPD\_STATUS\_AUDIO\_FORMAT**: Specifies whether audio format is available (boolean, 0 or 1)
-* **MPD\_STATUS\_AUDIO\_FORMAT\_SAMPLE\_RATE**: The sample rate in Hz.
-* **MPD\_STATUS\_AUDIO\_FORMAT\_BITS**: The number of significant bits per sample.
-* **MPD\_STATUS\_AUDIO\_FORMAT\_CHANNELS**: The number of channels. 1 for mono, 2 for stereo.
+<table border="1">
+    <tr>
+        <th>Environment variable</th>
+        <th>Explanation</th>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_VOLUME</td>
+        <!-- _ -->
+        <td>Volume</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_REPEAT</td>
+        <!-- _ -->
+        <td>Repeat<br />(boolean, 0 or 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_RANDOM</td>
+        <!-- _ -->
+        <td>Random<br />(boolean, 0 or 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_SINGLE</td>
+        <!-- _ -->
+        <td>Single<br />(boolean, 0 or 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_CONSUME</td>
+        <!-- _ -->
+        <td>Consume<br />(boolean, 0 or 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_QUEUE_LENGTH</td>
+        <!-- _ -->
+        <td>Queue/Playlist length</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_CROSSFADE</td>
+        <!-- _ -->
+        <td>Crossfade in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_SONG_POS</td>
+        <!-- _ -->
+        <td>Position of the current playing song</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_SONG_ID</td>
+        <!-- _ -->
+        <td>ID of the current playing song</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_ELAPSED_TIME</td>
+        <!-- _ -->
+        <td>Elapsed time in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_ELAPSED_MS</td>
+        <!-- _ -->
+        <td>Elapsed time in milliseconds</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_TOTAL_TIME</td>
+        <!-- _ -->
+        <td>Total time in seconds</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_KBIT_RATE</td>
+        <!-- _ -->
+        <td>Current bit rate in kbps</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_UPDATE_ID</td>
+        <!-- _ -->
+        <td>ID of the update</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_STATE</td>
+        <!-- _ -->
+        <td>State, one of play, pause, stop or unknown</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_AUDIO_FORMAT</td>
+        <!-- _ -->
+        <td>Specified whether audio format is available<br />(boolean, 0 or 1)</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_AUDIO_FORMAT_SAMPLE_RATE</td>
+        <!-- _ -->
+        <td>Sample rate in Hz</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_AUDIO_FORMAT_BITS</td>
+        <!-- _ -->
+        <td>Number of significant bits per sample</td>
+    </tr>
+    <tr>
+        <td>MPD_STATUS_AUDIO_FORMAT_CHANNELS</td>
+        <!-- _ -->
+        <td>Number of channels<br />(1 for mono, 2 for stereo)</td>
+    </tr>
+</table>
+
 ### outputs
 * **MPD\_OUTPUT\_ID\_%d**: Where **%d** is a number (starting from 1), specifies the name of the given output ID.
 * **MPD\_OUTPUT\_ID\_%d\_ENABLED:** Where **%d** is a number (starting from 1), specifies

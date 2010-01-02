@@ -483,7 +483,7 @@ Example:
     Rating: 0
     OK
 
-- listtags EXPRESSION
+- listtags EXPRESSION  
 List tags of songs matching the given expression.  
 Returns:
 <table border="1">
@@ -521,7 +521,7 @@ Example:
     OK
 
 
-- listtags\_album EXPRESSION
+- listtags\_album EXPRESSION  
 List tags of albums matching the given expression.  
 Returns:
 <table border="1">
@@ -563,7 +563,7 @@ Example:
     Artist: Pink Floyd
     Tag: best
 
-- listtags\_artist EXPRESSION
+- listtags\_artist EXPRESSION  
 List tags of artists matching the given expression.  
 Returns:
 <table border="1">
@@ -600,7 +600,7 @@ Example:
     Tag: crazy
     OK
 
-- listtags\_genre EXPRESSION
+- listtags\_genre EXPRESSION  
 List tags of genres matching the given expression.  
 Returns:
 <table border="1">

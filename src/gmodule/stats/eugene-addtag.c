@@ -51,7 +51,7 @@ addtag_artist(struct mpdcron_connection *conn, const char *tag, const char *expr
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_artist_expr(conn, myexpr, tag)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing artist: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -96,7 +96,7 @@ addtag_album(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_artist);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_album_expr(conn, myexpr, tag)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing album: %s",
 					conn->error->message);
 			g_free(myexpr);
@@ -134,7 +134,7 @@ addtag_genre(struct mpdcron_connection *conn, const char *tag, const char *expr)
 		g_free(esc_genre);
 		mpd_song_free(song);
 
-		if (!mpdcron_addtag_expr(conn, myexpr, tag)) {
+		if (!mpdcron_addtag_genre_expr(conn, myexpr, tag)) {
 			eulog(LOG_ERR, "Failed to add tag to current playing genre: %s",
 					conn->error->message);
 			g_free(myexpr);

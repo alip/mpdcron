@@ -466,7 +466,7 @@ Returns: (same as <tt>hate</tt>)
 
 - rate\_genre EXPRESSION NUMBER  
 Adds the given number to the rating of genres matching the given expression.  
-Use a negative number to decrease the rating.
+Use a negative number to decrease the rating.  
 Returns: (same as <tt>hate</tt>)
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

@@ -78,7 +78,7 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     [libre.fm]
     url = http://turtle.libre.fm
     username = <libre.fm username here>
-    # Password can be specified in two ways: either bare or in the form md5:MD5_HASH
+    # Password can be specified in two ways: either bare or in the form md5:MD5-HASH
     password = <libre.fm password here>
 
     [last.fm]
@@ -87,8 +87,11 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     password = <last.fm password here>
 
 ### stats
-This module saves song data to a [sqlite](http://www.sqlite.org/) database and
-tracks play count.
+This module saves song data to a [sqlite](http://www.sqlite.org/) database.
+#### Features
+- Supports loving, killing, rating and tagging songs, artists, albums and genres.
+- Tracks play count of songs, artist, albums and genres.
+- Implements a simple server protocol for remote clients to receive data.
 
 #### Configuration
 
@@ -98,11 +101,31 @@ tracks play count.
     modules = stats
 
     [stats]
-    # Path to the database default is MPDCRON_DIR/stats.db where MPDCRON_DIR is
+    # Path to the database, default is MPDCRON_DIR/stats.db where MPDCRON_DIR is
     # ~/.mpdcron by default.
     dbpath = /path/to/database
+    # Semi-colon delimited list of addresses to bind.
+    # By default this module binds on any interface.
+    bind_to_addresses = localhost;/home/alip/.mpdcron/stats.socket
+    # Port to bind to, default port is 6601
+    port = 6601
+    # Default permissions for accessing the database.
+    # This is a semi-colon delimited list of permissions.
+    # Available permissions are:
+    # - select: Allows the client to do a select on the database.
+    # - update: Allows the client to do updates on the database.
+    # The default is select;update
+    default_permissions = select;update
+    # Passwords to access the database.
+    # This is a semi-colon delimited list of passwords in the form
+    # password@permission.
+    passwords = needvodka@update;needbeer@select
 
-#### Eugene
+#### Creating/Updating the database
+This module comes with a client called <tt>walrus</tt> to create or update the
+statistics database. See **walrus --help** output for more information.
+
+#### Interacting with the database
 This module comes with a client called <tt>eugene</tt> which can be used to
 interact with the statistics database. See **eugene --help** output for more
 information.

@@ -20,15 +20,12 @@ These denote the end of command execution.
 
 Syntax:
 
-    ACK [<int errorid>@<int position>] {command} description
+    ACK [<int errorid>] {command} description
 
 where:
 
 - errorid:  
 An integer indicating which kind of error occured.  
-
-- position:  
-Command lists not implemented thus always 0.
 
 - description:  
 A short explanation of the error. Maybe void.

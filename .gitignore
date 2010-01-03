@@ -40,3 +40,4 @@ m4/ltsugar.m4
 src/mpdcron
 src/gmodule/stats/eugene
 src/gmodule/stats/walrus
+src/gmodule/stats/homescrape

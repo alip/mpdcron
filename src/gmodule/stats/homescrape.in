@@ -13,7 +13,7 @@ rescue LoadError
 end
 
 MYNAME = File.basename $0, ".rb"
-MYVERSION = "0.2"
+MYVERSION = "@VERSION@" + "@GITHEAD@"
 
 class UserNotFound < StandardError; end
 

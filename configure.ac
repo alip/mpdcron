@@ -167,6 +167,7 @@ AC_OUTPUT(
 		  src/gmodule/notification/Makefile
 		  src/gmodule/scrobbler/Makefile
 		  src/gmodule/stats/Makefile
+		  src/gmodule/stats/homescrape
 		  data/Makefile
 )
 dnl }}}

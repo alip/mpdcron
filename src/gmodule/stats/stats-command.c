@@ -48,7 +48,7 @@ static const char *current_command;
 static int
 command_authorizer(void *userdata, int what,
 		G_GNUC_UNUSED const char *arg1,
-		G_GNUC_UNUSED const char *arg2,
+		const char *arg2,
 		G_GNUC_UNUSED const char *dbname,
 		G_GNUC_UNUSED const char *view)
 {

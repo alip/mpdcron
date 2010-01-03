@@ -44,16 +44,16 @@ Here's a list of packages you need to have in your system to build
 
 Some modules have additional requirements:
 
-- notification:
+#### notification
 
 * Requires <tt>notify-send</tt> which comes with
   [libnotify](http://www.galago-project.org/)
 
-- scrobbler:
+#### scrobbler
 
 * [libcurl](http://curl.haxx.se/)
 
-- stats:
+#### stats
 
 * [sqlite](http://www.sqlite.org)-3 or newer
 * [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer

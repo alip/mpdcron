@@ -175,11 +175,15 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo list '"id=83"' | netcat localhost 6601
     OK MPDCRON 0.1
     id: 83
     file: aerosmith/big_ones/11-the_other_side.ogg
     OK
+
+{% endhighlight %}
 
 - list\_album EXPRESSION  
 Lists the albums matching the given expression.  

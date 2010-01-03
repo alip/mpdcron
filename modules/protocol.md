@@ -756,34 +756,42 @@ Returns: (same as <tt>hate</tt>)
 
 - addtag EXPRESSION TAG  
 Adds the given tag to the songs matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - addtag\_album EXPRESSION TAG  
 Adds the given tag to the albums matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - addtag\_artist EXPRESSION TAG  
 Adds the given tag to the artists matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - addtag\_genre EXPRESSION TAG  
 Adds the given tag to the genres matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - rmtag EXPRESSION TAG  
 Removes the given tag from the songs matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - rmtag\_album EXPRESSION TAG  
 Removes the given tag from the albums matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - rmtag\_artist EXPRESSION TAG  
 Removes the given tag from the artists matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - rmtag\_genre EXPRESSION TAG  
 Removes the given tag from the genres matching the given expression.  
+A tag may not be empty or have the character ':' (colon) in it.  
 Returns: (same as <tt>hate</tt>)
 
 - count EXPRESSION NUMBER  

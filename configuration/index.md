@@ -15,6 +15,8 @@ At startup mpdcron reads its configuration from the file
 MPDCRON\_DIR/mpdcron.conf where **MPDCRON\_DIR** is ~/.mpdcron by default.
 Configuration file is in standard .ini format.
 
+{% highlight ini %}
+
     # mpdcron configuration file
     [main]
     # Path to the PID file, by default the PID file is MPDCRON_DIR/mpdcron.pid
@@ -39,5 +41,7 @@ Configuration file is in standard .ini format.
     reconnect = 5
     # Timeout in milliseconds for mpd timeout, 0 for default timeout of libmpdclient.
     timeout = 0
+
+{% endhighlight %}
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

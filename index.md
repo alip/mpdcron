@@ -43,16 +43,17 @@ Here's a list of packages you need to have in your system to build
 - [glib](http://library.gnome.org/devel/glib/)-2.18 or newer
 
 Some modules have additional requirements:
+
 - notification:
-    * Requires <tt>notify-send</tt> which comes with
-    * [libnotify](http://www.galago-project.org/)
+1. Requires <tt>notify-send</tt> which comes with
+2. [libnotify](http://www.galago-project.org/)
 - scrobbler:
-    * [libcurl](http://curl.haxx.se/)
+1. [libcurl](http://curl.haxx.se/)
 - stats:
-    * [sqlite](http://www.sqlite.org)-3 or newer
-    * [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
-    * The <tt>homescrape</tt> script requires [ruby](http://www.ruby-lang.org/) and
-      [nokogiri](http://nokogiri.org/).
+1. [sqlite](http://www.sqlite.org)-3 or newer
+2. [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
+3. The <tt>homescrape</tt> script requires [ruby](http://www.ruby-lang.org/) and
+   [nokogiri](http://nokogiri.org/).
 
 ### Packages
 Some distributions have <tt>mpdcron</tt> packaged so you can install it

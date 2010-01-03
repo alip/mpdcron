@@ -243,7 +243,7 @@ db_step(sqlite3_stmt *stmt)
 static bool
 validate_tag(const char *tag, GError **error)
 {
-	if (strchr(tag, ':') != NULL) {
+	if (tag[0] == '\0' || strchr(tag, ':') != NULL) {
 		g_set_error(error, db_quark(),
 				ACK_ERROR_INVALID_TAG,
 				"Invalid tag `%s'", tag);

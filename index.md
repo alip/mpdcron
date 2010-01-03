@@ -58,7 +58,9 @@ Some modules have additional requirements:
 * [sqlite](http://www.sqlite.org)-3 or newer
 * [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
 * The <tt>homescrape</tt> script requires [ruby](http://www.ruby-lang.org/) and
-  [nokogiri](http://nokogiri.org/).
+  [nokogiri](http://nokogiri.org/). Optionally
+  [chronic](http://chronic.rubyforge.org/) can be installed to parse dates in a
+  huge variety of date and time formats, for the **--since** option.
 
 ### Packages
 Some distributions have <tt>mpdcron</tt> packaged so you can install it

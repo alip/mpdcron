@@ -74,7 +74,6 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 {% highlight ini %}
 
     # mpdcron configuration file
-    ...
     [main]
     modules = scrobbler
 

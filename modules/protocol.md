@@ -786,22 +786,22 @@ Returns: (same as <tt>hate</tt>)
 Removes the given tag from the genres matching the given expression.  
 Returns: (same as <tt>hate</tt>)
 
-- count EXPRESSION NUMBER
+- count EXPRESSION NUMBER  
 Adds the given number to the play count of songs matching the given expression.  
 Use a negative number to decrease the play count.  
 Returns: (same as <tt>hate</tt>)
 
-- count\_album EXPRESSION NUMBER
+- count\_album EXPRESSION NUMBER  
 Adds the given number to the play count of albums matching the given expression.  
 Use a negative number to decrease the play count.  
 Returns: (same as <tt>hate</tt>)
 
-- count\_artist EXPRESSION NUMBER
+- count\_artist EXPRESSION NUMBER  
 Adds the given number to the play count of artists matching the given expression.  
 Use a negative number to decrease the play count.  
 Returns: (same as <tt>hate</tt>)
 
-- count\_genre EXPRESSION NUMBER
+- count\_genre EXPRESSION NUMBER  
 Adds the given number to the play count of genres matching the given expression.  
 Use a negative number to decrease the play count.  
 Returns: (same as <tt>hate</tt>)

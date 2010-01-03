@@ -29,7 +29,8 @@ Configuration file is in standard .ini format.
     # By default mpdcron waits for all events.
     # Valid events are:
     # database: Song database has been updated.
-    # stored_playlist: A stored playlist has been modified, created, deleted or renamed.
+    # stored_playlist: A stored playlist has been modified, created,
+    # deleted or renamed.
     # playlist: The queue has been modified.
     # player: The player state has been changed: play, stop, pause, seek, ...
     # mixer: The volume has been modified.
@@ -39,7 +40,8 @@ Configuration file is in standard .ini format.
     events = player;mixer
     # Interval in seconds to reconnect to mpd after an error or disconnect.
     reconnect = 5
-    # Timeout in milliseconds for mpd timeout, 0 for default timeout of libmpdclient.
+    # Timeout in milliseconds for mpd timeout, 0 for default timeout of
+    # libmpdclient.
     timeout = 0
 
 {% endhighlight %}

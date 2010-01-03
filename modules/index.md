@@ -111,7 +111,6 @@ This module saves song data to a [sqlite](http://www.sqlite.org/) database.
 {% highlight ini %}
 
     # mpdcron configuration file
-    ...
     [main]
     modules = stats
 

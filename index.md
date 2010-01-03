@@ -44,15 +44,15 @@ Here's a list of packages you need to have in your system to build
 
 Some modules have additional requirements:
 - notification:
-* Requires <tt>notify-send</tt> which comes with
-* [libnotify](http://www.galago-project.org/)
+    * Requires <tt>notify-send</tt> which comes with
+    * [libnotify](http://www.galago-project.org/)
 - scrobbler:
-* [libcurl](http://curl.haxx.se/)
+    * [libcurl](http://curl.haxx.se/)
 - stats:
-* [sqlite](http://www.sqlite.org)-3 or newer
-* [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
-* The <tt>homescrape</tt> script requires [ruby](http://www.ruby-lang.org/) and
-  [nokogiri](http://nokogiri.org/).
+    * [sqlite](http://www.sqlite.org)-3 or newer
+    * [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
+    * The <tt>homescrape</tt> script requires [ruby](http://www.ruby-lang.org/) and
+      [nokogiri](http://nokogiri.org/).
 
 ### Packages
 Some distributions have <tt>mpdcron</tt> packaged so you can install it
@@ -63,7 +63,7 @@ easily using their package management system:
         <th>Package</th>
     </tr>
     <tr>
-        <td>Exherbo</td>
+        <td><a href="http://www.exherbo.org">Exherbo</a></td>
         <td>
             <a
             href="http://git.exherbo.org/summer/packages/media-sound/mpdcron/">

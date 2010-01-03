@@ -131,6 +131,11 @@ This module comes with a client called <tt>eugene</tt> which can be used to
 interact with the statistics database. See **eugene --help** output for more
 information.
 
+#### Importing data from Last.fm
+This module comes with a script called <tt>homescrape</tt> which can be used to
+import [Last.fm](http://last.fm) data to the statistics database. See
+**homescrape --help** output for more information.
+
 #### Database Layout
 Check the sql statements in the beginning of
 [stats-sqlite.c](http://github.com/alip/mpdcron/blob/master/src/gmodule/stats/stats-sqlite.c).

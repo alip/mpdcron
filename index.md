@@ -46,7 +46,7 @@ Some modules have additional requirements:
 
 - notification:
 1. Requires <tt>notify-send</tt> which comes with
-2. [libnotify](http://www.galago-project.org/)
+   [libnotify](http://www.galago-project.org/)
 - scrobbler:
 1. [libcurl](http://curl.haxx.se/)
 - stats:

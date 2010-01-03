@@ -3,14 +3,23 @@
 # Copyright 2010 Ali Polatel <alip@exherbo.org>
 # Distributed under the terms of the GNU General Public License v2
 
-%w{net/http uri rubygems nokogiri}.each {|m| require m }
+%w{getoptlong net/http time uri rubygems nokogiri}.each {|m| require m }
+
+begin
+  require 'chronic'
+  has_chronic = true
+rescue LoadError
+  has_chronic = false
+end
 
 MYNAME = File.basename $0, ".rb"
+MYVERSION = "0.2"
 
 class UserNotFound < StandardError; end
 
 class Scraper
   LASTFM_URL = 'http://www.last.fm/user/%s/tracks'
+  LASTFM_DATE_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
   attr_accessor :username, :url
 
@@ -25,7 +34,7 @@ class Scraper
     @proxy_user, @proxy_pass = @proxy_url.userinfo.split(/:/) if @proxy_url and @proxy_url.userinfo
   end
 
-  def fetch page=1, &block
+  def fetch since, page=1, &block
     uri = URI.parse(@url + "?page=#{page}")
     req = Net::HTTP::Get.new(uri.request_uri)
 
@@ -50,28 +59,38 @@ class Scraper
     //tr[
           td[@class="subjectCell"]
       and td[@class="lovedCell"]
+      and td[@class="dateCell last"]
     ]
 EOF
 
     tags.each do |tag|
       subjectCell = tag.children[2]
       lovedCell = tag.children[4]
+      dateCell = tag.children[8]
 
       artist = subjectCell.children[1].content
       title = subjectCell.children[3].content
       love = lovedCell.children[1] ? true : false
+      date = Date.strptime(dateCell.at('//abbr/@title').to_s, LASTFM_DATE_FORMAT)
+      return if since > date
       block.call artist, title, love
     end
 
     if page <= @lastpage
-      fetch page + 1, &block
+      fetch since, page + 1, &block
     end
   end
 end
 
 def usage out, code
-  out.puts "#{MYNAME} -- import last.fm data"
-  out.puts "Usage: #{MYNAME} USERNAME"
+  out.puts <<HELP
+#{MYNAME} -- import last.fm data
+Usage: #{MYNAME} [OPTIONS] USERNAME
+Options:
+  --help, -h      Display help and exit
+  --version, -V   Display version and exit
+  --since, -s     Import data since the given date
+HELP
   exit code
 end
 
@@ -79,11 +98,28 @@ def quote src
   src.gsub(/'/, "''").gsub(/"/, "\\\"")
 end
 
-usage($stderr, 1) unless ARGV[0]
-usage($stdout, 0) if ARGV[0] =~ /-h|--help/
+opts = GetoptLong.new(
+    [ '--help',          '-h', GetoptLong::NO_ARGUMENT ],
+    [ '--version',       '-V', GetoptLong::NO_ARGUMENT ],
+    [ '--since',         '-s', GetoptLong::REQUIRED_ARGUMENT ])
+
+$since = Date.parse(Time.at(0).to_s)
+opts.each do |opt, arg|
+  case opt
+  when '--help'
+    usage($stdout, 0)
+  when '--version'
+    puts "#{MYNAME}-#{MYVERSION}"
+    exit 0
+  when '--since'
+    $since = has_chronic ? Date.parse(Chronic.parse(arg).to_s) : Date.parse(Time.parse(arg).to_s)
+  end
+end
+
+usage($stderr, 1) if ARGV.empty?
 
 importer = Scraper.new ARGV[0]
-importer.fetch do |artist, title, love|
+importer.fetch($since) do |artist, title, love|
   cmd = "eugene %s \"artist='#{quote(artist)}' and title='#{quote(title)}'\""
   puts "* " + sprintf(cmd, 'count 1')
   system sprintf(cmd, 'count 1')

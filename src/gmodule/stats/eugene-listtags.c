@@ -239,14 +239,16 @@ listtags_song(struct mpdcron_connection *conn, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_song *s = walk->data;
-		printf("%d: Tags:", s->id);
-		for (GSList *walk2 = s->tags; walk2 != NULL; walk2 = g_slist_next(walk2)) {
-			printf("%s", (char *)walk2->data);
-			if (g_slist_next(walk2) != NULL)
-				fputc(',', stdout);
-			g_free(walk2->data);
+		if (s->tags != NULL) {
+			printf("%d: Tags:", s->id);
+			for (GSList *walk2 = s->tags; walk2 != NULL; walk2 = g_slist_next(walk2)) {
+				printf("%s", (char *)walk2->data);
+				if (g_slist_next(walk2) != NULL)
+					fputc(',', stdout);
+				g_free(walk2->data);
+			}
+			printf(" %s\n", s->uri);
 		}
-		printf(" %s\n", s->uri);
 		g_slist_free(s->tags);
 		g_free(s->uri);
 		g_free(s);

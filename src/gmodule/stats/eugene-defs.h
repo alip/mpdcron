@@ -264,6 +264,22 @@ bool
 mpdcron_listtags_genre_expr(struct mpdcron_connection *conn, const char *expr,
 		GSList **values);
 
+bool
+mpdcron_count_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes);
+
+bool
+mpdcron_count_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes);
+
+bool
+mpdcron_count_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes);
+
+bool
+mpdcron_count_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes);
+
 char *
 quote(const char *src);
 
@@ -299,6 +315,9 @@ cmd_rmtag(int argc, char **argv);
 
 int
 cmd_listtags(int argc, char **argv);
+
+int
+cmd_count(int argc, char **argv);
 
 void
 eulog(int level, const char *fmt, ...);

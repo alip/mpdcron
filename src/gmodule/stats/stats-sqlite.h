@@ -146,6 +146,18 @@ bool
 db_listinfo_song_expr(const char *expr, GSList **values, GError **error);
 
 bool
+db_count_artist_expr(const char *expr, int count, int *changes, GError **error);
+
+bool
+db_count_album_expr(const char *expr, int count, int *changes, GError **error);
+
+bool
+db_count_genre_expr(const char *expr, int count, int *changes, GError **error);
+
+bool
+db_count_song_expr(const char *expr, int count, int *changes, GError **error);
+
+bool
 db_love_artist_expr(const char *expr, bool love, int *changes, GError **error);
 
 bool

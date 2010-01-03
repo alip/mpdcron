@@ -586,7 +586,7 @@ handle_rate(struct client *client, int argc, char **argv)
 
 	g_assert(argc == 3);
 
-	/* Convert first argument to number */
+	/* Convert second argument to number */
 	errno = 0;
 	endptr = NULL;
 	rating = strtol(argv[2], &endptr, 10);
@@ -1026,6 +1026,174 @@ handle_listtags_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_count(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long count;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	count = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (count > INT_MAX || count < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(count > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_count_song_expr(argv[1], (int)count, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_count_artist(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long count;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	count = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (count > INT_MAX || count < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(count > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_count_artist_expr(argv[1], (int)count, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_count_album(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long count;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	count = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (count > INT_MAX || count < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(count > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_count_album_expr(argv[1], (int)count, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_count_genre(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long count;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	count = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (count > INT_MAX || count < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(count > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_count_genre_expr(argv[1], (int)count, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
 handle_password(struct client *client, G_GNUC_UNUSED int argc, char **argv)
 {
 	gpointer perm = g_hash_table_lookup(globalconf.passwords, argv[1]);
@@ -1044,6 +1212,11 @@ static const struct command commands[] = {
 	{ "addtag_album", PERMISSION_UPDATE, 2, 2, handle_addtag_album },
 	{ "addtag_artist", PERMISSION_UPDATE, 2, 2, handle_addtag_artist },
 	{ "addtag_genre", PERMISSION_UPDATE, 2, 2, handle_addtag_genre },
+
+	{ "count", PERMISSION_UPDATE, 2, 2, handle_count },
+	{ "count_album", PERMISSION_UPDATE, 2, 2, handle_count_album },
+	{ "count_artist", PERMISSION_UPDATE, 2, 2, handle_count_artist },
+	{ "count_genre", PERMISSION_UPDATE, 2, 2, handle_count_genre },
 
 	{ "hate", PERMISSION_UPDATE, 1, 1, handle_love },
 	{ "hate_album", PERMISSION_UPDATE, 1, 1, handle_love_album },

@@ -1174,3 +1174,55 @@ mpdcron_listtags_genre_expr(struct mpdcron_connection *conn, const char *expr,
 		return false;
 	return mpdcron_parse_genres(conn, values);
 }
+
+bool
+mpdcron_count_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(count != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "count_album", expr, count, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_count_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(count != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "count_artist", expr, count, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_count_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(count != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "count_genre", expr, count, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_count_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *count, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(count != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "count", expr, count, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}

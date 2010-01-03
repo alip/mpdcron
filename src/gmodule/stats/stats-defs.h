@@ -58,7 +58,7 @@ struct client {
 	int id;
 	bool sending;
 	unsigned perm;
-	GSList *queue;
+	GQueue *queue;
 	struct fifo_buffer *fifo;
 	GIOStream *stream;
 	GInputStream *input;

@@ -56,7 +56,8 @@ static void
 client_destroy(gpointer data)
 {
 	struct client *client = (struct client *)data;
-	g_slist_foreach(client->queue, client_queue_free_callback, NULL);
+	g_queue_foreach(client->queue, client_queue_free_callback, NULL);
+	g_queue_free(client->queue);
 	g_free(client->fifo);
 	g_object_unref(client->stream);
 	g_free(client);
@@ -68,7 +69,6 @@ event_write(G_GNUC_UNUSED GObject *source, GAsyncResult *res,
 {
 	gssize count;
 	GError *error;
-	GSList *tmp;
 	struct buffer *buf;
 	struct client *client;
 
@@ -89,15 +89,12 @@ event_write(G_GNUC_UNUSED GObject *source, GAsyncResult *res,
 	}
 
 	client->sending = false;
-	if (client->queue != NULL) {
+	if (g_queue_get_length(client->queue) > 0) {
 		/* There's data waiting to be sent. */
-		tmp = client->queue;
-		buf = (struct buffer *) tmp->data;
+		buf = (struct buffer *) g_queue_pop_head(client->queue);
 		server_schedule_write(client, buf->data, buf->count);
-		client->queue = g_slist_remove_link(client->queue, tmp);
 		g_free(buf->data);
 		g_free(buf);
-		g_slist_free(tmp);
 	}
 }
 
@@ -188,7 +185,7 @@ event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 	client->id = num_clients;
 	client->perm = globalconf.default_permissions;
 	client->sending = false;
-	client->queue = NULL;
+	client->queue = g_queue_new();
 	client->stream = G_IO_STREAM(conn);
 	client->input = g_io_stream_get_input_stream(client->stream);
 	client->output = g_io_stream_get_output_stream(client->stream);
@@ -377,6 +374,6 @@ server_schedule_write(struct client *client, const gchar *data, gsize count)
 		buf = g_new(struct buffer, 1);
 		buf->data = g_strndup(data, count);
 		buf->count = count;
-		client->queue = g_slist_append(client->queue, buf);
+		g_queue_push_tail(client->queue, buf);
 	}
 }

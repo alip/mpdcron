@@ -92,7 +92,7 @@ command_putv(struct client *client, const char *fmt, va_list args)
 	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
 	g_string_append_c(message, '\n');
 
-	server_schedule_write(client, message->str, strlen(message->str));
+	server_schedule_write(client, message->str, message->len);
 	g_string_free(message, TRUE);
 }
 
@@ -124,7 +124,7 @@ command_error_v(struct client *client, enum ack error, const char *fmt,
 	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
 	g_string_append_c(message, '\n');
 
-	server_schedule_write(client, message->str, strlen(message->str));
+	server_schedule_write(client, message->str, message->len);
 	g_string_free(message, TRUE);
 	current_command = NULL;
 }

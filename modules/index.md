@@ -12,9 +12,13 @@ systems.
 ## Configuration
 To load modules <tt>notification</tt> and <tt>scrobbler</tt> add this to your configuration file:
 
+{% highlight ini %}
+
     [player]
     # modules is a semicolon delimited list of modules to load.
     modules = notification;scrobbler
+
+{% endhighlight %}
 
 ## Writing Modules
 Check [mpdcron/gmodule.h](http://github.com/alip/mpdcron/blob/master/src/gmodule/gmodule.h) and
@@ -31,6 +35,8 @@ Here is a list of <tt>mpdcron</tt>'s standard modules:
 - Can detect repeated songs.
 
 #### Configuration
+
+{% highlight ini %}
 
     # mpdcron configuration file
     ...
@@ -52,6 +58,8 @@ Here is a list of <tt>mpdcron</tt>'s standard modules:
     # to pass. Valid types are int, double, string and byte
     hints =
 
+{% endhighlight %}
+
 ### scrobbler
 This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 [Libre.fm](http://libre.fm). Here's an example configuration:
@@ -62,6 +70,8 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
 - supports seeking, crossfading, repeated songs
 
 #### Configuration
+
+{% highlight ini %}
 
     # mpdcron configuration file
     ...
@@ -86,6 +96,8 @@ This module uses **curl** to submit songs to [Last.fm](http://last.fm) or
     username = <last.fm username here>
     password = <last.fm password here>
 
+{% endhighlight %}
+
 ### stats
 This module saves song data to a [sqlite](http://www.sqlite.org/) database.
 
@@ -95,6 +107,8 @@ This module saves song data to a [sqlite](http://www.sqlite.org/) database.
 - Implements a simple server protocol for remote clients to receive data.
 
 #### Configuration
+
+{% highlight ini %}
 
     # mpdcron configuration file
     ...
@@ -121,6 +135,8 @@ This module saves song data to a [sqlite](http://www.sqlite.org/) database.
     # This is a semi-colon delimited list of passwords in the form
     # password@permission.
     passwords = needvodka@update;needbeer@select
+
+{% endhighlight %}
 
 #### Creating/Updating the database
 This module comes with a client called <tt>walrus</tt> to create or update the

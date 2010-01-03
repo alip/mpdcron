@@ -39,3 +39,5 @@ eugene_SOURCES= fifo_buffer.c eugene-connection.c eugene-addtag.c \
 # See: http://bit.ly/libtool_both
 eugene_CFLAGS= $(AM_CFLAGS)
 eugene_LDADD= $(gio_unix_LIBS) $(gio_LIBS) $(glib_LIBS) $(libmpdclient_LIBS)
+
+bin_SCRIPTS= homescrape

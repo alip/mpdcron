@@ -1,0 +1,98 @@
+#!/usr/bin/env ruby
+# vim: set sw=2 sts=2 tw=100 et nowrap fenc=utf-8 :
+# Copyright 2010 Ali Polatel <alip@exherbo.org>
+# Distributed under the terms of the GNU General Public License v2
+
+%w{net/http uri rubygems nokogiri}.each {|m| require m }
+
+MYNAME = File.basename $0, ".rb"
+
+class UserNotFound < StandardError; end
+
+class Scraper
+  LASTFM_URL = 'http://www.last.fm/user/%s/tracks'
+
+  attr_accessor :username, :url
+
+  def initialize username
+    @username = username
+    @url = sprintf(LASTFM_URL, username)
+
+    # Set up proxy
+    @proxy_url = URI.parse(ENV['http_proxy']) if ENV['http_proxy']
+    @proxy_host = @proxy_url.host if @proxy_url and @proxy_url.host
+    @proxy_port = @proxy_url.port if @proxy_url and @proxy_url.port
+    @proxy_user, @proxy_pass = @proxy_url.userinfo.split(/:/) if @proxy_url and @proxy_url.userinfo
+  end
+
+  def fetch page=1, &block
+    uri = URI.parse(@url + "?page=#{page}")
+    req = Net::HTTP::Get.new(uri.request_uri)
+
+    res = Net::HTTP::Proxy(@proxy_host, @proxy_port,
+                           @proxy_user, @proxy_pass).start(uri.host, uri.port) {|http|
+      http.request(req)
+    }
+    data = res.body
+    raise UserNotFound if data =~ /User not found/
+
+    doc = Nokogiri::HTML data
+
+    if page == 1
+      if doc.css('a.lastpage').length != 0
+        @lastpage = doc.css('a.lastpage')[0].content.to_i
+      else
+        @lastpage = 1
+      end
+    end
+
+    tags = doc.xpath(<<-EOF)
+    //tr[
+          td[@class="subjectCell"]
+      and td[@class="lovedCell"]
+    ]
+EOF
+
+    tags.each do |tag|
+      subjectCell = tag.children[2]
+      lovedCell = tag.children[4]
+
+      artist = subjectCell.children[1].content
+      title = subjectCell.children[3].content
+      love = lovedCell.children[1] ? true : false
+      block.call artist, title, love
+    end
+
+    if page <= @lastpage
+      fetch page + 1, &block
+    end
+  end
+end
+
+def usage out, code
+  out.puts "#{MYNAME} -- import last.fm data"
+  out.puts "Usage: #{MYNAME} USERNAME"
+  exit code
+end
+
+def quote src
+  src.gsub(/'/, "''").gsub(/"/, "\\\"")
+end
+
+usage($stderr, 1) unless ARGV[0]
+usage($stdout, 0) if ARGV[0] =~ /-h|--help/
+
+importer = Scraper.new ARGV[0]
+importer.fetch do |artist, title, love|
+  cmd = "eugene %s \"artist='#{quote(artist)}' and title='#{quote(title)}'\""
+  puts "* " + sprintf(cmd, 'count 1')
+  system sprintf(cmd, 'count 1')
+  if love
+    puts "* " + sprintf(cmd, 'love')
+    system sprintf(cmd, 'love')
+  end
+
+  cmd_artist = "eugene count --artist 1 \"name='#{quote(artist)}'\""
+  puts "* " + cmd_artist
+  system cmd_artist
+end

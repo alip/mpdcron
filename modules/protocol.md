@@ -213,12 +213,16 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo list_album '"id=83"' |netcat localhost 6601
     OK MPDCRON 0.1
     id: 83
     Album: The Silent Enigma
     Artist: Anathema
     OK
+
+{% endhighlight %}
 
 - list\_artist EXPRESSION  
 Lists the artists matching the given expression.  
@@ -243,11 +247,15 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo list_artist '"id=83"' | netcat localhost 6601
     OK MPDCRON 0.1
     id: 83
     Artist: The Beatles
     OK
+
+{% endhighlight %}
 
 - list\_genre EXPRESSION  
 Lists the genres matching the given expression.  
@@ -272,12 +280,15 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo list_genre '"id=83"' |netcat localhost 6601
     OK MPDCRON 0.1
     id: 83
     Genre: Vocal
     OK
 
+{% endhighlight %}
 
 - listinfo EXPRESSION  
 Lists information of the songs matching the given expression.  
@@ -322,6 +333,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listinfo '"id=102"' |netcat localhost 6601
     OK MPDCRON 0.1
     id: 102
@@ -331,6 +344,8 @@ Example:
     Kill: 0
     Rating: 10
     OK
+
+{% endhighlight %}
 
 - listinfo\_album EXPRESSION  
 Lists information of the albums matching the given expression.  
@@ -380,6 +395,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listinfo_album "\"name='Animals'\"" |netcat localhost 6601
     OK MPDCRON 0.1
     id: 722
@@ -391,6 +408,7 @@ Example:
     Rating: 1000
     OK
 
+{% endhighlight %}
 
 - listinfo\_artist EXPRESSION  
 Lists information of the artists matching the given expression.  
@@ -435,6 +453,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listinfo_artist '"id=102"' |netcat localhost 6601
     OK MPDCRON 0.1
     id: 102
@@ -444,6 +464,8 @@ Example:
     Kill: 0
     Rating: 100
     OK
+
+{% endhighlight %}
 
 - listinfo\_genre EXPRESSION  
 Lists information of the genres matching the given expression.  
@@ -488,6 +510,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listinfo_genre "\"name like '%Psych%'\"" | netcat localhost 6601
     OK MPDCRON 0.1
     id: 89
@@ -497,6 +521,8 @@ Example:
     Kill: 0
     Rating: 0
     OK
+
+{% endhighlight %}
 
 - listtags EXPRESSION  
 List tags of songs matching the given expression.  
@@ -528,6 +554,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listtags "\"title='The House At Pooneil Corners'\"" |netcat localhost 6601
     OK MPDCRON 0.1
     id: 4270
@@ -535,6 +563,7 @@ Example:
     Tag: nowar
     OK
 
+{% endhighlight %}
 
 - listtags\_album EXPRESSION  
 List tags of albums matching the given expression.  
@@ -571,12 +600,16 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listtags_album "\"name='Animals'\"" |netcat localhost 6601
     OK MPDCRON 0.1
     id: 722
     Album: Animals
     Artist: Pink Floyd
     Tag: best
+
+{% endhighlight %}
 
 - listtags\_artist EXPRESSION  
 List tags of artists matching the given expression.  
@@ -608,12 +641,16 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listtags_artist "\"name like '%Syd%'\"" |netcat localhost 6601
     OK MPDCRON 0.1
     id: 421
     Artist: Syd Barrett
     Tag: crazy
     OK
+
+{% endhighlight %}
 
 - listtags\_genre EXPRESSION  
 List tags of genres matching the given expression.  
@@ -645,6 +682,8 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo listtags_genre "\"name like '%Trance%'\"" |netcat localhost 6601 
     OK MPDCRON 0.1
     id: 88
@@ -652,6 +691,7 @@ Example:
     Tag: best
     OK
 
+{% endhighlight %}
 
 ### Updating the database
 
@@ -673,10 +713,14 @@ Returns:
 
 Example:
 
+{% highlight bash %}
+
     alip@harikalardiyari> echo hate "\"genre='Pop'\"" | netcat localhost 6601
     OK MPDCRON 0.1
     changes: 58
     OK
+
+{% endhighlight %}
 
 - hate\_album EXPRESSION  
 Decreases the love count of albums matching the given expression by one.  

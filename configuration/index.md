@@ -30,7 +30,7 @@ Configuration file is in standard .ini format.
     # Valid events are:
     # database: Song database has been updated.
     # stored_playlist: A stored playlist has been modified, created,
-    # deleted or renamed.
+    #   deleted or renamed.
     # playlist: The queue has been modified.
     # player: The player state has been changed: play, stop, pause, seek, ...
     # mixer: The volume has been modified.

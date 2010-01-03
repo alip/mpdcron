@@ -90,8 +90,7 @@ AC_ARG_WITH([standard-modules],
 			   all              Build all available standard modules
 			   notification     Build the notification module
 			   scrobbler        Build the scrobbler module
-			   stats            Build the stats module
-			   rstats           Build the rstats module])],
+			   stats            Build the stats module])],
 			   [standard_modules="`echo $with_standard_modules | tr ',' ' '`"],
 			   [standard_modules=""])
 standard_modules=`echo $standard_modules | sed -e "s,^all\$,$ALL_STANDARD_MODULES,"`

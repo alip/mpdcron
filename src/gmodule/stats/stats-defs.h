@@ -56,12 +56,9 @@
 
 struct client {
 	int id;
-	bool sending;
 	unsigned perm;
-	GQueue *queue;
-	struct fifo_buffer *fifo;
 	GIOStream *stream;
-	GInputStream *input;
+	GDataInputStream *input;
 	GOutputStream *output;
 };
 
@@ -106,6 +103,7 @@ void server_bind(const char *hostname, int port);
 void server_start(void);
 void server_close(void);
 void server_schedule_write(struct client *client, const gchar *data, gsize count);
+void server_flush_write(struct client *client);
 
 /**
  * Commands

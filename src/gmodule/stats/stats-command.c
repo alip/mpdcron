@@ -77,6 +77,7 @@ command_ok(struct client *client)
 {
 	mpdcron_log(LOG_DEBUG, "[%d]> "PROTOCOL_OK, client->id);
 	server_schedule_write(client, PROTOCOL_OK"\n", sizeof(PROTOCOL_OK"\n") - 1);
+	server_flush_write(client);
 }
 
 static void
@@ -127,6 +128,8 @@ command_error_v(struct client *client, enum ack error, const char *fmt,
 	server_schedule_write(client, message->str, message->len);
 	g_string_free(message, TRUE);
 	current_command = NULL;
+
+	server_flush_write(client);
 }
 
 G_GNUC_PRINTF(3, 4)

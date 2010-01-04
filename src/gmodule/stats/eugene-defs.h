@@ -22,8 +22,6 @@
 
 #include "../../cron-config.h"
 
-#include "fifo_buffer.h"
-
 #include <stdbool.h>
 
 #include <glib.h>
@@ -113,9 +111,9 @@ struct mpdcron_connection {
 	GSocketConnection *stream;
 
 	/**
-	 * Client read buffer
+	 * Data Input stream
 	 */
-	struct fifo_buffer *fifo;
+	GDataInputStream *input;
 
 	/**
 	 * Parser

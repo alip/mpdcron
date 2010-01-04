@@ -5,10 +5,10 @@ AM_CFLAGS= @MPDCRON_CFLAGS@ \
 	   $(libdaemon_CFLAGS) $(libmpdclient_CFLAGS) $(sqlite_CFLAGS)
 MODULE_DIR=$(libdir)/$(PACKAGE)-$(VERSION)/modules
 
-noinst_HEADERS= fifo_buffer.h tokenizer.h stats-defs.h stats-sqlite.h
+noinst_HEADERS= tokenizer.h stats-defs.h stats-sqlite.h
 stats_LTLIBRARIES= stats.la
 statsdir=$(MODULE_DIR)
-stats_la_SOURCES= fifo_buffer.c tokenizer.c \
+stats_la_SOURCES= tokenizer.c \
 		  stats-command.c stats-file.c stats-server.c \
 		  stats-sqlite.c stats-module.c
 stats_la_LDFLAGS= -module -avoid-version
@@ -29,7 +29,7 @@ walrus_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 # aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!
 noinst_HEADERS+= eugene-defs.h
 bin_PROGRAMS+= eugene
-eugene_SOURCES= fifo_buffer.c eugene-connection.c eugene-addtag.c \
+eugene_SOURCES= eugene-connection.c eugene-addtag.c \
 		eugene-count.c eugene-kill.c eugene-list.c \
 		eugene-listinfo.c eugene-listtags.c eugene-love.c \
 		eugene-rate.c eugene-rmtag.c eugene-utils.c \

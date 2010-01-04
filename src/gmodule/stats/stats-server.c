@@ -18,7 +18,6 @@
  */
 
 #include "stats-defs.h"
-#include "fifo_buffer.h"
 #include "tokenizer.h"
 
 #include <stdbool.h>
@@ -27,8 +26,6 @@
 
 #include <glib.h>
 #include <gio/gio.h>
-
-#define BUFFER_SIZE	(4096)
 
 struct host {
 	char *name;
@@ -45,31 +42,20 @@ static GSocketService *server;
 static GHashTable *clients;
 
 static void
-client_queue_free_callback(gpointer data, G_GNUC_UNUSED gpointer userdata)
-{
-	struct buffer *buf = (struct buffer *)data;
-	g_free(buf->data);
-	g_free(buf);
-}
-
-static void
 client_destroy(gpointer data)
 {
 	struct client *client = (struct client *)data;
-	g_queue_foreach(client->queue, client_queue_free_callback, NULL);
-	g_queue_free(client->queue);
-	g_free(client->fifo);
+	g_object_unref(client->output);
+	g_object_unref(client->input);
 	g_object_unref(client->stream);
 	g_free(client);
 }
 
 static void
-event_write(G_GNUC_UNUSED GObject *source, GAsyncResult *res,
+event_flush(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 		gpointer clientid)
 {
-	gssize count;
 	GError *error;
-	struct buffer *buf;
 	struct client *client;
 
 	client = g_hash_table_lookup(clients, clientid);
@@ -81,31 +67,20 @@ event_write(G_GNUC_UNUSED GObject *source, GAsyncResult *res,
 	}
 
 	error = NULL;
-	if ((count = g_output_stream_write_finish(client->output, res, &error)) < 0) {
+	if (!g_output_stream_flush_finish(client->output, result, &error)) {
 		mpdcron_log(LOG_WARNING, "Write failed: %s", error->message);
 		g_error_free(error);
 		g_hash_table_remove(clients, clientid);
 		return;
 	}
-
-	client->sending = false;
-	if (g_queue_get_length(client->queue) > 0) {
-		/* There's data waiting to be sent. */
-		buf = (struct buffer *) g_queue_pop_head(client->queue);
-		server_schedule_write(client, buf->data, buf->count);
-		g_free(buf->data);
-		g_free(buf);
-	}
 }
 
 static void
-event_read(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
+event_read_line(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 		gpointer clientid)
 {
-	size_t length;
-	gssize count;
-	const char *p, *newline;
-	char *line, *buffer;
+	gsize length;
+	gchar *line;
 	GError *error;
 	struct client *client;
 
@@ -118,58 +93,35 @@ event_read(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 	}
 
 	error = NULL;
-	if ((count = g_input_stream_read_finish(client->input, result, &error)) < 0) {
+	if ((line = g_data_input_stream_read_line_finish(client->input,
+					result, &length, &error)) == NULL) {
+		if (error == NULL) {
+			/* Client disconnected */
+			mpdcron_log(LOG_DEBUG, "[%d]? Disconnected", GPOINTER_TO_INT(clientid));
+			g_hash_table_remove(clients, clientid);
+			return;
+		}
 		mpdcron_log(LOG_WARNING, "[%d] Read failed: %s",
-				GPOINTER_TO_INT(clientid), error->message);
+				GPOINTER_TO_INT(clientid),
+				error ? error->message : "unknown");
 		g_error_free(error);
 		g_hash_table_remove(clients, clientid);
 		return;
 	}
-	else if (count == 0) {
-		/* Client disconnected */
-		mpdcron_log(LOG_DEBUG, "[%d]? Disconnected", GPOINTER_TO_INT(clientid));
-		g_hash_table_remove(clients, clientid);
-		return;
-	}
 
-	/* Commit the write operation */
-	fifo_buffer_append(client->fifo, count);
-
-	p = fifo_buffer_read(client->fifo, &length);
-	if (p == NULL)
-		goto again;
-
-	newline = memchr(p, '\n', length);
-	if (newline == NULL)
-		goto again;
-
-	line = g_strndup(p, newline - p);
-	fifo_buffer_consume(client->fifo, newline - p + 1);
-	g_strchomp(line);
 	mpdcron_log(LOG_DEBUG, "[%d]< %s", GPOINTER_TO_INT(clientid), line);
 	command_process(client, line);
 	g_free(line);
 
-again:
-	/* Prepare buffer */
-	if ((buffer = fifo_buffer_write(client->fifo, &length)) == NULL) {
-		mpdcron_log(LOG_WARNING, "Buffer overflow, closing connection");
-		g_hash_table_remove(clients, clientid);
-		return;
-	}
-
 	/* Schedule another read */
-	g_input_stream_read_async(client->input, buffer,
-			length, G_PRIORITY_DEFAULT, NULL,
-			event_read, clientid);
+	g_data_input_stream_read_line_async(client->input,
+			G_PRIORITY_DEFAULT, NULL, event_read_line, GINT_TO_POINTER(client->id));
 }
 
 static gboolean
 event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 		G_GNUC_UNUSED GObject *source, G_GNUC_UNUSED gpointer userdata)
 {
-	char *buffer;
-	size_t maxsize;
 	unsigned num_clients;
 	struct client *client;
 
@@ -184,12 +136,14 @@ event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 	client = g_new(struct client, 1);
 	client->id = num_clients;
 	client->perm = globalconf.default_permissions;
-	client->sending = false;
-	client->queue = g_queue_new();
 	client->stream = G_IO_STREAM(conn);
-	client->input = g_io_stream_get_input_stream(client->stream);
-	client->output = g_io_stream_get_output_stream(client->stream);
-	client->fifo = fifo_buffer_new(BUFFER_SIZE);
+
+	client->input = g_data_input_stream_new(g_io_stream_get_input_stream(client->stream));
+	g_data_input_stream_set_newline_type(client->input, G_DATA_STREAM_NEWLINE_TYPE_LF);
+
+	client->output = g_buffered_output_stream_new(g_io_stream_get_output_stream(client->stream));
+	g_buffered_output_stream_set_auto_grow(G_BUFFERED_OUTPUT_STREAM(client->output), TRUE);
+
 	g_hash_table_insert(clients, GINT_TO_POINTER(client->id), client);
 
 	/* Increase reference count of the stream,
@@ -199,20 +153,12 @@ event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 
 	/* Schedule to send greeting */
 	server_schedule_write(client, GREETING, sizeof(GREETING) - 1);
-
-	/* Prepare buffer */
-	if ((buffer = fifo_buffer_write(client->fifo, &maxsize)) == NULL) {
-		mpdcron_log(LOG_WARNING, "[%d] Buffer overflow, "
-				"closing connection", num_clients);
-		g_hash_table_remove(clients, GINT_TO_POINTER(client->id));
-		return TRUE;
-	}
+	server_flush_write(client);
 
 	/* Schedule read */
-	g_input_stream_read_async(client->input, buffer,
-			maxsize, G_PRIORITY_DEFAULT, NULL,
-			event_read,
-			GINT_TO_POINTER(client->id));
+	g_data_input_stream_read_line_async(client->input, G_PRIORITY_DEFAULT,
+			NULL, event_read_line, GINT_TO_POINTER(client->id));
+
 	return FALSE;
 }
 
@@ -360,20 +306,15 @@ server_close(void)
 void
 server_schedule_write(struct client *client, const gchar *data, gsize count)
 {
-	struct buffer *buf;
+	/* Since we're writing to a BufferedOutputStream that autogrows this
+	 * call shouldn't fail or block.
+	 */
+	g_output_stream_write(client->output, data, count, NULL, NULL);
+}
 
-	if (!client->sending) {
-		g_output_stream_write_async(client->output, data, count,
-			G_PRIORITY_DEFAULT, NULL, event_write, GINT_TO_POINTER(client->id));
-		client->sending = true;
-	}
-	else {
-		/* There's already data to be sent and
-		 * calling g_output_write_stream() will return
-		 * G_IO_ERROR_PENDING. */
-		buf = g_new(struct buffer, 1);
-		buf->data = g_strndup(data, count);
-		buf->count = count;
-		g_queue_push_tail(client->queue, buf);
-	}
+void
+server_flush_write(struct client *client)
+{
+	g_output_stream_flush_async(client->output, G_PRIORITY_DEFAULT,
+			NULL, event_flush, GINT_TO_POINTER(client->id));
 }

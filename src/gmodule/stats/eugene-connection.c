@@ -25,7 +25,6 @@
 #include "eugene-defs.h"
 
 #define MPDCRON_WELCOME_MESSAGE "OK MPDCRON "
-#define MPDCRON_BUFFER_SIZE 4096
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -59,59 +58,17 @@ connection_quark(void)
  * Receiving data
  */
 static char *
-check_buffer(struct mpdcron_connection *conn)
+mpdcron_recv_line(struct mpdcron_connection *conn, gsize *length_r)
 {
-	size_t length;
-	const char *p;
-	char *newline, *line;
+	gchar *line;
 
-	p = fifo_buffer_read(conn->fifo, &length);
-	if (p == NULL)
-		return NULL;
-
-	newline = memchr(p, '\n', length);
-	if (newline == NULL)
-		return NULL;
-
-	*newline = 0;
-	line = g_strndup(p, newline - p);
-	fifo_buffer_consume(conn->fifo, newline + 1 - p);
-	return g_strchomp(line);
-}
-
-static char *
-mpdcron_recv_line(struct mpdcron_connection *conn)
-{
-	size_t length;
-	gssize count;
-	char *buffer, *line;
-	GInputStream *input;
-
-	input = g_io_stream_get_input_stream(G_IO_STREAM(conn->stream));
-
-	/* Check if there's data available in buffer */
-	if ((line = check_buffer(conn)) != NULL)
-		return line;
-
-	/* Prepare buffer for writing */
-	if ((buffer = fifo_buffer_write(conn->fifo, &length)) == NULL) {
-		g_set_error(&conn->error, connection_quark(),
-				MPDCRON_ERROR_OVERFLOW,
-				"Buffer overflow");
+	line = g_data_input_stream_read_line(conn->input, length_r, NULL, &conn->error);
+	if (line == NULL && conn->error == NULL) {
+		g_set_error(&conn->error, connection_quark(), MPDCRON_ERROR_EOF,
+				"EOF while trying to read a line");
 		return NULL;
 	}
-
-	count = g_input_stream_read(input, buffer, length, NULL, &conn->error);
-	if (count < 0)
-		return NULL;
-	else if (count == 0) {
-		g_set_error(&conn->error, connection_quark(),
-				MPDCRON_ERROR_EOF, "EOF while trying to read line");
-		return NULL;
-	}
-	/* Commit write operation */
-	fifo_buffer_append(conn->fifo, count);
-	return check_buffer(conn);
+	return line;
 }
 
 /**
@@ -185,11 +142,12 @@ static bool
 mpdcron_parse_single(struct mpdcron_connection *conn)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 
 	g_assert(conn != NULL);
 
-	line = mpdcron_recv_line(conn);
+	line = mpdcron_recv_line(conn, &length);
 	if (line == NULL)
 		return false;
 
@@ -224,13 +182,14 @@ static bool
 mpdcron_parse_changes(struct mpdcron_connection *conn, int *changes)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 
 	g_assert(conn != NULL);
 	g_assert(changes != NULL);
 
 	for (;;) {
-		line = mpdcron_recv_line(conn);
+		line = mpdcron_recv_line(conn, &length);
 		if (line == NULL)
 			return false;
 
@@ -272,11 +231,12 @@ static bool
 mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 	struct mpdcron_entity *album = NULL;
 
 	for (;;) {
-		line = mpdcron_recv_line(conn);
+		line = mpdcron_recv_line(conn, &length);
 		if (line == NULL) {
 			g_free(album);
 			return false;
@@ -339,6 +299,13 @@ mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 				g_assert(album != NULL);
 				album->tags = g_slist_prepend(album->tags, g_strdup(conn->parser->u.pair.value));
 			}
+			else {
+				g_set_error(&conn->error, connection_quark(),
+						MPDCRON_ERROR_MALFORMED,
+						"Received unexpected name/value pair `%s'", line);
+				g_free(line);
+				return false;
+			}
 			g_free(line);
 			break;
 		}
@@ -351,11 +318,12 @@ static bool
 mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 	struct mpdcron_entity *artist = NULL;
 
 	for (;;) {
-		line = mpdcron_recv_line(conn);
+		line = mpdcron_recv_line(conn, &length);
 		if (line == NULL) {
 			g_free(artist);
 			return false;
@@ -414,6 +382,13 @@ mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 				g_assert(artist != NULL);
 				artist->tags = g_slist_prepend(artist->tags, g_strdup(conn->parser->u.pair.value));
 			}
+			else {
+				g_set_error(&conn->error, connection_quark(),
+						MPDCRON_ERROR_MALFORMED,
+						"Received unexpected name/value pair `%s'", line);
+				g_free(line);
+				return false;
+			}
 			g_free(line);
 			break;
 		}
@@ -426,11 +401,12 @@ static bool
 mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 	struct mpdcron_entity *genre = NULL;
 
 	for (;;) {
-		line = mpdcron_recv_line(conn);
+		line = mpdcron_recv_line(conn, &length);
 		if (line == NULL) {
 			g_free(genre);
 			return false;
@@ -438,60 +414,67 @@ mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 
 		ret = mpdcron_parser_feed(conn->parser, line);
 		switch (ret) {
-			case MPDCRON_PARSER_SUCCESS:
-				g_free(line);
+		case MPDCRON_PARSER_SUCCESS:
+			g_free(line);
+			if (genre != NULL)
+				*values = g_slist_prepend(*values, genre);
+			return true;
+		case MPDCRON_PARSER_ERROR:
+			g_set_error(&conn->error, connection_quark(),
+					conn->parser->u.error.server,
+					"%s", conn->parser->u.error.message);
+			g_free(genre);
+			g_free(line);
+			return false;
+		case MPDCRON_PARSER_MALFORMED:
+			g_set_error(&conn->error, connection_quark(),
+					MPDCRON_ERROR_MALFORMED,
+					"Malformed line `%s' received from server", line);
+			g_free(genre);
+			g_free(line);
+			return false;
+		default:
+			/* We have a pair! */
+			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
 				if (genre != NULL)
 					*values = g_slist_prepend(*values, genre);
-				return true;
-			case MPDCRON_PARSER_ERROR:
-				g_set_error(&conn->error, connection_quark(),
-						conn->parser->u.error.server,
-						"%s", conn->parser->u.error.message);
-				g_free(genre);
-				g_free(line);
-				return false;
-			case MPDCRON_PARSER_MALFORMED:
+				genre = g_new0(struct mpdcron_entity, 1);
+				genre->id = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Genre") == 0) {
+				g_assert(genre != NULL);
+				genre->name = g_strdup(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+				g_assert(genre != NULL);
+				genre->love = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+				g_assert(genre != NULL);
+				genre->kill = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+				g_assert(genre != NULL);
+				genre->rating = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+				g_assert(genre != NULL);
+				genre->play_count = atoi(conn->parser->u.pair.value);
+			}
+			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
+				g_assert(genre != NULL);
+				genre->tags = g_slist_prepend(genre->tags,
+						g_strdup(conn->parser->u.pair.value));
+			}
+			else {
 				g_set_error(&conn->error, connection_quark(),
 						MPDCRON_ERROR_MALFORMED,
-						"Malformed line `%s' received from server", line);
-				g_free(genre);
+						"Received unexpected name/value pair `%s'", line);
 				g_free(line);
 				return false;
-			default:
-				/* We have a pair! */
-				if (strcmp(conn->parser->u.pair.name, "id") == 0) {
-					if (genre != NULL)
-						*values = g_slist_prepend(*values, genre);
-					genre = g_new0(struct mpdcron_entity, 1);
-					genre->id = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Genre") == 0) {
-					g_assert(genre != NULL);
-					genre->name = g_strdup(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
-					g_assert(genre != NULL);
-					genre->love = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
-					g_assert(genre != NULL);
-					genre->kill = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
-					g_assert(genre != NULL);
-					genre->rating = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
-					g_assert(genre != NULL);
-					genre->play_count = atoi(conn->parser->u.pair.value);
-				}
-				else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
-					g_assert(genre != NULL);
-					genre->tags = g_slist_prepend(genre->tags,
-							g_strdup(conn->parser->u.pair.value));
-				}
-				g_free(line);
-				break;
+			}
+			g_free(line);
+			break;
 		}
 	}
 	/* never reached */
@@ -502,11 +485,12 @@ static bool
 mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 {
 	int ret;
-	char *line;
+	gsize length;
+	gchar *line;
 	struct mpdcron_song *song = NULL;
 
 	for (;;) {
-		line = mpdcron_recv_line(conn);
+		line = mpdcron_recv_line(conn, &length);
 		if (line == NULL) {
 			g_free(song);
 			return false;
@@ -564,6 +548,13 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
 				g_assert(song != NULL);
 				song->tags = g_slist_prepend(song->tags, g_strdup(conn->parser->u.pair.value));
+			}
+			else {
+				g_set_error(&conn->error, connection_quark(),
+						MPDCRON_ERROR_MALFORMED,
+						"Received unexpected name/value pair `%s'", line);
+				g_free(line);
+				return false;
 			}
 			g_free(line);
 			break;
@@ -688,7 +679,8 @@ mpdcron_send_command(struct mpdcron_connection *conn, const char *command, ...)
 struct mpdcron_connection *
 mpdcron_connection_new(const char *hostname, unsigned port)
 {
-	char *line;
+	gsize length;
+	gchar *line;
 	struct mpdcron_connection *conn;
 
 	conn = g_new0(struct mpdcron_connection, 1);
@@ -724,16 +716,18 @@ mpdcron_connection_new(const char *hostname, unsigned port)
 		return conn;
 	}
 
-	conn->fifo = fifo_buffer_new(MPDCRON_BUFFER_SIZE);
+	conn->input = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(conn->stream)));
+	g_data_input_stream_set_newline_type(conn->input, G_DATA_STREAM_NEWLINE_TYPE_LF);
+
 	conn->parser = g_new(struct mpdcron_parser, 1);
 
 	/* Parse welcome message */
-	if ((line = mpdcron_recv_line(conn)) == NULL) {
+	if ((line = mpdcron_recv_line(conn, &length)) == NULL) {
 		g_io_stream_close(G_IO_STREAM(conn->stream), NULL, NULL);
-		fifo_buffer_free(conn->fifo);
 		g_free(conn->parser);
+		g_object_unref(conn->input);
 		g_object_unref(conn->client);
-		conn->fifo = NULL;
+		conn->input = NULL;
 		conn->parser = NULL;
 		conn->stream = NULL;
 		conn->client = NULL;
@@ -749,14 +743,13 @@ mpdcron_connection_free(struct mpdcron_connection *conn)
 {
 	if (conn->error != NULL)
 		g_error_free(conn->error);
+	if (conn->input != NULL)
+		g_object_unref(conn->input);
 	if (conn->stream != NULL)
 		g_object_unref(conn->stream);
 	if (conn->client != NULL)
 		g_object_unref(conn->client);
-	if (conn->fifo != NULL)
-		fifo_buffer_free(conn->fifo);
-	if (conn->parser != NULL)
-		g_free(conn->parser);
+	g_free(conn->parser);
 	g_free(conn);
 }
 
@@ -866,7 +859,6 @@ mpdcron_listinfo_expr(struct mpdcron_connection *conn,
 		return false;
 	return mpdcron_parse_songs(conn, values);
 }
-
 
 bool
 mpdcron_love_album_expr(struct mpdcron_connection *conn, bool love,

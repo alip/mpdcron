@@ -135,7 +135,7 @@ for m in $STANDARD_MODULES ; do
 							  [HAVE_GIO_UNIX=no])
 			if test x"$HAVE_GIO_UNIX" = x"no" ; then
 				PKG_CHECK_MODULES([gio], [gio-2.0 >= $GIO_REQUIRED], [WANT_STATS=yes],
-								  [AC_MSG_ERROR([stats standard module requires gio-$GLIB_REQUIRED or newer])])
+								  [AC_MSG_ERROR([stats standard module requires gio-$GIO_REQUIRED or newer])])
 				AC_DEFINE(HAVE_GIO_UNIX, 0, "Define for gio-unix")
 			else
 				AC_DEFINE(HAVE_GIO_UNIX, 1, "Define for gio-unix")

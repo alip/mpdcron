@@ -3,8 +3,12 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+### 0.3
+* Added stats module to keep statistics of played songs in a sqlite database
+* Added notification module to send notifications via notify-send
+* Added scrobbler module to submit songs to Last.fm or Libre.fm
+* Added module support through GModule
 * Added initial manpage
-* Added submit.rb, a script that scrobbles songs to last.fm and libre.fm
 * Changed name to mpdcron
 
 ### 0.2

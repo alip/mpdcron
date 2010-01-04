@@ -1,0 +1,119 @@
+#compdef eugene
+
+# vim: set et sw=4 sts=4 ts=4 ft=zsh :
+# ZSH completion for _eugene
+# Copyright (c) 2010 Ali Polatel <alip@exherbo.org>
+# Distributed under the terms of the GNU General Public License v2
+
+_eugene_command() {
+    local eugene_cmds
+
+    eugene_cmds=(
+        help:"Display help and exit"
+        version:"Display version and exit"
+        list:"List song/artist/album/genre"
+        listinfo:"List information of song/artist/album/genre"
+        count:"Change play count of song/artist/album/genre"
+        hate:"Hate song/artist/album/genre"
+        love:"Love song/artist/album/genre"
+        kill:"Kill song/artist/album/genre"
+        unkill:"Unkill song/artist/album/genre"
+        rate:"Rate song/artist/album/genre"
+        addtag:"Add tag to song/artist/album/genre"
+        rmtag:"Remove tag from song/artist/album/genre"
+        listtags:"List tags of song/artist/album/genre"
+    )
+
+    if (( CURRENT == 1 )); then
+        _describe -t command "eugene commands" eugene_cmds
+    else
+        local curcontext="$curcontext"
+    fi
+
+    local cmd=$words[1]
+
+    local curcontext="${curcontext%:*}:mpc-${cmd}"
+    _call_function ret _eugene_$cmd
+}
+
+_eugene_helper_expr() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help options]' \
+        '(-V --version)'{-V,--version}'[Display version]' \
+        '(-a --artist)'{-a,--artist}'[List artists instead of songs]' \
+        '(-A --album)'{-A,--album}'[List albums instead of songs]' \
+        '(-g --genre)'{-g,--genre}'[List genres instead of songs]' \
+        ':expression:'
+}
+
+_eugene_helper_number_expr() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help options]' \
+        '(-V --version)'{-V,--version}'[Display version]' \
+        '(-a --artist)'{-a,--artist}'[List artists instead of songs]' \
+        '(-A --album)'{-A,--album}'[List albums instead of songs]' \
+        '(-g --genre)'{-g,--genre}'[List genres instead of songs]' \
+        ':number:' \
+        ':expression:'
+}
+
+_eugene_helper_tag_expr() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help options]' \
+        '(-V --version)'{-V,--version}'[Display version]' \
+        '(-a --artist)'{-a,--artist}'[List artists instead of songs]' \
+        '(-A --album)'{-A,--album}'[List albums instead of songs]' \
+        '(-g --genre)'{-g,--genre}'[List genres instead of songs]' \
+        ':tag:' \
+        ':expression:'
+}
+
+_eugene_help() {}
+_eugene_version() {}
+
+_eugene_list() {
+    _eugene_helper_expr
+}
+
+_eugene_listinfo() {
+    _eugene_helper_expr
+}
+
+_eugene_count() {
+    _eugene_helper_number_expr
+}
+
+_eugene_hate() {
+    _eugene_helper_expr
+}
+
+_eugene_love() {
+    _eugene_helper_expr
+}
+
+_eugene_kill() {
+    _eugene_helper_expr
+}
+
+_eugene_unkill() {
+    _eugene_helper_expr
+}
+
+_eugene_rate() {
+    _eugene_helper_number_expr
+}
+
+_eugene_addtag() {
+    _eugene_helper_tag_expr
+}
+
+_eugene_rmtag() {
+    _eugene_helper_tag_expr
+}
+
+_eugene_listtags() {
+    _eugene_helper_expr
+}
+
+_arguments \
+    '*::eugene command:_eugene_command'

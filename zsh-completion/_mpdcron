@@ -1,0 +1,12 @@
+#compdef mpdcron
+
+# vim: set et sw=4 sts=4 ts=4 ft=zsh :
+# ZSH completion for _mpdcron
+# Copyright (c) 2010 Ali Polatel <alip@exherbo.org>
+# Distributed under the terms of the GNU General Public License v2
+
+_arguments \
+    '(-h --help)'{-h,--help}'[Show help options]' \
+    '(-V --version)'{-V,--version}'[Display version]' \
+    '(-k --kill)'{-k,--kill}'[Kill daemon]' \
+    '(-n --no-daemon)'{-n,--no-daemon}'[Dont detach from console]'

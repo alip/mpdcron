@@ -1,0 +1,26 @@
+#compdef walrus
+
+# vim: set et sw=4 sts=4 ts=4 ft=zsh :
+# ZSH completion for _walrus
+# Requires mpc
+# Copyright (c) 2010 Ali Polatel <alip@exherbo.org>
+# Distributed under the terms of the GNU General Public License v2
+
+_mpc_helper_files() {
+    local -U list expl
+
+    if [[ $words[CURRENT] != */* ]]; then
+        list=( ${${(f)"$(mpc listall)"}%%/*})
+        _wanted files expl file compadd -qS/ -a list
+    else
+        list=(${(f)"$(mpc tab $words[CURRENT])"})
+        _wanted files expl file _multi_parts / list
+    fi
+}
+
+_arguments \
+    '(-h --help)'{-h,--help}'[Show help options]' \
+    '(-V --version)'{-V,--version}'[Display version]' \
+    '(-d --dbpath)'{-d,--dbpath=}'[Path to the database]:file:_files' \
+    '(-k --keep-going)'{-k,--keep-going}'[Keep going in case of database errors]' \
+    '*::path:_mpc_helper_files'

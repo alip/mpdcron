@@ -169,5 +169,6 @@ AC_OUTPUT(
 		  src/gmodule/stats/Makefile
 		  src/gmodule/stats/homescrape
 		  data/Makefile
+		  zsh-completion/Makefile
 )
 dnl }}}

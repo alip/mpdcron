@@ -95,6 +95,13 @@ run_update(int kg, const char *path)
 					continue;
 				return false;
 			}
+			else if (error != NULL) {
+				/* Song doesn't have required tags */
+				g_printerr("Skipped processing song %s: %s\n",
+						mpd_song_get_uri(song),
+						error->message);
+				g_error_free(error);
+			}
 			++count;
 			printf("%s\n", mpd_song_get_uri(song));
 		}

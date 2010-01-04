@@ -85,6 +85,10 @@ song_ended(const struct mpd_song *song)
 		mpdcron_log(LOG_WARNING, "Saving old song failed: %s", error->message);
 		g_error_free(error);
 	}
+	else if (error != NULL) {
+		mpdcron_log(LOG_WARNING, "Skippied saving old song: %s", error->message);
+		g_error_free(error);
+	}
 }
 
 static void

@@ -689,10 +689,13 @@ mpdcron_connection_new(const char *hostname, unsigned port)
 	if (hostname[0] == '/') {
 #if HAVE_GIO_UNIX
 		GSocketAddress *saddr;
+
 		saddr = g_unix_socket_address_new(hostname);
 
 		conn->stream = g_socket_client_connect(conn->client,
 				G_SOCKET_CONNECTABLE(saddr), NULL, &conn->error);
+
+		g_object_unref(saddr);
 #else
 		g_set_error(&conn->error, connection_quark(),
 				MPDCRON_ERROR_NO_UNIX, "Unix sockets not supported");

@@ -58,6 +58,17 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	if (globalconf.port <= 0)
 		globalconf.port = DEFAULT_PORT;
 
+	/* Load max connections */
+	error = NULL;
+	globalconf.max_connections = -1;
+	if (!load_integer(fd, MPDCRON_MODULE, "max_connections", false, &globalconf.max_connections, &error)) {
+		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_error_free(error);
+		return false;
+	}
+	if (globalconf.max_connections <= 0)
+		globalconf.max_connections = DEFAULT_MAX_CONNECTIONS;
+
 	/* Load default permissions */
 	error = NULL;
 	values = g_key_file_get_string_list(fd, MPDCRON_MODULE, "default_permissions",

@@ -126,7 +126,7 @@ event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 	struct client *client;
 
 	num_clients = g_hash_table_size(clients);
-	if (num_clients >= CLIENT_MAX) {
+	if (num_clients >= (unsigned)globalconf.max_connections) {
 		mpdcron_log(LOG_WARNING, "Maximum connections reached!");
 		return TRUE;
 	}

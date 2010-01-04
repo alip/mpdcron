@@ -41,18 +41,14 @@
 #define PROTOCOL_VERSION "0.1"
 #define DEFAULT_HOST "any"
 #define DEFAULT_PORT 6601
+#define DEFAULT_MAX_CONNECTIONS 16
 
 #define PERMISSION_NONE    0
 #define PERMISSION_SELECT  1
 #define PERMISSION_UPDATE  2
 #define PERMISSION_ALL     (PERMISSION_SELECT | PERMISSION_UPDATE)
 
-/* Check command_process() function if you want to change this!
- */
 #define COMMAND_ARGV_MAX 16
-
-/* TODO: Make this configurable */
-#define CLIENT_MAX 1024
 
 struct client {
 	int id;
@@ -80,6 +76,7 @@ enum command_return {
  * Configuration
  */
 struct config {
+	int max_connections;
 	char **addrs;
 	int port;
 	char *dbpath;

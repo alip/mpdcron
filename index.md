@@ -81,4 +81,10 @@ easily using their package management system:
     </tr>
 </table>
 
+### Contribute
+Clone [git://github.com/alip/mpdcron.git](git://github.com/alip/mpdcron.git).  
+Format patches are preferred. Either mail me or poke me on irc.  
+My personal email address is [alip@exherbo.org](mailto:alip@exherbo.org).  
+I'm available on IRC as <tt>alip</tt> on [Freenode](http://www.freenode.net/) and [OFTC](http://www.oftc.net/).
+
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

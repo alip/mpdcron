@@ -12,7 +12,7 @@ EXTRA_DIST= autogen.sh README.mkd NEWS.mkd \
 	    conf/hooks/dump-queue.rb conf/hooks/dump-song.bash \
 	    conf/hooks/dump-stats.bash conf/hooks/dump-status.bash \
 	    conf/hooks/submit.rb
-SUBDIRS = src data .
+SUBDIRS = src data zsh-completion .
 doc_DATA = README.mkd NEWS.mkd
 doc_confdir= $(docdir)/conf
 doc_conf_DATA= conf/mpdcron.conf

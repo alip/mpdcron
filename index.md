@@ -6,14 +6,14 @@ title: Home
 ## About
 [mpdcron](/mpdcron) is a cron like daemon for [mpd](http://mpd.wikia.com/).
 
-### Features
+## Features
 - Uses <tt>mpd</tt>'s idle mode.
 - Calls hooks depending on the event.
 - Sets special environment variables to pass data to the hooks.
 - Optional support for modules via
   [GModule](http://library.gnome.org/devel/glib/unstable/glib-Dynamic-Loading-of-Modules.html).
 
-### Installation
+## Installation
 [mpdcron](/mpdcron) uses [autotools](http://sources.redhat.com/autobook/) and
 the installation procedure is the standard:
 
@@ -35,7 +35,7 @@ change the behaviour of [mpdcron](/mpdcron):
          stats            Build the stats module
     [...]
 
-### Requirements
+## Requirements
 Here's a list of packages you need to have in your system to build
 [mpdcron](/mpdcron):
 - [libdaemon](http://0pointer.de/lennart/projects/libdaemon/)-0.13 or newer
@@ -44,16 +44,16 @@ Here's a list of packages you need to have in your system to build
 
 Some modules have additional requirements:
 
-#### notification
+### notification
 
 * Requires <tt>notify-send</tt> which comes with
   [libnotify](http://www.galago-project.org/)
 
-#### scrobbler
+### scrobbler
 
 * [libcurl](http://curl.haxx.se/)
 
-#### stats
+### stats
 
 * [sqlite](http://www.sqlite.org)-3 or newer
 * [GIO](http://library.gnome.org/devel/gio/)-2.22 or newer
@@ -62,7 +62,7 @@ Some modules have additional requirements:
   [chronic](http://chronic.rubyforge.org/) can be installed to parse dates in a
   huge variety of date and time formats, for the **--since** option.
 
-### Packages
+## Packages
 Some distributions have <tt>mpdcron</tt> packaged so you can install it
 easily using their package management system:
 <table border="1">
@@ -81,7 +81,7 @@ easily using their package management system:
     </tr>
 </table>
 
-### Contribute
+## Contribute
 Clone [git://github.com/alip/mpdcron.git](git://github.com/alip/mpdcron.git).  
 Format patches are preferred. Either mail me or poke me on irc.  
 My personal email address is [alip@exherbo.org](mailto:alip@exherbo.org).  

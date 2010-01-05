@@ -68,14 +68,28 @@ easily using their package management system:
 <table border="1">
     <tr>
         <th>Distribution</th>
-        <th>Package</th>
+        <th>Package/Repository</th>
     </tr>
     <tr>
-        <td><a href="http://www.exherbo.org">Exherbo</a></td>
+        <td><a href="http://www.archlinux.org/">Arch Linux</a></td>
+        <td>
+            <a
+            href="http://aur.archlinux.org/packages.php?ID=32890">
+                mpdcron-git
+            </a>
+        </td>
+        <td><a href="http://www.exherbo.org/">Exherbo</a></td>
         <td>
             <a
             href="http://git.exherbo.org/summer/packages/media-sound/mpdcron/">
                 media-sound/mpdcron
+            </a>
+        </td>
+        <td><a href="http://www.ubuntu.com/">Ubuntu</a></td>
+        <td>
+            <a
+            href="https://launchpad.net/~gmpc-trunk/+archive/mpd-trunk">
+                mpd-trunk (ppa)
             </a>
         </td>
     </tr>

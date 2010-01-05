@@ -75,7 +75,7 @@ easily using their package management system:
         <td>
             <a
             href="http://aur.archlinux.org/packages.php?ID=32890">
-                mpdcron-git
+                mpdcron-git (aur)
             </a>
         </td>
     </tr>

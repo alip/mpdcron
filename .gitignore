@@ -5,7 +5,10 @@
 
 *.lo
 *.la
+
 *.tar.bz2
+*.sha1sum
+*.asc
 
 .deps
 .libs

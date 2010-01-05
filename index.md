@@ -78,6 +78,8 @@ easily using their package management system:
                 mpdcron-git
             </a>
         </td>
+    </tr>
+    <tr>
         <td><a href="http://www.exherbo.org/">Exherbo</a></td>
         <td>
             <a
@@ -85,6 +87,8 @@ easily using their package management system:
                 media-sound/mpdcron
             </a>
         </td>
+    </tr>
+    <tr>
         <td><a href="http://www.ubuntu.com/">Ubuntu</a></td>
         <td>
             <a

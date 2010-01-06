@@ -26,6 +26,7 @@
 
 #include <glib.h>
 #include <gio/gio.h>
+#include <gio/gunixsocketaddress.h>
 
 struct host {
 	char *name;

@@ -33,7 +33,9 @@
 
 #include <glib.h>
 #include <gio/gio.h>
+#if HAVE_GIO_UNIX
 #include <gio/gunixsocketaddress.h>
+#endif /* HAVE_GIO_UNIX */
 
 struct mpdcron_parser {
 	union {

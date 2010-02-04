@@ -23,6 +23,7 @@
 #include "../../cron-config.h"
 
 #include <stdbool.h>
+#include <syslog.h>
 
 #include <glib.h>
 #include <gio/gio.h>

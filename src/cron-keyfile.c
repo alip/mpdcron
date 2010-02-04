@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -22,31 +22,34 @@
 #include <glib.h>
 #include <mpd/client.h>
 
-int timeout = DEFAULT_MPD_TIMEOUT;
-int reconnect = DEFAULT_MPD_RECONNECT;
-int killwait = DEFAULT_PID_KILL_WAIT;
-enum mpd_idle idle = 0;
-
 int
 keyfile_load(GKeyFile **cfd_r)
 {
-	GError *config_err = NULL;
 	char *optstr;
 	char **events;
+	GError *error;
 
-	if (!g_key_file_load_from_file(*cfd_r, conf.conf_path, G_KEY_FILE_NONE, &config_err)) {
-		switch (config_err->code) {
-			case G_FILE_ERROR_NOENT:
-			case G_KEY_FILE_ERROR_NOT_FOUND:
-				mpdcron_log(LOG_DEBUG, "Configuration file `%s' not found, skipping",
-						conf.conf_path);
-				g_error_free(config_err);
-				return 0;
-			default:
-				mpdcron_log(LOG_ERR, "Failed to parse configuration file `%s': %s",
-						conf.conf_path, config_err->message);
-				g_error_free(config_err);
-				return -1;
+	error = NULL;
+	if (!g_key_file_load_from_file(*cfd_r, conf.conf_path, G_KEY_FILE_NONE, &error)) {
+		switch (error->code) {
+		case G_FILE_ERROR_NOENT:
+		case G_KEY_FILE_ERROR_NOT_FOUND:
+			g_debug("Configuration file `%s' not found, skipping",
+					conf.conf_path);
+			g_error_free(error);
+
+			/* Set defaults */
+			conf.killwait = DEFAULT_PID_KILL_WAIT;
+			conf.log_level = DEFAULT_LOG_LEVEL;
+			conf.reconnect = DEFAULT_MPD_RECONNECT;
+			conf.timeout = DEFAULT_MPD_TIMEOUT;
+
+			return 0;
+		default:
+			g_critical("Failed to parse configuration file `%s': %s",
+					conf.conf_path, error->message);
+			g_error_free(error);
+			return -1;
 		}
 	}
 
@@ -55,78 +58,93 @@ keyfile_load(GKeyFile **cfd_r)
 		conf.pid_path = g_key_file_get_string(*cfd_r, "main", "pidfile", NULL);
 
 	/* Get main.killwait */
-	config_err = NULL;
-	killwait = g_key_file_get_integer(*cfd_r, "main", "killwait", &config_err);
-	if (config_err != NULL) {
-		switch (config_err->code) {
-			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mpdcron_log(LOG_WARNING, "main.killwait not an integer: %s", config_err->message);
-				g_error_free(config_err);
-				return -1;
-			default:
-				g_error_free(config_err);
-				config_err = NULL;
-				killwait = DEFAULT_PID_KILL_WAIT;
-				break;
+	error = NULL;
+	conf.killwait = g_key_file_get_integer(*cfd_r, "main", "killwait", &error);
+	if (error != NULL) {
+		switch (error->code) {
+		case G_KEY_FILE_ERROR_INVALID_VALUE:
+			g_warning("main.killwait not an integer: %s", error->message);
+			g_error_free(error);
+			return -1;
+		default:
+			g_error_free(error);
+			conf.killwait = DEFAULT_PID_KILL_WAIT;
+			break;
 		}
 	}
 
-	if (killwait <= 0) {
-		mpdcron_log(LOG_WARNING, "killwait smaller than zero, adjusting to default %d", DEFAULT_PID_KILL_WAIT);
-		killwait = DEFAULT_PID_KILL_WAIT;
+	if (conf.killwait <= 0) {
+		g_warning("killwait smaller than zero, adjusting to default %d",
+				DEFAULT_PID_KILL_WAIT);
+		conf.killwait = DEFAULT_PID_KILL_WAIT;
+	}
+
+	/* Get main.log_level */
+	error = NULL;
+	conf.log_level = g_key_file_get_integer(*cfd_r, "main", "log_level", &error);
+	if (error != NULL) {
+		switch (error->code) {
+		case G_KEY_FILE_ERROR_INVALID_VALUE:
+			g_warning("main.log_level not an integer: %s", error->message);
+			g_error_free(error);
+			return -1;
+		default:
+			g_error_free(error);
+			conf.log_level = DEFAULT_LOG_LEVEL;
+			break;
+		}
 	}
 
 	/* Get mpd.reconnect */
-	config_err = NULL;
-	reconnect = g_key_file_get_integer(*cfd_r, "mpd", "reconnect", &config_err);
-	if (config_err != NULL) {
-		switch (config_err->code) {
-			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mpdcron_log(LOG_WARNING, "mpd.reconnect not an integer: %s", config_err->message);
-				g_error_free(config_err);
-				return -1;
-			default:
-				g_error_free(config_err);
-				config_err = NULL;
-				reconnect = DEFAULT_MPD_RECONNECT;
-				break;
+	error = NULL;
+	conf.reconnect = g_key_file_get_integer(*cfd_r, "mpd", "reconnect", &error);
+	if (error != NULL) {
+		switch (error->code) {
+		case G_KEY_FILE_ERROR_INVALID_VALUE:
+			g_debug("mpd.reconnect not an integer: %s", error->message);
+			g_error_free(error);
+			return -1;
+		default:
+			g_error_free(error);
+			conf.reconnect = DEFAULT_MPD_RECONNECT;
+			break;
 		}
 	}
 
-	if (reconnect <= 0) {
-		mpdcron_log(LOG_WARNING, "reconnect %s zero, adjusting to default %d",
-				(reconnect == 0) ? "equal to" : "smaller than",
-				DEFAULT_MPD_RECONNECT);
-		reconnect = DEFAULT_MPD_RECONNECT;
+	if (conf.reconnect <= 0) {
+		g_warning("reconnect %s zero, adjusting to default %d",
+			(conf.reconnect == 0) ? "equal to" : "smaller than",
+			DEFAULT_MPD_RECONNECT);
+		conf.reconnect = DEFAULT_MPD_RECONNECT;
 	}
 
-	optstr = g_strdup_printf("%d", reconnect);
+	optstr = g_strdup_printf("%d", conf.reconnect);
 	g_setenv("MCOPT_RECONNECT", optstr, 1);
 	g_free(optstr);
 
 	/* Get mpd.timeout */
-	config_err = NULL;
-	timeout = g_key_file_get_integer(*cfd_r, "mpd", "timeout", &config_err);
-	if (config_err != NULL) {
-		switch (config_err->code) {
-			case G_KEY_FILE_ERROR_INVALID_VALUE:
-				mpdcron_log(LOG_WARNING, "mpd.timeout not an integer: %s", config_err->message);
-				g_error_free(config_err);
-				return -1;
-			default:
-				g_error_free(config_err);
-				config_err = NULL;
-				timeout = DEFAULT_MPD_TIMEOUT;
-				break;
+	error = NULL;
+	conf.timeout = g_key_file_get_integer(*cfd_r, "mpd", "timeout", &error);
+	if (error != NULL) {
+		switch (error->code) {
+		case G_KEY_FILE_ERROR_INVALID_VALUE:
+			g_warning("mpd.timeout not an integer: %s", error->message);
+			g_error_free(error);
+			return -1;
+		default:
+			g_error_free(error);
+			conf.timeout = DEFAULT_MPD_TIMEOUT;
+			break;
 		}
 	}
 
-	if (timeout < 0) {
-		mpdcron_log(LOG_WARNING, "timeout smaller than zero, adjusting to default %d", DEFAULT_MPD_TIMEOUT);
-		timeout = DEFAULT_MPD_TIMEOUT;
+	if (conf.timeout < 0) {
+		g_warning("timeout smaller than zero, adjusting to default %d",
+				DEFAULT_MPD_TIMEOUT);
+		conf.timeout = DEFAULT_MPD_TIMEOUT;
 	}
 
-	optstr = g_strdup_printf("%d", timeout);
+	optstr = g_strdup_printf("%d", conf.timeout);
 	g_setenv("MCOPT_TIMEOUT", optstr, 1);
 	g_free(optstr);
 
@@ -135,9 +153,9 @@ keyfile_load(GKeyFile **cfd_r)
 		for (unsigned int i = 0; events[i] != NULL; i++) {
 			enum mpd_idle parsed = mpd_idle_name_parse(events[i]);
 			if (parsed == 0)
-				mpdcron_log(LOG_WARNING, "Unrecognized idle event: %s", events[i]);
+				g_warning("Unrecognized idle event: %s", events[i]);
 			else
-				idle |= parsed;
+				conf.idle |= parsed;
 		}
 		g_strfreev(events);
 	}

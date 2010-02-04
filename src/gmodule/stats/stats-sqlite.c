@@ -24,7 +24,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 #include <mpd/client.h>
 #include <sqlite3.h>
 

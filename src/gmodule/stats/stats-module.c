@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -45,7 +45,7 @@ song_changed(const struct mpd_song *song)
 
 	g_timer_start(timer);
 
-	mpdcron_log(LOG_DEBUG, "New song detected (%s - %s), id: %u, pos: %u",
+	g_debug("New song detected (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -68,25 +68,25 @@ song_ended(const struct mpd_song *song)
 	elapsed = g_timer_elapsed(timer, NULL);
 
 	if (!played_long_enough(elapsed, mpd_song_get_duration(song))) {
-		mpdcron_log(LOG_DEBUG, "Song (%s - %s), id: %u, pos: %u not played long enough, skipping",
+		g_debug("Song (%s - %s), id: %u, pos: %u not played long enough, skipping",
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 				mpd_song_get_id(song), mpd_song_get_pos(song));
 		return;
 	}
 
-	mpdcron_log(LOG_DEBUG, "Saving old song (%s - %s), id: %u, pos: %u",
+	g_debug("Saving old song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
 	error = NULL;
 	if (!db_process(song, true, &error)) {
-		mpdcron_log(LOG_WARNING, "Saving old song failed: %s", error->message);
+		g_warning("Saving old song failed: %s", error->message);
 		g_error_free(error);
 	}
 	else if (error != NULL) {
-		mpdcron_log(LOG_WARNING, "Skippied saving old song: %s", error->message);
+		g_warning("Skipped saving old song: %s", error->message);
 		g_error_free(error);
 	}
 }
@@ -96,7 +96,7 @@ song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
-		mpdcron_log(LOG_DEBUG, "Repeated song detected");
+		g_debug("Repeated song detected");
 		song_ended(song);
 		song_started(song);
 	}
@@ -128,7 +128,7 @@ static int
 init(const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	GError *error;
-	mpdcron_log(LOG_INFO, "Initializing");
+	g_debug("Initializing");
 
 	/* Load configuration */
 	if (file_load(conf, fd) < 0)
@@ -137,7 +137,7 @@ init(const struct mpdcron_config *conf, GKeyFile *fd)
 	/* Initialize database */
 	error = NULL;
 	if (!db_init(globalconf.dbpath, true, false, &error)) {
-		mpdcron_log(LOG_ERR, "Failed to initialize database `%s': %s",
+		g_critical("Failed to initialize database `%s': %s",
 				globalconf.dbpath, error->message);
 		g_error_free(error);
 		file_cleanup();
@@ -163,7 +163,7 @@ init(const struct mpdcron_config *conf, GKeyFile *fd)
 static void
 destroy(void)
 {
-	mpdcron_log(LOG_INFO, "Exiting");
+	g_message("Exiting");
 	if (prev != NULL)
 		mpd_song_free(prev);
 	g_timer_destroy(timer);
@@ -217,7 +217,7 @@ event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 	if (song != NULL) {
 		if ((prev = mpd_song_dup(song)) == NULL) {
-			mpdcron_log(LOG_ERR, "mpd_song_dup failed: out of memory");
+			g_critical("mpd_song_dup failed: out of memory");
 			return MPDCRON_EVENT_UNLOAD;
 		}
 	}

@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -23,14 +23,13 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 void
 notify_send(const char *icon, const char *summary, const char *body)
 {
 	int i, j, len;
 	char **myargv;
-	GError *serr;
+	GError *error;
 
 	i = 0;
 	len = 8 + (file_config.hints ? g_strv_length(file_config.hints) : 0);
@@ -53,10 +52,11 @@ notify_send(const char *icon, const char *summary, const char *body)
 	}
 	myargv[i] = NULL;
 
-	if (!g_spawn_async(NULL, myargv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &serr)) {
-			mpdcron_log(LOG_WARNING, "Failed to execute notify-send: %s",
-					serr->message);
-			g_error_free(serr);
+	error = NULL;
+	if (!g_spawn_async(NULL, myargv, NULL, G_SPAWN_SEARCH_PATH, NULL, NULL, NULL, &error)) {
+			g_warning("Failed to execute notify-send: %s",
+					error->message);
+			g_error_free(error);
 	}
 
 	for (; i >= 0; i--)

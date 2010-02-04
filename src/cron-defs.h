@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -23,7 +23,6 @@
 #include "cron-config.h"
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
 extern struct mpdcron_config conf;
@@ -74,6 +73,10 @@ keyfile_load_modules(GKeyFile **cfd_r);
 #endif /* HAVE_GMODULE */
 
 void
+log_handler(const gchar *domain, GLogLevelFlags level, const gchar *message,
+	gpointer userdata);
+
+void
 loop_connect(void);
 
 void
@@ -97,7 +100,7 @@ module_queue_run(const struct mpd_connection *conn);
 
 int
 module_player_run(const struct mpd_connection *conn, const struct mpd_song *song,
-		const struct mpd_status *status);
+	const struct mpd_status *status);
 
 int
 module_mixer_run(const struct mpd_connection *conn, const struct mpd_status *status);

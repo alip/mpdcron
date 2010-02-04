@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -71,7 +71,7 @@ event_flush(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 
 	error = NULL;
 	if (!g_output_stream_flush_finish(client->output, result, &error)) {
-		mpdcron_log(LOG_WARNING, "Write failed: %s", error->message);
+		g_warning("Write failed: %s", error->message);
 		g_error_free(error);
 		g_hash_table_remove(clients, clientid);
 		return;
@@ -100,11 +100,11 @@ event_read_line(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 					result, &length, &error)) == NULL) {
 		if (error == NULL) {
 			/* Client disconnected */
-			mpdcron_log(LOG_DEBUG, "[%d]? Disconnected", GPOINTER_TO_INT(clientid));
+			g_debug("[%d]? Disconnected", GPOINTER_TO_INT(clientid));
 			g_hash_table_remove(clients, clientid);
 			return;
 		}
-		mpdcron_log(LOG_WARNING, "[%d] Read failed: %s",
+		g_warning("[%d] Read failed: %s",
 				GPOINTER_TO_INT(clientid),
 				error ? error->message : "unknown");
 		g_error_free(error);
@@ -112,7 +112,7 @@ event_read_line(G_GNUC_UNUSED GObject *source, GAsyncResult *result,
 		return;
 	}
 
-	mpdcron_log(LOG_DEBUG, "[%d]< %s", GPOINTER_TO_INT(clientid), line);
+	g_debug("[%d]< %s", GPOINTER_TO_INT(clientid), line);
 	command_process(client, line);
 	g_free(line);
 
@@ -130,10 +130,10 @@ event_incoming(G_GNUC_UNUSED GSocketService *srv, GSocketConnection *conn,
 
 	num_clients = g_hash_table_size(clients);
 	if (num_clients >= (unsigned)globalconf.max_connections) {
-		mpdcron_log(LOG_WARNING, "Maximum connections reached!");
+		g_warning("Maximum connections reached!");
 		return TRUE;
 	}
-	mpdcron_log(LOG_DEBUG, "[%d]! Connected", num_clients);
+	g_debug("[%d]! Connected", num_clients);
 
 	/* Prepare struct client */
 	client = g_new(struct client, 1);
@@ -178,21 +178,21 @@ bind_callback(gpointer data, gpointer userdata)
 	host = (struct host *)userdata;
 
 	addr_string = g_inet_address_to_string(addr);
-	mpdcron_log(LOG_DEBUG, "Resolved `%s' to %s", host->name, addr_string);
+	g_debug("Resolved `%s' to %s", host->name, addr_string);
 
 	saddr = g_inet_socket_address_new(addr, host->port);
 	error = NULL;
 	if (!g_socket_listener_add_address(G_SOCKET_LISTENER(server), saddr,
 				G_SOCKET_TYPE_STREAM, G_SOCKET_PROTOCOL_TCP,
 				NULL, NULL, &error)) {
-		mpdcron_log(LOG_WARNING, "Failed bind to address %s:%d: %s",
+		g_warning("Failed bind to address %s:%d: %s",
 				addr_string, host->port, error->message);
 		g_error_free(error);
 		g_free(addr_string);
 		g_object_unref(saddr);
 		return;
 	}
-	mpdcron_log(LOG_DEBUG, "Successful bind to %s:%d",
+	g_debug("Successful bind to %s:%d",
 			addr_string, host->port);
 	g_free(addr_string);
 	g_object_unref(saddr);
@@ -214,7 +214,7 @@ event_resolve(GObject *source, GAsyncResult *result, gpointer userdata)
 	g_object_unref(resolver);
 
 	if (error != NULL) {
-		mpdcron_log(LOG_WARNING, "Resolving hostname %s failed: %s",
+		g_warning("Resolving hostname %s failed: %s",
 				host->name, error->message);
 		g_error_free(error);
 		g_free(host->name);
@@ -252,16 +252,16 @@ server_bind(const char *hostname, int port)
 					G_SOCKET_TYPE_STREAM,
 					G_SOCKET_PROTOCOL_DEFAULT,
 					NULL, NULL, &error)) {
-			mpdcron_log(LOG_WARNING, "Failed bind to UNIX socket `%s': %s",
+			g_warning("Failed bind to UNIX socket `%s': %s",
 					hostname, error->message);
 			g_error_free(error);
 			g_object_unref(addr);
 			return;
 		}
 		g_object_unref(addr);
-		mpdcron_log(LOG_DEBUG, "Successful bind to %s", hostname);
+		g_debug("Successful bind to %s", hostname);
 #else
-		mpdcron_log(LOG_WARNING, "No support for Unix sockets");
+		g_warning("No support for Unix sockets");
 #endif /* HAVE_GIO_UNIX */
 	}
 	else if (hostname == NULL) {
@@ -269,11 +269,11 @@ server_bind(const char *hostname, int port)
 		error = NULL;
 		if (!g_socket_listener_add_inet_port(G_SOCKET_LISTENER(server),
 					port, NULL, &error)) {
-			mpdcron_log(LOG_WARNING, "Failed bind to 0.0.0.0:%d: %s",
+			g_warning("Failed bind to 0.0.0.0:%d: %s",
 					port, error->message);
 			g_error_free(error);
 		}
-		mpdcron_log(LOG_DEBUG, "Successful bind to 0.0.0.0:%d", port);
+		g_debug("Successful bind to 0.0.0.0:%d", port);
 	}
 	else {
 		/* Resolve the given host and bind to it. */

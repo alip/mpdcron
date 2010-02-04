@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -22,17 +22,12 @@
 
 #include <stdbool.h>
 
-#include <glib.h>
-#include <libdaemon/dlog.h>
-#include <mpd/client.h>
+#ifdef MPDCRON_MODULE
+#define G_LOG_DOMAIN MPDCRON_MODULE
+#endif /* MPDCRON_MODULE */
 
-#ifndef mpdcron_log
-#ifndef MPDCRON_MODULE
-#define mpdcron_log(level, ...) daemon_log(level, __VA_ARGS__)
-#else
-#define mpdcron_log(level, ...) daemon_log((level), "[" MPDCRON_MODULE "] " __VA_ARGS__)
-#endif /* !MPDCRON_MODULE */
-#endif /* !mpdcron_log */
+#include <glib.h>
+#include <mpd/client.h>
 
 enum mpdcron_init_retval {
 	MPDCRON_INIT_SUCCESS = 0, /** Success */
@@ -59,6 +54,7 @@ struct mpdcron_config {
 	int timeout;
 	int reconnect;
 	int killwait;
+	int log_level;
 
 	enum mpd_idle idle;
 };

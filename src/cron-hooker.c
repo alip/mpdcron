@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 /* Count the number of hook calls */
 static struct hook_calls {
@@ -51,7 +50,7 @@ hooker_increment(const char *name)
 		if (strcmp(name, calls[i].name) == 0) {
 			envstr = g_strdup_printf("%u", ++calls[i].ncalls);
 			g_setenv(calls[i].env, envstr, 1);
-			mpdcron_log(LOG_DEBUG, "Setting environment variable %s=%s", calls[i].env, envstr);
+			g_debug("Setting environment variable %s=%s", calls[i].env, envstr);
 			g_free(envstr);
 			break;
 		}
@@ -70,12 +69,12 @@ hooker_run_hook(const char *name)
 	myargv[0] = g_build_filename(DOT_HOOKS, name, NULL);
 	myargv[1] = NULL;
 
-	mpdcron_log(LOG_DEBUG, "Running hook: %s home directory: %s", myargv[0], conf.home_path);
+	g_debug("Running hook: %s home directory: %s", myargv[0], conf.home_path);
 	if (!g_spawn_async(conf.home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
 				NULL, NULL, NULL, &hook_err)) {
 		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
-			mpdcron_log(LOG_WARNING, "Failed to execute hook %s: %s", name, hook_err->message);
+			g_warning("Failed to execute hook %s: %s", name, hook_err->message);
 		g_free(myargv[0]);
 		g_free(myargv);
 		g_error_free(hook_err);

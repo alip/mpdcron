@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 #include <libdaemon/dpid.h>
 
 struct mpdcron_config conf;
@@ -52,7 +51,7 @@ conf_init(void)
 	else if (g_getenv("HOME"))
 		conf.home_path = g_build_filename(g_getenv("HOME"), DOT_MPDCRON, NULL);
 	else {
-		mpdcron_log(LOG_ERR, "Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
+		g_critical("Neither "ENV_HOME_DIR" nor HOME is set, exiting!");
 		return -1;
 	}
 

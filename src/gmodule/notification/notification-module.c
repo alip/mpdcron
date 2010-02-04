@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -31,7 +31,6 @@
 #include <time.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
 static bool was_paused;
@@ -72,12 +71,12 @@ song_changed(const struct mpd_song *song)
 	cpath = cover_find(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0));
 	if (cpath == NULL)
-		mpdcron_log(LOG_DEBUG, "Failed to find cover for album (%s - %s), suffix: %s",
+		g_debug("Failed to find cover for album (%s - %s), suffix: %s",
 				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 				mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 				file_config.cover_suffix);
 
-	mpdcron_log(LOG_DEBUG, "Sending notify for song (%s - %s), id: %u, pos: %u",
+	g_debug("Sending notify for song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_id(song), mpd_song_get_pos(song));
@@ -108,7 +107,7 @@ song_playing(const struct mpd_song *song, unsigned elapsed)
 {
 	unsigned prev_elapsed = g_timer_elapsed(timer, NULL);
 	if (prev_elapsed > elapsed) {
-		mpdcron_log(LOG_DEBUG, "Repeated song detected");
+		g_debug("Repeated song detected");
 		song_started(song);
 	}
 }
@@ -124,14 +123,14 @@ init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 		return MPDCRON_INIT_FAILURE;
 
 	timer = g_timer_new();
-	mpdcron_log(LOG_INFO, "Initialized");
+	g_message("Initialized");
 	return MPDCRON_INIT_SUCCESS;
 }
 
 static void
 destroy(void)
 {
-	mpdcron_log(LOG_INFO, "Exiting");
+	g_message("Exiting");
 	file_cleanup();
 	g_timer_destroy(timer);
 }

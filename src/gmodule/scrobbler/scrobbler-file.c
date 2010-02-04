@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 #include "../utils.h"
 
@@ -36,35 +35,40 @@ static struct scrobbler_config *
 load_scrobbler(GKeyFile *fd, const char *grp)
 {
 	char *p;
-	struct scrobbler_config *scrobbler = g_new(struct scrobbler_config, 1);
-	GError *cerr = NULL;
+	GError *error;
+	struct scrobbler_config *scrobbler;
 
 	if (!g_key_file_has_group(fd, grp))
 		return NULL;
 
+	scrobbler = g_new(struct scrobbler_config, 1);
+
+	error = NULL;
 	scrobbler->name = g_strdup(grp);
-	scrobbler->url = g_key_file_get_string(fd, grp, "url", &cerr);
-	if (cerr != NULL) {
-		mpdcron_log(LOG_ERR, "Error while reading url from group %s: %s",
-				grp, cerr->message);
+	scrobbler->url = g_key_file_get_string(fd, grp, "url", &error);
+	if (error != NULL) {
+		g_critical("Error while reading url from group %s: %s",
+				grp, error->message);
 		g_free(scrobbler);
-		g_error_free(cerr);
+		g_error_free(error);
 		return NULL;
 	}
-	scrobbler->username = g_key_file_get_string(fd, grp, "username", &cerr);
-	if (cerr != NULL) {
-		mpdcron_log(LOG_ERR, "Error while reading username from group %s: %s",
-				grp, cerr->message);
+
+	error = NULL;
+	scrobbler->username = g_key_file_get_string(fd, grp, "username", &error);
+	if (error != NULL) {
+		g_critical("Error while reading username from group %s: %s",
+				grp, error->message);
 		g_free(scrobbler);
-		g_error_free(cerr);
+		g_error_free(error);
 		return NULL;
 	}
-	scrobbler->password = g_key_file_get_string(fd, grp, "password", &cerr);
-	if (cerr != NULL) {
-		mpdcron_log(LOG_ERR, "Error while reading password from group %s: %s",
-				grp, cerr->message);
+	scrobbler->password = g_key_file_get_string(fd, grp, "password", &error);
+	if (error != NULL) {
+		g_critical("Error while reading password from group %s: %s",
+				grp, error->message);
 		g_free(scrobbler);
-		g_error_free(cerr);
+		g_error_free(error);
 		return NULL;
 	}
 	/* Parse password */
@@ -100,20 +104,20 @@ int
 file_load(GKeyFile *fd)
 {
 	int s = 0;
-	struct scrobbler_config *scrobbler;
 	GError *error;
+	struct scrobbler_config *scrobbler;
 
 	memset(&file_config, 0, sizeof(struct config));
 	file_config.journal_interval = -1;
 
 	error = NULL;
 	if (!load_string(fd, MPDCRON_MODULE, "proxy", false, &file_config.proxy, &error)) {
-		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".proxy: %s", error->message);
+		g_critical("Failed to load "MPDCRON_MODULE".proxy: %s", error->message);
 		g_error_free(error);
 		return -1;
 	}
 	if (!load_integer(fd, MPDCRON_MODULE, "journal_interval", false, &file_config.journal_interval, &error)) {
-		mpdcron_log(LOG_ERR, "Failed to load "MPDCRON_MODULE".journal_interval: %s", error->message);
+		g_critical("Failed to load "MPDCRON_MODULE".journal_interval: %s", error->message);
 		g_error_free(error);
 		return -1;
 	}
@@ -130,7 +134,7 @@ file_load(GKeyFile *fd)
 	}
 
 	if (s == 0) {
-		mpdcron_log(LOG_ERR, "Neither last.fm nor libre.fm group defined");
+		g_critical("Neither last.fm nor libre.fm group defined");
 		return -1;
 	}
 

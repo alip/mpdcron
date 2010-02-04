@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 #include "../utils.h"
 
@@ -40,7 +39,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	/* Load database path */
 	error = NULL;
 	if (!load_string(fd, MPDCRON_MODULE, "dbpath", false, &globalconf.dbpath, &error)) {
-		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_critical("%s", error->message);
 		g_error_free(error);
 		return false;
 	}
@@ -51,7 +50,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	error = NULL;
 	globalconf.port = -1;
 	if (!load_integer(fd, MPDCRON_MODULE, "port", false, &globalconf.port, &error)) {
-		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_critical("%s", error->message);
 		g_error_free(error);
 		return false;
 	}
@@ -62,7 +61,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	error = NULL;
 	globalconf.max_connections = -1;
 	if (!load_integer(fd, MPDCRON_MODULE, "max_connections", false, &globalconf.max_connections, &error)) {
-		mpdcron_log(LOG_ERR, "%s", error->message);
+		g_critical("%s", error->message);
 		g_error_free(error);
 		return false;
 	}
@@ -75,17 +74,17 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 			NULL, &error);
 	if (error != NULL) {
 		switch (error->code) {
-			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(error);
-				break;
-			default:
-				mpdcron_log(LOG_ERR, "Failed to load "
-						MPDCRON_MODULE".default_permissions: %s",
-						error->message);
-				g_error_free(error);
-				g_free(globalconf.dbpath);
-				return false;
+		case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
+		case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+			g_error_free(error);
+			break;
+		default:
+			g_critical("Failed to load "
+					MPDCRON_MODULE".default_permissions: %s",
+					error->message);
+			g_error_free(error);
+			g_free(globalconf.dbpath);
+			return false;
 		}
 	}
 	if (values != NULL) {
@@ -97,7 +96,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 			else if (strncmp(values[i], "none", 5) == 0)
 				globalconf.default_permissions = 0;
 			else
-				mpdcron_log(LOG_WARNING, "Invalid value in "
+				g_warning("Invalid value in "
 						MPDCRON_MODULE".default_permissions `%s'",
 						values[i]);
 		}
@@ -112,17 +111,17 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 			NULL, &error);
 	if (error != NULL) {
 		switch (error->code) {
-			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(error);
-				break;
-			default:
-				mpdcron_log(LOG_ERR, "Failed to load "
-						MPDCRON_MODULE".passwords: %s",
-						error->message);
-				g_error_free(error);
-				g_free(globalconf.dbpath);
-				return false;
+		case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
+		case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+			g_error_free(error);
+			break;
+		default:
+			g_critical("Failed to load "
+					MPDCRON_MODULE".passwords: %s",
+					error->message);
+			g_error_free(error);
+			g_free(globalconf.dbpath);
+			return false;
 		}
 	}
 
@@ -133,7 +132,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 		for (unsigned int i = 0; values[i] != NULL; i++) {
 			split = g_strsplit(values[i], "@", 2);
 			if (g_strv_length(split) != 2) {
-				mpdcron_log(LOG_WARNING, "Invalid value in "
+				g_warning("Invalid value in "
 						MPDCRON_MODULE".passwords `%s'",
 						values[i]);
 				g_strfreev(split);
@@ -158,7 +157,7 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 				globalconf.default_permissions = globalconf.default_permissions & ~PERMISSION_ALL;
 			}
 			else {
-				mpdcron_log(LOG_WARNING, "Invalid value in "
+				g_warning("Invalid value in "
 						MPDCRON_MODULE".passwords `%s'",
 						values[i]);
 				g_strfreev(split);
@@ -172,17 +171,17 @@ file_load(const struct mpdcron_config *conf, GKeyFile *fd)
 	globalconf.addrs = g_key_file_get_string_list(fd, MPDCRON_MODULE, "bind_to_addresses", NULL, &error);
 	if (error != NULL) {
 		switch (error->code) {
-			case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
-			case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
-				g_error_free(error);
-				break;
-			default:
-				mpdcron_log(LOG_ERR, "Failed to load "
-						MPDCRON_MODULE".bind_to_address: %s",
-						error->message);
-				g_error_free(error);
-				g_free(globalconf.dbpath);
-				return false;
+		case G_KEY_FILE_ERROR_GROUP_NOT_FOUND:
+		case G_KEY_FILE_ERROR_KEY_NOT_FOUND:
+			g_error_free(error);
+			break;
+		default:
+			g_critical("Failed to load "
+					MPDCRON_MODULE".bind_to_address: %s",
+					error->message);
+			g_error_free(error);
+			g_free(globalconf.dbpath);
+			return false;
 		}
 	}
 	if (globalconf.addrs == NULL) {

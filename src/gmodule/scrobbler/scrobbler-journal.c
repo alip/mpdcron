@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -28,7 +28,6 @@
 #include <errno.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 static int journal_file_empty;
 
@@ -53,7 +52,7 @@ bool journal_write(const char *path, GQueue *queue)
 
 	handle = fopen(path, "wb");
 	if (!handle) {
-		mpdcron_log(LOG_WARNING, "Failed to save %s: %s\n",
+		g_warning("Failed to save %s: %s\n",
 				path, g_strerror(errno));
 		return false;
 	}
@@ -99,7 +98,7 @@ import_old_timestamp(const char *p)
 	if (strlen(p) <= 10 || p[10] != ' ')
 		return NULL;
 
-	mpdcron_log(LOG_DEBUG, "Importing time stamp '%s'", p);
+	g_debug("Importing time stamp '%s'", p);
 
 	/* replace a space with 'T', as expected by
 	   g_time_val_from_iso8601() */
@@ -109,11 +108,11 @@ import_old_timestamp(const char *p)
 	success = g_time_val_from_iso8601(q, &time_val);
 	g_free(q);
 	if (!success) {
-		mpdcron_log(LOG_DEBUG, "Import of '%s' failed", p);
+		g_debug("Import of '%s' failed", p);
 		return NULL;
 	}
 
-	mpdcron_log(LOG_DEBUG, "'%s' -> %ld", p, time_val.tv_sec);
+	g_debug("'%s' -> %ld", p, time_val.tv_sec);
 	return g_strdup_printf("%ld", time_val.tv_sec);
 }
 
@@ -149,7 +148,7 @@ void journal_read(const char *path, GQueue *queue)
 			/* ENOENT is ignored silently, because the
 			 * user might be starting mpdcron for the
 			 * first time */
-			mpdcron_log(LOG_WARNING, "Failed to load %s: %s",
+			g_warning("Failed to load %s: %s",
 					path, g_strerror(errno));
 		return;
 	}

@@ -26,7 +26,6 @@
 #include <stdbool.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 
 static GQuark
 kf_quark(void)

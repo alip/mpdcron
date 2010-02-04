@@ -2,7 +2,7 @@ SUBDIRS= .
 DEFS+= -DGITHEAD=\"$(GITHEAD)\" -DLIBDIR=\"$(libdir)\"
 AM_CFLAGS= @MPDCRON_CFLAGS@ \
 	   $(gio_unix_CFLAGS) $(glib_CFLAGS) $(gio_CFLAGS) \
-	   $(libdaemon_CFLAGS) $(libmpdclient_CFLAGS) $(sqlite_CFLAGS)
+	   $(libmpdclient_CFLAGS) $(sqlite_CFLAGS)
 MODULE_DIR=$(libdir)/$(PACKAGE)-$(VERSION)/modules
 
 noinst_HEADERS= tokenizer.h stats-defs.h stats-sqlite.h

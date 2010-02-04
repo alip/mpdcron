@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -40,15 +40,15 @@ module_path(const char *modname, int *user_r)
 {
 	char *name, *path;
 
-	mpdcron_log(LOG_DEBUG, "Trying to load module: %s", modname);
+	g_debug("Trying to load module: %s", modname);
 	name = g_strdup_printf("%s.%s", modname, G_MODULE_SUFFIX);
-	mpdcron_log(LOG_DEBUG, "Added module suffix %s -> %s", modname, name);
+	g_debug("Added module suffix %s -> %s", modname, name);
 
 	/* First check user path */
 	path = g_build_filename(conf.mod_path, name, NULL);
-	mpdcron_log(LOG_DEBUG, "Trying user configured path `%s'", path);
+	g_debug("Trying user configured path `%s'", path);
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-		mpdcron_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
+		g_debug("Found %s -> `%s'", modname, path);
 		g_free(name);
 		*user_r = 1;
 		return path;
@@ -57,9 +57,9 @@ module_path(const char *modname, int *user_r)
 
 	/* Next check system path */
 	path = g_build_filename(LIBDIR, PACKAGE"-"VERSION, DOT_MODULES, name, NULL);
-	mpdcron_log(LOG_DEBUG, "Trying system path `%s'", path);
+	g_debug("Trying system path `%s'", path);
 	if (g_file_test(path, G_FILE_TEST_EXISTS)) {
-		mpdcron_log(LOG_DEBUG, "Found %s -> `%s'", modname, path);
+		g_debug("Found %s -> `%s'", modname, path);
 		g_free(name);
 		*user_r = 0;
 		return path;
@@ -76,20 +76,20 @@ module_init_one(const char *modname, GKeyFile *config_fd)
 
 	mod = g_new0(struct module_data, 1);
 	if ((mod->path = module_path(modname, &(mod->user))) == NULL) {
-		mpdcron_log(LOG_WARNING, "Error loading module %s: file not found",
+		g_warning("Error loading module %s: file not found",
 				modname);
 		g_free(mod);
 		return -1;
 	}
 	if ((mod->module = g_module_open(mod->path, G_MODULE_BIND_LOCAL)) == NULL) {
-		mpdcron_log(LOG_WARNING, "Error loading module `%s': %s",
+		g_warning("Error loading module `%s': %s",
 				mod->path, g_module_error());
 		g_free(mod->path);
 		g_free(mod);
 		return -1;
 	}
 	if (!g_module_symbol(mod->module, "module", (gpointer *)&mod->data) || mod->data == NULL) {
-		mpdcron_log(LOG_WARNING, "Error loading module `%s': no module structure",
+		g_warning("Error loading module `%s': no module structure",
 				mod->path);
 		g_module_close(mod->module);
 		g_free(mod->path);
@@ -100,8 +100,7 @@ module_init_one(const char *modname, GKeyFile *config_fd)
 	/* Run the init() function if there's any. */
 	if (mod->data->init != NULL) {
 		if ((mod->data->init)(&conf, config_fd) == MPDCRON_INIT_FAILURE) {
-			mpdcron_log(LOG_WARNING,
-					"Skipped loading module `%s': init() returned %d",
+			g_warning("Skipped loading module `%s': init() returned %d",
 					mod->path, MPDCRON_INIT_FAILURE);
 			g_free(mod->path);
 			g_module_close(mod->module);
@@ -109,7 +108,7 @@ module_init_one(const char *modname, GKeyFile *config_fd)
 			return -1;
 		}
 	}
-	mpdcron_log(LOG_DEBUG, "Loaded module `%s'", mod->path);
+	g_debug("Loaded module `%s'", mod->path);
 	modules = g_slist_prepend(modules, mod);
 	return 0;
 }
@@ -136,33 +135,33 @@ static int
 module_process_ret(int ret, struct module_data *mod, GSList **slink_r, GSList **slist_r)
 {
 	switch (ret) {
-		case MPDCRON_EVENT_SUCCESS:
-			return 0;
-		case MPDCRON_EVENT_RECONNECT:
-			mpdcron_log(LOG_INFO, "%s module `%s' scheduled reconnect",
-					mod->user ? "User" : "Standard",
-					mod->path);
-			return -1;
-		case MPDCRON_EVENT_RECONNECT_NOW:
-			mpdcron_log(LOG_INFO, "%s module `%s' scheduled reconnect NOW!",
-					mod->user ? "User" : "Standard",
-					mod->path);
-			return -1;
-		case MPDCRON_EVENT_UNLOAD:
-			mpdcron_log(LOG_INFO, "Unloading %s module `%s'",
-					mod->user ? "user" : "standard",
-					mod->path);
-			*slist_r = g_slist_remove_link(*slist_r, *slink_r);
-			module_destroy_one(mod, NULL);
-			g_slist_free(*slink_r);
-			*slink_r = *slist_r;
-			return 0;
-		default:
-			mpdcron_log(LOG_WARNING, "Unknown return from %s module `%s': %d",
-					mod->user ? "user" : "standard",
-					mod->path,
-					ret);
-			return 0;
+	case MPDCRON_EVENT_SUCCESS:
+		return 0;
+	case MPDCRON_EVENT_RECONNECT:
+		g_message("%s module `%s' scheduled reconnect",
+				mod->user ? "User" : "Standard",
+				mod->path);
+		return -1;
+	case MPDCRON_EVENT_RECONNECT_NOW:
+		g_message("%s module `%s' scheduled reconnect NOW!",
+				mod->user ? "User" : "Standard",
+				mod->path);
+		return -1;
+	case MPDCRON_EVENT_UNLOAD:
+		g_message("Unloading %s module `%s'",
+				mod->user ? "user" : "standard",
+				mod->path);
+		*slist_r = g_slist_remove_link(*slist_r, *slink_r);
+		module_destroy_one(mod, NULL);
+		g_slist_free(*slink_r);
+		*slink_r = *slist_r;
+		return 0;
+	default:
+		g_warning("Unknown return from %s module `%s': %d",
+				mod->user ? "user" : "standard",
+				mod->path,
+				ret);
+		return 0;
 	}
 }
 

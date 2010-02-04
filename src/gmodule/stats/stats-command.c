@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009-2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpd which is:
  *   Copyright (C) 2003-2009 The Music Player Daemon Project
  *
@@ -75,7 +75,7 @@ command_authorizer(void *userdata, int what,
 static void
 command_ok(struct client *client)
 {
-	mpdcron_log(LOG_DEBUG, "[%d]> "PROTOCOL_OK, client->id);
+	g_debug("[%d]> "PROTOCOL_OK, client->id);
 	server_schedule_write(client, PROTOCOL_OK"\n", sizeof(PROTOCOL_OK"\n") - 1);
 	server_flush_write(client);
 }
@@ -90,7 +90,7 @@ command_putv(struct client *client, const char *fmt, va_list args)
 	message = g_string_new("");
 	g_string_append_vprintf(message, fmt, args);
 
-	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
+	g_debug("[%d]> %s", client->id, message->str);
 	g_string_append_c(message, '\n');
 
 	server_schedule_write(client, message->str, message->len);
@@ -122,7 +122,7 @@ command_error_v(struct client *client, enum ack error, const char *fmt,
 			(int)error, current_command);
 	g_string_append_vprintf(message, fmt, args);
 
-	mpdcron_log(LOG_DEBUG, "[%d]> %s", client->id, message->str);
+	g_debug("[%d]> %s", client->id, message->str);
 	g_string_append_c(message, '\n');
 
 	server_schedule_write(client, message->str, message->len);

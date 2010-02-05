@@ -28,7 +28,7 @@ Configuration file is in standard .ini format.
     # 0: Warnings and errors only
     # 1: Info and below
     # 2: Debug and below
-    log_level = 0
+    loglevel = 0
     [mpd]
     # Semicolon delimited list of events to wait for.
     # By default mpdcron waits for all events.

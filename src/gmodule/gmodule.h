@@ -54,7 +54,7 @@ struct mpdcron_config {
 	int timeout;
 	int reconnect;
 	int killwait;
-	int log_level;
+	int loglevel;
 
 	enum mpd_idle idle;
 };

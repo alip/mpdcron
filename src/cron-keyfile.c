@@ -40,7 +40,7 @@ keyfile_load(GKeyFile **cfd_r)
 
 			/* Set defaults */
 			conf.killwait = DEFAULT_PID_KILL_WAIT;
-			conf.log_level = DEFAULT_LOG_LEVEL;
+			conf.loglevel = DEFAULT_LOG_LEVEL;
 			conf.reconnect = DEFAULT_MPD_RECONNECT;
 			conf.timeout = DEFAULT_MPD_TIMEOUT;
 
@@ -79,18 +79,18 @@ keyfile_load(GKeyFile **cfd_r)
 		conf.killwait = DEFAULT_PID_KILL_WAIT;
 	}
 
-	/* Get main.log_level */
+	/* Get main.loglevel */
 	error = NULL;
-	conf.log_level = g_key_file_get_integer(*cfd_r, "main", "log_level", &error);
+	conf.loglevel = g_key_file_get_integer(*cfd_r, "main", "loglevel", &error);
 	if (error != NULL) {
 		switch (error->code) {
 		case G_KEY_FILE_ERROR_INVALID_VALUE:
-			g_warning("main.log_level not an integer: %s", error->message);
+			g_warning("main.loglevel not an integer: %s", error->message);
 			g_error_free(error);
 			return -1;
 		default:
 			g_error_free(error);
-			conf.log_level = DEFAULT_LOG_LEVEL;
+			conf.loglevel = DEFAULT_LOG_LEVEL;
 			break;
 		}
 	}

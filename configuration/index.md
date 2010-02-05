@@ -24,8 +24,11 @@ Configuration file is in standard .ini format.
     # Wait this many seconds after sending signal to kill the daemon.
     # Default is 3 seconds.
     killwait = 3
-    # Logging level, default is 1.
-    log_level = 1
+    # Logging level, default is 0
+    # 0: Warnings and errors only
+    # 1: Info and below
+    # 2: Debug and below
+    log_level = 0
     [mpd]
     # Semicolon delimited list of events to wait for.
     # By default mpdcron waits for all events.

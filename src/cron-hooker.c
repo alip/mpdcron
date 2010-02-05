@@ -61,7 +61,7 @@ int
 hooker_run_hook(const char *name)
 {
 	gchar **myargv;
-	GError *hook_err = NULL;
+	GError *error;
 
 	hooker_increment(name);
 
@@ -70,14 +70,18 @@ hooker_run_hook(const char *name)
 	myargv[1] = NULL;
 
 	g_debug("Running hook: %s home directory: %s", myargv[0], conf.home_path);
+
+	error = NULL;
 	if (!g_spawn_async(conf.home_path, myargv, NULL,
 				G_SPAWN_LEAVE_DESCRIPTORS_OPEN | G_SPAWN_CHILD_INHERITS_STDIN,
-				NULL, NULL, NULL, &hook_err)) {
-		if (hook_err->code != G_SPAWN_ERROR_NOENT && hook_err->code != G_SPAWN_ERROR_NOEXEC)
-			g_warning("Failed to execute hook %s: %s", name, hook_err->message);
+				NULL, NULL, NULL, &error)) {
+		if (error->code != G_SPAWN_ERROR_NOENT && error->code != G_SPAWN_ERROR_NOEXEC)
+			g_warning("Failed to execute hook %s: %s", name, error->message);
+		else
+			g_debug("Failed to execute hook %s: %s", name, error->message);
 		g_free(myargv[0]);
 		g_free(myargv);
-		g_error_free(hook_err);
+		g_error_free(error);
 		return -1;
 	}
 	g_free(myargv[0]);

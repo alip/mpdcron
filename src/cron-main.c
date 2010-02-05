@@ -159,7 +159,7 @@ main(int argc, char **argv)
 	}
 
 	/* Logging */
-	g_log_set_default_handler(log_handler, GINT_TO_POINTER(conf.log_level));
+	g_log_set_default_handler(log_handler, GINT_TO_POINTER(conf.no_daemon ? 5 : conf.log_level));
 
 	/* Signal handling */
 	new_action.sa_handler = sig_cleanup;

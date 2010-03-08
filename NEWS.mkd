@@ -3,6 +3,8 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* stats: ability to set rating regardless of existing rating.
+
 ### 0.3
 * Added stats module to keep statistics of played songs in a sqlite database
 * Added notification module to send notifications via notify-send

@@ -57,6 +57,7 @@ usage(FILE *outf, int exitval)
 "kill          Kill song/artist/album/genre\n"
 "unkill        Unkill song/artist/album/genre\n"
 "rate          Rate song/artist/album/genre\n"
+"rateabs       Rate (absolute fashion) song/artist/album/genre\n"
 "addtag        Add tag to song/artist/album/genre\n"
 "rmtag         Remove tag from song/artist/album/genre\n"
 "listtags      List tags of song/artist/album/genre\n"
@@ -84,6 +85,8 @@ run_cmd(int argc, char **argv)
 		return cmd_unkill(argc, argv);
 	else if (strncmp(argv[0], "rate", 5) == 0)
 		return cmd_rate(argc, argv);
+	else if (strncmp(argv[0], "rateabs", 8) == 0)
+		return cmd_rate_absolute(argc, argv);
 	else if (strncmp(argv[0], "list", 5) == 0)
 		return cmd_list(argc, argv);
 	else if (strncmp(argv[0], "listinfo", 9) == 0)

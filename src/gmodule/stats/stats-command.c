@@ -748,6 +748,174 @@ handle_rate_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_rate_absolute(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long rating;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_rate_absolute_song_expr(argv[1], (int)rating, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rate_absolute_artist(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long rating;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_rate_absolute_artist_expr(argv[1], (int)rating, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rate_absolute_album(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long rating;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_rate_absolute_album_expr(argv[1], (int)rating, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
+handle_rate_absolute_genre(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long rating;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	rating = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (rating > INT_MAX || rating < INT_MIN) {
+		command_error(client, ACK_ERROR_ARG,
+				"Number too %s",
+				(rating > INT_MAX) ? "big" : "small");
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_rate_absolute_genre_expr(argv[1], (int)rating, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
 handle_addtag(struct client *client, int argc, char **argv)
 {
 	int changes;
@@ -1257,6 +1425,11 @@ static const struct command commands[] = {
 	{ "rate_album", PERMISSION_UPDATE, 2, 2, handle_rate_album },
 	{ "rate_artist", PERMISSION_UPDATE, 2, 2, handle_rate_artist },
 	{ "rate_genre", PERMISSION_UPDATE, 2, 2, handle_rate_genre },
+
+	{ "rate_absolute", PERMISSION_UPDATE, 2, 2, handle_rate_absolute },
+	{ "rate_absolute_album", PERMISSION_UPDATE, 2, 2, handle_rate_absolute_album },
+	{ "rate_absolute_artist", PERMISSION_UPDATE, 2, 2, handle_rate_absolute_artist },
+	{ "rate_absolute_genre", PERMISSION_UPDATE, 2, 2, handle_rate_absolute_genre },
 
 	{ "rmtag", PERMISSION_UPDATE, 2, 2, handle_rmtag },
 	{ "rmtag_album", PERMISSION_UPDATE, 2, 2, handle_rmtag_album },

@@ -1010,6 +1010,54 @@ mpdcron_rate_expr(struct mpdcron_connection *conn, const char *expr,
 }
 
 bool
+mpdcron_rate_absolute_album_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_absolute_album", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_rate_absolute_artist_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_absolute_artist", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_rate_absolute_genre_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_absolute_genre", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
+mpdcron_rate_absolute_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *rating, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "rate_absolute", expr, rating, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}
+
+bool
 mpdcron_addtag_expr(struct mpdcron_connection *conn, const char *expr,
 		const char *tag, int *changes)
 {

@@ -46,3 +46,9 @@ src/mpdcron
 src/gmodule/stats/eugene
 src/gmodule/stats/walrus
 src/gmodule/stats/homescrape
+
+# GNU global
+GPATH
+GRTAGS
+GSYMS
+GTAGS

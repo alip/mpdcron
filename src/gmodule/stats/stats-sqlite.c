@@ -2099,6 +2099,94 @@ db_rate_absolute_song_expr(const char *expr, int rating, int *changes, GError **
 }
 
 /**
+ * Rate song/artist/album/genre, absolute fashion (ignore previous rating
+ * altogether)
+ */
+bool
+db_count_absolute_artist_expr(const char *expr, int count, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("play_count = (%d)", count);
+	if (!sql_update_artist(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
+bool
+db_count_absolute_album_expr(const char *expr, int count, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("play_count = (%d)", count);
+	if (!sql_update_album(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
+bool
+db_count_absolute_genre_expr(const char *expr, int count, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("play_count = (%d)", count);
+	if (!sql_update_genre(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
+bool
+db_count_absolute_song_expr(const char *expr, int count, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+
+	stmt = g_strdup_printf("play_count = (%d)", count);
+	if (!sql_update_song(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
+/**
  * Tags management
  */
 bool

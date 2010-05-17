@@ -52,6 +52,7 @@ usage(FILE *outf, int exitval)
 "list          List song/artist/album/genre\n"
 "listinfo      List song/artist/album/genre\n"
 "count         Change play count of song/artist/album/genre\n"
+"countabs      Change play count (absolute fashion) of song/artist/album/genre\n"
 "hate          Hate song/artist/album/genre\n"
 "love          Love song/artist/album/genre\n"
 "kill          Kill song/artist/album/genre\n"
@@ -99,6 +100,8 @@ run_cmd(int argc, char **argv)
 		return cmd_listtags(argc, argv);
 	else if (strncmp(argv[0], "count", 6) == 0)
 		return cmd_count(argc, argv);
+	else if (strncmp(argv[0], "countabs", 9) == 0)
+		return cmd_count_absolute(argc, argv);
 	fprintf(stderr, "Unknown command `%s'\n", argv[0]);
 	usage(stderr, 1);
 }

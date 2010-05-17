@@ -236,6 +236,26 @@ mpdcron_rate_absolute_expr(struct mpdcron_connection *conn,
 		int *changes);
 
 bool
+mpdcron_count_absolute_album_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr,
+		int *changes);
+
+bool
+mpdcron_count_absolute_artist_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr,
+		int *changes);
+
+bool
+mpdcron_count_absolute_genre_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr,
+		int *changes);
+
+bool
+mpdcron_count_absolute_expr(struct mpdcron_connection *conn,
+		const char *rating, const char *expr,
+		int *changes);
+
+bool
 mpdcron_addtag_expr(struct mpdcron_connection *conn, const char *expr,
 		const char *tag, int *changes);
 
@@ -322,6 +342,9 @@ cmd_rate(int argc, char **argv);
 
 int
 cmd_rate_absolute(int argc, char **argv);
+
+int
+cmd_count_absolute(int argc, char **argv);
 
 int
 cmd_list(int argc, char **argv);

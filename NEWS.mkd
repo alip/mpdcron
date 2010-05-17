@@ -3,6 +3,7 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* stats: ability to set count regardless of existing count.
 * stats: ability to set rating regardless of existing rating.
 
 ### 0.3

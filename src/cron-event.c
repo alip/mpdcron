@@ -27,22 +27,24 @@ event_database(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
-	struct mpd_stats *stats = NULL;
+	struct mpd_stats *stats;
 
 	/* Song database has been updated.
 	 * Send stats command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_DATABASE);
 
-	if (env_stats(conn, &stats) < 0)
+	g_debug("Sending stats command to Mpd server");
+	if ((stats = mpd_run_stats(conn)) == NULL)
 		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
 	ret = module_database_run(conn, stats);
 #endif /* HAVE_GMODULE */
-	mpd_stats_free(stats);
+	env_stats(stats);
 	hooker_run_hook(name);
+	mpd_stats_free(stats);
 	return ret;
 }
 
@@ -53,12 +55,8 @@ event_stored_playlist(struct mpd_connection *conn)
 	const char *name;
 
 	/* A playlist has been updated, modified or deleted.
-	 * Send list_all_meta command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_STORED_PLAYLIST);
-
-	if (env_list_all_meta(conn) < 0)
-		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
@@ -76,13 +74,8 @@ event_queue(struct mpd_connection *conn G_GNUC_UNUSED)
 	const char *name;
 
 	/* The playlist has been changed.
-	 * Send list_queue_meta command and add the variables to the
-	 * environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_QUEUE);
-
-	if (env_list_queue_meta(conn) < 0)
-		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
@@ -98,8 +91,8 @@ event_player(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
-	struct mpd_song *song = NULL;
-	struct mpd_status *status = NULL;
+	struct mpd_song *song;
+	struct mpd_status *status;
 
 	/* The player state has changed.
 	 * Send status & currentsong command and add the variables to the
@@ -107,17 +100,47 @@ event_player(struct mpd_connection *conn)
 	 */
 	name = mpd_idle_name(MPD_IDLE_PLAYER);
 
-	if (env_status_currentsong(conn, &song, &status) < 0)
+	g_debug("Sending status & currentsong commands to Mpd server");
+	if (!mpd_command_list_begin(conn, true) ||
+			!mpd_send_status(conn) ||
+			!mpd_send_current_song(conn) ||
+			!mpd_command_list_end(conn))
 		return -1;
+
+	if ((status = mpd_recv_status(conn)) == NULL)
+		return -1;
+
+	if (mpd_status_get_state(status) == MPD_STATE_PLAY ||
+			mpd_status_get_state(status) == MPD_STATE_PAUSE) {
+		if (!mpd_response_next(conn)) {
+			mpd_status_free(status);
+			return -1;
+		}
+
+		if ((song = mpd_recv_song(conn)) == NULL) {
+			mpd_status_free(status);
+			return -1;
+		}
+	}
+	else
+		song = NULL;
+
+	if (!mpd_response_finish(conn)) {
+		if (song)
+			mpd_song_free(song);
+		mpd_status_free(status);
+		return -1;
+	}
 
 	ret = 0;
 #ifdef HAVE_GMODULE
 	ret = module_player_run(conn, song, status);
 #endif /* HAVE_GMODULE */
-	if (song != NULL)
+	env_status_currentsong(song, status);
+	hooker_run_hook(name);
+	if (song)
 		mpd_song_free(song);
 	mpd_status_free(status);
-	hooker_run_hook(name);
 	return ret;
 }
 
@@ -126,22 +149,24 @@ event_mixer(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
-	struct mpd_status *status = NULL;
+	struct mpd_status *status;
 
 	/* The volume has been modified.
 	 * Send status command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_MIXER);
 
-	if (env_status(conn, &status) < 0)
+	g_debug("Sending status command to Mpd server");
+	if ((status = mpd_run_status(conn)) == NULL)
 		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
 	ret = module_mixer_run(conn, status);
 #endif /* HAVE_GMODULE */
-	mpd_status_free(status);
+	env_status(status);
 	hooker_run_hook(name);
+	mpd_status_free(status);
 	return ret;
 }
 
@@ -152,12 +177,8 @@ event_output(struct mpd_connection *conn)
 	const char *name;
 
 	/* Outputs have been modified.
-	 * Send outputs command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_OUTPUT);
-
-	if (env_outputs(conn) < 0)
-		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
@@ -173,22 +194,24 @@ event_options(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
-	struct mpd_status *status = NULL;
+	struct mpd_status *status;
 
 	/* One of the options has been modified.
 	 * Send status command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_OPTIONS);
 
-	if (env_status(conn, &status) < 0)
+	g_debug("Sending status command to Mpd server");
+	if ((status = mpd_run_status(conn)) == NULL)
 		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
 	ret = module_options_run(conn, status);
 #endif /* HAVE_GMODULE */
-	mpd_status_free(status);
+	env_status(status);
 	hooker_run_hook(name);
+	mpd_status_free(status);
 	return ret;
 }
 
@@ -197,22 +220,24 @@ event_update(struct mpd_connection *conn)
 {
 	int ret;
 	const char *name;
-	struct mpd_status *status = NULL;
+	struct mpd_status *status;
 
 	/* A database update has started or finished.
 	 * Send status command and add the variables to the environment.
 	 */
 	name = mpd_idle_name(MPD_IDLE_OPTIONS);
 
-	if (env_status(conn, &status) < 0)
+	g_debug("Sending status command to Mpd server");
+	if ((status = mpd_run_status(conn)) == NULL)
 		return -1;
 
 	ret = 0;
 #ifdef HAVE_GMODULE
 	ret = module_update_run(conn, status);
 #endif /* HAVE_GMODULE */
-	mpd_status_free(status);
+	env_status(status);
 	hooker_run_hook(name);
+	mpd_status_free(status);
 	return ret;
 }
 

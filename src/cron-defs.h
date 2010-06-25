@@ -40,23 +40,14 @@ conf_free(void);
 void
 env_clearenv(void);
 
-int
-env_list_all_meta(struct mpd_connection *conn);
+void
+env_stats(struct mpd_stats *stats);
 
-int
-env_list_queue_meta(struct mpd_connection *conn);
+void
+env_status(struct mpd_status *status);
 
-int
-env_stats(struct mpd_connection *conn, struct mpd_stats **stats);
-
-int
-env_status(struct mpd_connection *conn, struct mpd_status **status);
-
-int
-env_status_currentsong(struct mpd_connection *conn, struct mpd_song **song, struct mpd_status **status);
-
-int
-env_outputs(struct mpd_connection *conn);
+void
+env_status_currentsong(struct mpd_song *song, struct mpd_status *status);
 
 int
 event_run(struct mpd_connection *conn, enum mpd_idle event);

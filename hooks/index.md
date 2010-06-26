@@ -28,7 +28,7 @@ Here's a list of hooks and commands run before them:
     </tr>
     <tr>
         <td>hooks/player</td>
-        <td>status</td>
+        <td>status &amp; currentsong</td>
     </tr>
     <tr>
         <td>hooks/mixer</td>

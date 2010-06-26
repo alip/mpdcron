@@ -18,12 +18,12 @@ Here's a list of hooks and commands run before them:
     </tr>
     <tr>
         <td>hooks/stored_playlist</td>
-        <td>list_all_meta</td>
+        <td>-</td>
         <!-- _  -->
     </tr>
     <tr>
         <td>hooks/playlist</td>
-        <td>list_queue_meta</td>
+        <td>-</td>
         <!-- _ -->
     </tr>
     <tr>
@@ -36,7 +36,7 @@ Here's a list of hooks and commands run before them:
     </tr>
     <tr>
         <td>hooks/output</td>
-        <td>outputs</td>
+        <td>-</td>
     </tr>
     <tr>
         <td>hooks/options</td>
@@ -47,6 +47,12 @@ Here's a list of hooks and commands run before them:
         <td>status</td>
     </tr>
 </table>
+  
+Note: As of version 0.4, <tt>mpdcron</tt> doesn't send any commands to the
+server before events **stored\_playlist**, **playlist** and **outputs** because
+the number of environment variables may result in huge numbers causing
+<tt>mpdcron</tt> to hang. See
+[#3](http://github.com/alip/mpdcron/issues#issue/3) for more details.
 
 ## Environment variables
 
@@ -310,54 +316,5 @@ Here's a list of environment variables <tt>mpdcron</tt> sets depending on the co
         <td>Number of channels<br />(1 for mono, 2 for stereo)</td>
     </tr>
 </table>
-
-### outputs
-<table border="1">
-    <tr>
-        <th>Environment variable</th>
-        <th>Explanation</th>
-    </tr>
-    <tr>
-        <td>MPD_OUTPUT_ID_%d</td>
-        <td>Specifies the name of the given output ID
-            <br />(%d is replaced with a number starting from 1)</td>
-    </tr>
-    <tr>
-        <td>MPD_OUTPUT_ID_%d_ENABLED</td>
-        <!-- _ -->
-        <td>Specifies the name of the given output ID
-            <br />(boolean, 0 or 1)
-            <br />(%d is replaced with a number starting from 1)
-        </td>
-    </tr>
-</table>
-
-### list\_all\_meta
-<table border="1">
-    <tr>
-        <th>Environment variable</th>
-        <th>Explanation</th>
-    </tr>
-    <tr>
-        <td>MPD_PLAYLIST_%d_PATH</td>
-        <!-- _ -->
-        <td>Specifies the path of the playlist
-            <br />(%d is replaced with a number starting from 1)
-        </td>
-    </tr>
-    <tr>
-        <td>MPD_PLAYLIST_%d_LAST_MODIFIED</td>
-        <!-- _ -->
-        <td>Specifies the last modification time
-            <br />(format: "%Y-%m-%d %H-%M-%S %Z")
-            <br />(%d is replaced with a number starting from 1)
-        </td>
-    </tr>
-</table>
-
-### list\_queue\_meta
-* All songs in the queue are set in environment. The variables are like in **currentsong**
-  except they get a number like: 
-  **MPD\_SONG\_URI** becomes **MPD\_SONG\_%d\_URI** where **%d** is a number starting from 1.
 
 <!-- vim: set tw=80 ft=mkd spell spelllang=en sw=4 sts=4 et : -->

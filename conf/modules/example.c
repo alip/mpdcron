@@ -21,7 +21,6 @@
  * Compile this file like:
  * gcc -fPIC -shared \
  *     $(pkg-config --cflags --libs glib-2.0) \
- *     $(pkg-config --cflags --libs libdaemon) \
  *     $(pkg-config --cflags --libs libmpdclient) \
  *     example.c -o example.so
  * Put it under MPDCRON_DIR/modules where MPDCRON_DIR is ~/.mpdcron by default.
@@ -32,13 +31,12 @@
 
 /* Define MPDCRON_MODULE before including the file.
  */
-#define MPDCRON_MODULE		"example"
+#define MPDCRON_MODULE "example"
 #include <mpdcron/gmodule.h>
 
 #include <stdio.h>
 
 #include <glib.h>
-#include <libdaemon/dlog.h>
 #include <mpd/client.h>
 
 static int count;
@@ -71,11 +69,9 @@ int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 {
 	GError *parse_error;
 
-	/* Use mpdcron_log() as logging function.
-	 * It's a macro around daemon_log that adds MPDCRON_MODULE as a prefix
-	 * to log strings.
+	/* You may use GLib logging functions to do the logging.
 	 */
-	mpdcron_log(LOG_NOTICE, "Hello from example module!");
+	g_message("Hello from example module!");
 
 	/* Parse configuration here. */
 	parse_error = NULL;
@@ -88,7 +84,7 @@ int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
 				g_error_free(parse_error);
 				break;
 			default:
-				mpdcron_log(LOG_ERR, "Parse error: %s", parse_error->message);
+				g_critical("Parse error: %s", parse_error->message);
 				g_error_free(parse_error);
 				return MPDCRON_INIT_FAILURE;
 		}
@@ -107,7 +103,7 @@ int init(G_GNUC_UNUSED const struct mpdcron_config *conf, GKeyFile *fd)
  */
 void destroy(void)
 {
-	mpdcron_log(LOG_NOTICE, "Bye from example module!");
+	g_message("Bye from example module!");
 	/* Do the cleaning up. */
 }
 
@@ -134,9 +130,9 @@ int run(G_GNUC_UNUSED const struct mpd_connection *conn, const struct mpd_status
 	volume = mpd_status_get_volume(status);
 
 	if (last_volume < 0)
-		mpdcron_log(LOG_INFO, "Volume set to: %d%%", volume);
+		g_message("Volume set to: %d%%", volume);
 	else
-		mpdcron_log(LOG_INFO, "Volume %s from: %d to: %d%%",
+		g_message("Volume %s from: %d to: %d%%",
 				(last_volume < volume) ? "increased" : "decreased",
 				last_volume, volume);
 

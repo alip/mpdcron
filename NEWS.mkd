@@ -4,6 +4,7 @@ This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
 * stats: ability to set count regardless of existing count.
+* Be more conservative when exporting variables to the environment (fixes: #3)
 * stats: ability to set rating regardless of existing rating.
 
 ### 0.3

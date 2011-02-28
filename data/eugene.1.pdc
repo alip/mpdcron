@@ -32,6 +32,9 @@ listinfo [*option*...] [*expression*]
 count [*option*...] *count* [*expression*]
 :   Change play count of song/artist/album/genre.
 
+countabs [*option*...] *count* [*expression*]
+:   Change (absolute fashion) play count of song/artist/album/genre.
+
 hate [*option*...] [*expression*]
 :   Hate song/artist/album/genre.
 

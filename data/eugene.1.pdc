@@ -1,0 +1,86 @@
+% eugene(1) manual
+% David Prévot <david@tilapin.org>
+% February 25, 2011
+
+# NAME
+eugene - mpdcron statistics client
+
+# SYNOPSIS
+eugene *command* [*option*]
+
+# DESCRIPTION
+**eugene** is an **mpdcron** client which can be used to interact with the statistics database.
+
+# COMMANDS
+By default these commands (except the first three) work on the current playing song.
+
+For more information about the *expression* syntax, see:
+<http://www.sqlite.org/lang_expr.html>.
+
+help
+:   Display help and exit.
+
+version
+:   Display version and exit.
+
+list [*option*...] *expression*
+:   List song/artist/album/genre.
+
+listinfo [*option*...] [*expression*]
+:   List song/artist/album/genre.
+
+count [*option*...] *count* [*expression*]
+:   Change play count of song/artist/album/genre.
+
+hate [*option*...] [*expression*]
+:   Hate song/artist/album/genre.
+
+love [*option*...] [*expression*]
+:   Love song/artist/album/genre.
+
+kill [*option*...] [*expression*]
+:   Kill song/artist/album/genre.
+
+unkill [*option*...] [*expression*]
+:   Unkill song/artist/album/genre.
+
+rate [*option*...] *rating* [*expression*]
+:   Rate song/artist/album/genre.
+
+rateabs [*option*...] *rating* [*expression*]
+:   Rate (absolute fashion) song/artist/album/genre.
+
+addtag [*option*...] *tag* [*expression*]
+:   Add tag to song/artist/album/genre.
+
+rmtag [*option*...] *tag* [*expression*]
+:   Remove tag from song/artist/album/genre.
+
+listtags [*option*...] [*expression*]
+:   List tags of song/artist/album/genre.
+
+# OPTIONS
+-h, \--help
+:   Show help options.
+
+-a, \--artist
+:   Apply on artists instead of songs.
+
+-A, \--album
+:   Apply on albums instead of songs.
+
+-g, \--genre
+:   Apply on genres instead of songs.
+
+# SEE ALSO
+- `mpdcron`(1)
+- <http://alip.github.com/mpdcron/>
+
+# REPORTING BUGS
+If you find a bug, please report it at <http://github.com/alip/mpdcron/issues>.
+
+# COPYRIGHT
+Copyright (c) 2009 Ali Polatel <alip@exherbo.org>\
+Free use of this software is granted under the terms of the GNU General Public License (GPL).
+
+<!-- vim: set tw=100 ft=pdc spell spelllang=en sw=4 sts=4 et : -->

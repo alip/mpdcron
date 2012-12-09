@@ -107,10 +107,16 @@ db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *, const ch
 		void *userdata, GError **error);
 
 bool
+db_run_stmt(unsigned int stmt, GError **error);
+
+bool
 db_start_transaction(GError **error);
 
 bool
 db_end_transaction(GError **error);
+
+bool
+db_rollback_transaction(GError **error);
 
 bool
 db_set_sync(bool on, GError **error);

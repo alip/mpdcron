@@ -43,6 +43,7 @@ enum {
 enum {
 	SQL_BEGIN_TRANSACTION,
 	SQL_END_TRANSACTION,
+	SQL_ROLLBACK_TRANSACTION,
 
 	SQL_PRAGMA_SYNC_ON,
 	SQL_PRAGMA_SYNC_OFF,
@@ -130,6 +131,7 @@ static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
 static const char * const db_sql[] = {
 	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
 	[SQL_END_TRANSACTION] = "END TRANSACTION;",
+	[SQL_ROLLBACK_TRANSACTION] = "ROLLBACK TRANSACTION;",
 
 	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
 	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
@@ -1089,20 +1091,21 @@ db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *,
 }
 
 /**
- * Database Interaction
+ * Execute a single SQL statement without an expected result
  */
 bool
-db_start_transaction(GError **error)
+db_run_stmt(unsigned int stmt, GError **error)
 {
 	g_assert(gdb != NULL);
+	g_assert(stmt < G_N_ELEMENTS(db_stmt));
 
-	if (sqlite3_reset(db_stmt[SQL_BEGIN_TRANSACTION]) != SQLITE_OK) {
+	if (sqlite3_reset(db_stmt[stmt]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (db_step(db_stmt[SQL_BEGIN_TRANSACTION]) != SQLITE_DONE) {
+	if (db_step(db_stmt[stmt]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -1111,24 +1114,25 @@ db_start_transaction(GError **error)
 	return true;
 }
 
+/**
+ * Database Interaction
+ */
+bool
+db_start_transaction(GError **error)
+{
+	return db_run_stmt(SQL_BEGIN_TRANSACTION, error);
+}
+
 bool
 db_end_transaction(GError **error)
 {
-	g_assert(gdb != NULL);
+	return db_run_stmt(SQL_END_TRANSACTION, error);
+}
 
-	if (sqlite3_reset(db_stmt[SQL_END_TRANSACTION]) != SQLITE_OK) {
-		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
-				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
-		return false;
-	}
-
-	if (db_step(db_stmt[SQL_END_TRANSACTION]) != SQLITE_DONE) {
-		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
-				"sqlite3_step: %s", sqlite3_errmsg(gdb));
-		return false;
-	}
-
-	return true;
+bool
+db_rollback_transaction(GError **error)
+{
+	return db_run_stmt(SQL_ROLLBACK_TRANSACTION, error);
 }
 
 bool

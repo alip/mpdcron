@@ -17,6 +17,7 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "stats-defs.h"
 #include "stats-sqlite.h"
 
 #include <stdbool.h>
@@ -69,6 +70,9 @@ enum {
 };
 
 #define DB_VERSION	10
+#define DB_MINIMUM_VERSION	10
+#define DB_MIGRATE_STMT_COUNT	1
+
 /* Generic database schema independent statements */
 static const char * const db_sql_maint[] = {
 	[SQL_SET_VERSION] = "PRAGMA user_version = 10;",
@@ -143,6 +147,14 @@ static const char * const db_sql_create[] = {
 			"\trating          INTEGER);",
 };
 static sqlite3_stmt *db_stmt_create[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+
+static const char * const db_sql_migrate[][DB_MIGRATE_STMT_COUNT] = {
+	{ NULL },
+};
+static sqlite3_stmt
+*db_stmt_migrate[G_N_ELEMENTS(db_sql_migrate)][DB_MIGRATE_STMT_COUNT] = {
+	{ NULL },
+};
 
 static const char * const db_sql[] = {
 	[SQL_HAS_SONG] = "select id from song where uri=?",
@@ -948,13 +960,63 @@ db_create(GError **error)
 	return true;
 }
 
+/*
+ * Upgrade the database schema version by executing the migration statements to
+ * get from one version to the next.
+ */
+static bool
+db_migrate(int stmt_migrate, GError **error)
+{
+	g_assert(gdb != NULL);
+
+	/* Prepare all statements for the migration step */
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT; i++) {
+		if (db_sql_migrate[stmt_migrate][i] == NULL) {
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+		} else if (sqlite3_prepare_v2(gdb,
+			db_sql_migrate[stmt_migrate][i], -1,
+			&db_stmt_migrate[stmt_migrate][i], NULL) != SQLITE_OK)
+		{
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+			g_set_error(error, db_quark(),
+					ACK_ERROR_DATABASE_PREPARE,
+					"sqlite3_prepare_v2 (%s): %s",
+					db_sql_migrate[stmt_migrate][i],
+					sqlite3_errmsg(gdb));
+			return false;
+		}
+	}
+	/* Execute all statements for the migration step */
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT &&
+			db_stmt_migrate[stmt_migrate][i] != NULL; i++) {
+		if (db_step(db_stmt_migrate[stmt_migrate][i]) != SQLITE_DONE) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step (%s): %s",
+					db_sql_migrate[stmt_migrate][i],
+					sqlite3_errmsg(gdb));
+			return false;
+		}
+	}
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT &&
+			db_stmt_migrate[stmt_migrate][i] != NULL; i++) {
+		if (db_stmt_migrate[stmt_migrate][i] != NULL) {
+			sqlite3_finalize(db_stmt_migrate[stmt_migrate][i]);
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+		}
+	}
+	return true;
+}
+
 static bool
 db_check_ver(GError **error)
 {
-	int ret, version;
+	int ret;
+	int version = -1;
+	bool success;
 
 	g_assert(gdb != NULL);
 	g_assert(db_stmt_maint[SQL_GET_VERSION] != NULL);
+	g_assert(db_stmt_maint[SQL_SET_VERSION] != NULL);
 
 	/**
 	 * Check version
@@ -971,11 +1033,40 @@ db_check_ver(GError **error)
 		return false;
 	}
 
-	else if (version != DB_VERSION) {
+	else if (version < DB_MINIMUM_VERSION || version > DB_VERSION) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_VERSION,
 				"Database version mismatch: %d != %d",
 				version, DB_VERSION);
 		return false;
+	}
+
+	else if (version != DB_VERSION) {
+		/* Upgrade lower version database to current version in one big
+		 * transaction. If any step fails the DB should remain
+		 * unmodified
+		 */
+		success = db_start_transaction(error);
+		switch (version) {
+		case 10:
+			/* Add a migration step here for version 11 */
+			break;
+			/* fall-through to the next version */
+		}
+		if (db_step(db_stmt_maint[SQL_SET_VERSION]) != SQLITE_DONE) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_CREATE,
+					"sqlite3_step (%s): %s",
+					db_sql_maint[SQL_SET_VERSION],
+					sqlite3_errmsg(gdb));
+			success = false;
+		}
+		if (success) {
+			success &= db_end_transaction(error);
+		} else {
+			g_warning("Upgrade failed! Trying to roll back.");
+			db_rollback_transaction(error);
+		}
+		return success;
+
 	}
 	return true;
 }
@@ -1029,7 +1120,8 @@ db_init(const char *path, bool create, bool readonly,
 			if (sqlite3_prepare_v2(gdb, db_sql_create[i], -1,
 					&db_stmt_create[i], NULL) != SQLITE_OK) {
 				g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
-						"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+						"sqlite3_prepare_v2 (%s): %s",
+						db_sql_maint[i], sqlite3_errmsg(gdb));
 				db_close();
 				return false;
 			}

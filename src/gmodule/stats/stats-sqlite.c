@@ -34,13 +34,6 @@ enum {
 	SQL_GET_VERSION,
 	SQL_SET_ENCODING,
 
-	SQL_DB_CREATE_SONG,
-	SQL_DB_CREATE_ARTIST,
-	SQL_DB_CREATE_ALBUM,
-	SQL_DB_CREATE_GENRE,
-};
-
-enum {
 	SQL_BEGIN_TRANSACTION,
 	SQL_END_TRANSACTION,
 	SQL_ROLLBACK_TRANSACTION,
@@ -49,7 +42,16 @@ enum {
 	SQL_PRAGMA_SYNC_OFF,
 
 	SQL_VACUUM,
+};
 
+enum {
+	SQL_DB_CREATE_SONG,
+	SQL_DB_CREATE_ARTIST,
+	SQL_DB_CREATE_ALBUM,
+	SQL_DB_CREATE_GENRE,
+};
+
+enum {
 	SQL_HAS_SONG,
 	SQL_HAS_ARTIST,
 	SQL_HAS_ALBUM,
@@ -67,12 +69,26 @@ enum {
 };
 
 #define DB_VERSION	10
+/* Generic database schema independent statements */
 static const char * const db_sql_maint[] = {
 	[SQL_SET_VERSION] = "PRAGMA user_version = 10;",
 	[SQL_GET_VERSION] = "PRAGMA user_version;",
 
 	[SQL_SET_ENCODING] = "PRAGMA encoding = \"UTF-8\";",
 
+	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
+	[SQL_END_TRANSACTION] = "END TRANSACTION;",
+	[SQL_ROLLBACK_TRANSACTION] = "ROLLBACK TRANSACTION;",
+
+	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
+	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
+
+	[SQL_VACUUM] = "VACUUM;",
+};
+static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+
+/* Statements for creating a new database */
+static const char * const db_sql_create[] = {
 	[SQL_DB_CREATE_SONG] =
 		"create table song(\n"
 			"\tid              INTEGER PRIMARY KEY,\n"
@@ -126,18 +142,9 @@ static const char * const db_sql_maint[] = {
 			"\tkill            INTEGER,\n"
 			"\trating          INTEGER);",
 };
-static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+static sqlite3_stmt *db_stmt_create[G_N_ELEMENTS(db_sql_maint)] = { NULL };
 
 static const char * const db_sql[] = {
-	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
-	[SQL_END_TRANSACTION] = "END TRANSACTION;",
-	[SQL_ROLLBACK_TRANSACTION] = "ROLLBACK TRANSACTION;",
-
-	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
-	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
-
-	[SQL_VACUUM] = "VACUUM;",
-
 	[SQL_HAS_SONG] = "select id from song where uri=?",
 	[SQL_HAS_ARTIST] = "select id from artist where name=?",
 	[SQL_HAS_ALBUM] = "select id from album where name=?",
@@ -901,20 +908,20 @@ static bool
 db_create(GError **error)
 {
 	g_assert(gdb != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_SONG] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_ARTIST] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_ALBUM] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_GENRE] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_SONG] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_ARTIST] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_ALBUM] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_GENRE] != NULL);
 	g_assert(db_stmt_maint[SQL_SET_ENCODING] != NULL);
 	g_assert(db_stmt_maint[SQL_SET_VERSION] != NULL);
 
 	/**
 	 * Create tables
 	 */
-	if (db_step(db_stmt_maint[SQL_DB_CREATE_SONG]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_ARTIST]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_ALBUM]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_GENRE]) != SQLITE_DONE) {
+	if (db_step(db_stmt_create[SQL_DB_CREATE_SONG]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_ARTIST]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_ALBUM]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_GENRE]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_CREATE,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -1007,10 +1014,20 @@ db_init(const char *path, bool create, bool readonly,
 		return false;
 	}
 
+	for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_maint); i++) {
+		if (sqlite3_prepare_v2(gdb, db_sql_maint[i], -1,
+				&db_stmt_maint[i], NULL) != SQLITE_OK) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+					"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+			db_close();
+			return false;
+		}
+	}
+
 	if (new) {
-		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_maint); i++) {
-			if (sqlite3_prepare_v2(gdb, db_sql_maint[i], -1,
-					&db_stmt_maint[i], NULL) != SQLITE_OK) {
+		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_create); i++) {
+			if (sqlite3_prepare_v2(gdb, db_sql_create[i], -1,
+					&db_stmt_create[i], NULL) != SQLITE_OK) {
 				g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
 						"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
 				db_close();
@@ -1022,22 +1039,20 @@ db_init(const char *path, bool create, bool readonly,
 			db_close();
 			return false;
 		}
+
+		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_create); i++) {
+			if (db_stmt_create[i] != NULL) {
+				sqlite3_finalize(db_stmt_create[i]);
+				db_stmt_create[i] = NULL;
+			}
+		}
+
 	}
 	else {
-		if (sqlite3_prepare_v2(gdb, db_sql_maint[SQL_GET_VERSION], -1,
-					&db_stmt_maint[SQL_GET_VERSION],
-					NULL) != SQLITE_OK) {
-			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
-					"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
-			db_close();
-			return false;
-		}
 		if (!db_check_ver(error)) {
 			db_close();
 			return false;
 		}
-		sqlite3_finalize(db_stmt_maint[SQL_GET_VERSION]);
-		db_stmt_maint[SQL_GET_VERSION] = NULL;
 	}
 
 	/* Prepare common statements */
@@ -1099,13 +1114,13 @@ db_run_stmt(unsigned int stmt, GError **error)
 	g_assert(gdb != NULL);
 	g_assert(stmt < G_N_ELEMENTS(db_stmt));
 
-	if (sqlite3_reset(db_stmt[stmt]) != SQLITE_OK) {
+	if (sqlite3_reset(db_stmt_maint[stmt]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (db_step(db_stmt[stmt]) != SQLITE_DONE) {
+	if (db_step(db_stmt_maint[stmt]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -1142,7 +1157,8 @@ db_set_sync(bool on, GError **error)
 
 	g_assert(gdb != NULL);
 
-	stmt = on ? db_stmt[SQL_PRAGMA_SYNC_ON] : db_stmt[SQL_PRAGMA_SYNC_OFF];
+	stmt = on ? db_stmt_maint[SQL_PRAGMA_SYNC_ON] :
+		db_stmt_maint[SQL_PRAGMA_SYNC_OFF];
 
 	if (sqlite3_reset(stmt) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
@@ -1164,13 +1180,13 @@ db_vacuum(GError **error)
 {
 	g_assert(gdb != NULL);
 
-	if (sqlite3_reset(db_stmt[SQL_VACUUM]) != SQLITE_OK) {
+	if (sqlite3_reset(db_stmt_maint[SQL_VACUUM]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (db_step(db_stmt[SQL_VACUUM]) != SQLITE_DONE) {
+	if (db_step(db_stmt_maint[SQL_VACUUM]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;

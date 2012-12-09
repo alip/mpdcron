@@ -53,6 +53,10 @@ enum {
 };
 
 enum {
+	SQL_DB_MIGRATE_10_11,
+};
+
+enum {
 	SQL_HAS_SONG,
 	SQL_HAS_ARTIST,
 	SQL_HAS_ALBUM,
@@ -69,13 +73,13 @@ enum {
 	SQL_UPDATE_GENRE,
 };
 
-#define DB_VERSION	10
+#define DB_VERSION	11
 #define DB_MINIMUM_VERSION	10
-#define DB_MIGRATE_STMT_COUNT	1
+#define DB_MIGRATE_STMT_COUNT	2
 
 /* Generic database schema independent statements */
 static const char * const db_sql_maint[] = {
-	[SQL_SET_VERSION] = "PRAGMA user_version = 10;",
+	[SQL_SET_VERSION] = "PRAGMA user_version = 11;",
 	[SQL_GET_VERSION] = "PRAGMA user_version;",
 
 	[SQL_SET_ENCODING] = "PRAGMA encoding = \"UTF-8\";",
@@ -116,7 +120,14 @@ static const char * const db_sql_create[] = {
 			"\tdisc            TEXT,\n"
 			"\tmb_artistid     TEXT,\n"
 			"\tmb_albumid      TEXT,\n"
-			"\tmb_trackid      TEXT);\n",
+			"\tmb_trackid      TEXT,\n"
+			"\tlast_played     INTEGER,\n"
+			"\tkarma           INTEGER\n"
+			"\t\tNOT NULL\n"
+			"\t\tCONSTRAINT karma_percent "
+				"CHECK (karma >= 0 AND karma <= 100)\n"
+			"\t\tDEFAULT 50\n"
+			");\n",
 	[SQL_DB_CREATE_ARTIST] =
 		"create table artist(\n"
 			"\tid              INTEGER PRIMARY KEY,\n"
@@ -149,7 +160,16 @@ static const char * const db_sql_create[] = {
 static sqlite3_stmt *db_stmt_create[G_N_ELEMENTS(db_sql_maint)] = { NULL };
 
 static const char * const db_sql_migrate[][DB_MIGRATE_STMT_COUNT] = {
-	{ NULL },
+	[SQL_DB_MIGRATE_10_11] = {
+		"alter table song add column\n"
+			"\tlast_played     INTEGER\n;",
+		"alter table song add column\n"
+			"\tkarma           INTEGER\n"
+			"\t\tNOT NULL\n"
+			"\t\tCONSTRAINT karma_percent "
+				"CHECK (karma >= 0 AND karma <= 100)\n"
+			"\t\tDEFAULT 50\n;",
+	},
 };
 static sqlite3_stmt
 *db_stmt_migrate[G_N_ELEMENTS(db_sql_migrate)][DB_MIGRATE_STMT_COUNT] = {
@@ -1048,8 +1068,9 @@ db_check_ver(GError **error)
 		success = db_start_transaction(error);
 		switch (version) {
 		case 10:
-			/* Add a migration step here for version 11 */
-			break;
+			g_debug("Upgrading database schema from version "
+				"%d to %d", 10, 11);
+			success &= db_migrate(SQL_DB_MIGRATE_10_11, error);
 			/* fall-through to the next version */
 		}
 		if (db_step(db_stmt_maint[SQL_SET_VERSION]) != SQLITE_DONE) {

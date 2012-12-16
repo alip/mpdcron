@@ -60,20 +60,16 @@ song_started(const struct mpd_song *song)
 static void
 song_ended(const struct mpd_song *song)
 {
-	int elapsed;
+	bool long_enough;
+	int elapsed, song_duration, percent_played;
 	GError *error;
 
 	g_assert(song != NULL);
 
 	elapsed = g_timer_elapsed(timer, NULL);
-
-	if (!played_long_enough(elapsed, mpd_song_get_duration(song))) {
-		g_debug("Song (%s - %s), id: %u, pos: %u not played long enough, skipping",
-				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-				mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
-				mpd_song_get_id(song), mpd_song_get_pos(song));
-		return;
-	}
+	song_duration = mpd_song_get_duration(song);
+	long_enough = played_long_enough(elapsed, song_duration);
+	percent_played = elapsed * 100 / song_duration;
 
 	g_debug("Saving old song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
@@ -81,7 +77,7 @@ song_ended(const struct mpd_song *song)
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
 	error = NULL;
-	if (!db_process(song, true, &error)) {
+	if (!db_process(song, long_enough, percent_played, &error)) {
 		g_warning("Saving old song failed: %s", error->message);
 		g_error_free(error);
 	}

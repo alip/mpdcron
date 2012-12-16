@@ -125,7 +125,8 @@ bool
 db_vacuum(GError **error);
 
 bool
-db_process(const struct mpd_song *song, bool increment, GError **error);
+db_process(const struct mpd_song *song, bool increment, int percent_played,
+		GError **error);
 
 bool
 db_list_artist_expr(const char *expr, GSList **values, GError **error);

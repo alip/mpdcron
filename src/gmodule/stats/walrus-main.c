@@ -86,7 +86,7 @@ run_update(int kg, const char *path)
 		if (mpd_entity_get_type(entity) == MPD_ENTITY_TYPE_SONG) {
 			song = mpd_entity_get_song(entity);
 			error = NULL;
-			if (!db_process(song, false, &error)) {
+			if (!db_process(song, false, -1, &error)) {
 				g_printerr("Failed to process song %s: %s\n",
 						mpd_song_get_uri(song),
 						error->message);

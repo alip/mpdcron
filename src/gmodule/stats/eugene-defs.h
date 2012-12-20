@@ -302,6 +302,10 @@ bool
 mpdcron_count_expr(struct mpdcron_connection *conn, const char *expr,
 		const char *count, int *changes);
 
+bool
+mpdcron_karma_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *karma, int *changes);
+
 char *
 quote(const char *src);
 
@@ -343,6 +347,9 @@ cmd_listtags(int argc, char **argv);
 
 int
 cmd_count(int argc, char **argv);
+
+int
+cmd_karma(int argc, char **argv);
 
 void
 eulog(int level, const char *fmt, ...);

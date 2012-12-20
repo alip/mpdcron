@@ -46,10 +46,12 @@ struct db_song_data {
 	int love;		/** Love count of the song */
 	int kill;		/** Kill count of the song */
 	int rating;		/** Rating of the song */
+	int karma;		/** Karma (auto-rating) of the song */
 
 	char *uri;		/** Uri of the song */
 	int duration;		/** Duration of the song */
-	int last_modified;	/** Last modified date of the song */
+	time_t last_modified;	/** Last modified date of the song */
+	time_t last_played;	/** Last played date of the song */
 	char *artist;		/** Artist of the song */
 	char *album;		/** Album of the song */
 	char *title;		/** Title of the song */

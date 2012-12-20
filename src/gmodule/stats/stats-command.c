@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -367,6 +368,8 @@ handle_listinfo(struct client *client, int argc, char **argv)
 {
 	GError *error;
 	GSList *values, *walk;
+	struct tm *utc;
+	char last_played[25];
 
 	g_assert(argc == 2);
 
@@ -386,6 +389,13 @@ handle_listinfo(struct client *client, int argc, char **argv)
 		command_puts(client, "Love: %d", song->love);
 		command_puts(client, "Kill: %d", song->kill);
 		command_puts(client, "Rating: %d", song->rating);
+		command_puts(client, "Karma: %d", song->karma);
+		if (song->last_played != 0) {
+			utc = gmtime(&(song->last_played));
+			strftime(last_played, sizeof(last_played),
+					"%Y-%m-%dT%H:%M:%S%z", utc);
+			command_puts(client, "Last Played: %s", last_played);
+		}
 		db_song_data_free(song);
 	}
 	g_slist_free(values);

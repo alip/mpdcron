@@ -182,6 +182,8 @@ static int
 listinfo_song(struct mpdcron_connection *conn, const char *expr)
 {
 	GSList *values, *walk;
+	struct tm *last_played;
+	char time_stamp[25];
 
 	values = NULL;
 	if (expr != NULL) {
@@ -214,9 +216,17 @@ listinfo_song(struct mpdcron_connection *conn, const char *expr)
 
 	for (walk = values; walk != NULL; walk = g_slist_next(walk)) {
 		struct mpdcron_song *s = walk->data;
-		printf("%d: Play_Count:%d Love:%d Kill:%d Rating:%d %s\n",
+		printf("%d: Play_Count:%d Love:%d Kill:%d Rating:%d Karma:%d ",
 				s->id, s->play_count, s->love,
-				s->kill, s->rating, s->uri);
+				s->kill, s->rating, s->karma);
+		if (s->last_played != 0) {
+			last_played = localtime(&s->last_played);
+			strftime(time_stamp, sizeof(time_stamp),
+					"%Y-%m-%dT%H:%M:%S%z", last_played);
+			printf("Last_Played:%s ", time_stamp);
+		}
+		puts(s->uri);
+		putchar('\n');
 		g_free(s->uri);
 		g_free(s);
 	}

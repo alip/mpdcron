@@ -1822,7 +1822,8 @@ db_listinfo_song_expr(const char *expr, GSList **values,
 	g_assert(values != NULL);
 
 	sql = g_strdup_printf("select "
-			"id, play_count, love, kill, rating, uri "
+			"id, play_count, love, kill, rating, karma, "
+			"last_played, uri "
 			"from song where %s ;", expr);
 	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
@@ -1842,7 +1843,9 @@ db_listinfo_song_expr(const char *expr, GSList **values,
 			song->love = sqlite3_column_int(stmt, 2);
 			song->kill = sqlite3_column_int(stmt, 3);
 			song->rating = sqlite3_column_int(stmt, 4);
-			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 5));
+			song->karma = sqlite3_column_int(stmt, 5);
+			song->last_played = (time_t) sqlite3_column_int64(stmt, 6);
+			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 7));
 			*values = g_slist_prepend(*values, song);
 			break;
 		case SQLITE_DONE:

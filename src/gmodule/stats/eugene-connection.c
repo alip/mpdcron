@@ -30,6 +30,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -55,6 +56,26 @@ static GQuark
 connection_quark(void)
 {
 	return g_quark_from_static_string("connection");
+}
+
+/**
+ * Timezone independent variant of mktime(). See timegm(3).
+ */
+static time_t
+mktime_utc(struct tm *tm)
+{
+	time_t ret;
+	char *tz;
+	tz = getenv("TZ");
+	setenv("TZ", "", 1);
+	tzset();
+	ret = mktime(tm);
+	if (tz)
+		setenv("TZ", tz, 1);
+	else
+		unsetenv("TZ");
+	tzset();
+	return ret;
 }
 
 /**
@@ -501,6 +522,7 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 	gchar *line;
 	const char *key, *value;
 	struct mpdcron_song *song = NULL;
+	struct tm last_played;
 
 	for (;;) {
 		line = mpdcron_recv_line(conn, &length);
@@ -559,6 +581,16 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 			else if (strcmp(key, "Play Count") == 0) {
 				g_assert(song != NULL);
 				song->play_count = atoi(value);
+			}
+			else if (strcmp(key, "Karma") == 0) {
+				g_assert(song != NULL);
+				song->karma = atoi(value);
+			}
+			else if (strcmp(key, "Last Played") == 0) {
+				g_assert(song != NULL);
+				memset(&last_played, 0, sizeof(last_played));
+				strptime(value, "%Y-%m-%dT%H:%M:%S%z", &last_played);
+				song->last_played = mktime_utc(&last_played);
 			}
 			else if (strcmp(key, "Tag") == 0) {
 				g_assert(song != NULL);

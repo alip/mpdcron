@@ -1316,3 +1316,16 @@ mpdcron_count_expr(struct mpdcron_connection *conn, const char *expr,
 		return false;
 	return mpdcron_parse_changes(conn, changes);
 }
+
+bool
+mpdcron_karma_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *karma, int *changes)
+{
+	g_assert(conn != NULL);
+	g_assert(karma != NULL);
+	g_assert(changes != NULL);
+
+	if (!mpdcron_send_command(conn, "karma", expr, karma, NULL))
+		return false;
+	return mpdcron_parse_changes(conn, changes);
+}

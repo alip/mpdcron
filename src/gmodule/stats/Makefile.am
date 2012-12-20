@@ -30,7 +30,7 @@ walrus_LDADD= $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 noinst_HEADERS+= eugene-defs.h
 bin_PROGRAMS+= eugene
 eugene_SOURCES= eugene-connection.c eugene-addtag.c \
-		eugene-count.c eugene-kill.c eugene-list.c \
+		eugene-count.c eugene-karma.c eugene-kill.c eugene-list.c \
 		eugene-listinfo.c eugene-listtags.c eugene-love.c \
 		eugene-rate.c eugene-rate-absolute.c eugene-rmtag.c \
 		eugene-utils.c eugene-main.c

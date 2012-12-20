@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <syslog.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -74,6 +75,8 @@ struct mpdcron_song {
 	int love;
 	int kill;
 	int rating;
+	int karma;
+	time_t last_played;
 	GSList *tags;
 };
 

@@ -140,6 +140,8 @@ for m in $STANDARD_MODULES ; do
 			else
 				AC_DEFINE(HAVE_GIO_UNIX, 1, "Define for gio-unix")
 			fi
+			MPDCRON_CFLAGS="$MPDCRON_CFLAGS -D_XOPEN_SOURCE=600"
+			AC_CHECK_FUNCS(gmtime mktime strftime strptime getenv setenv)
 		fi
 	fi
 done
@@ -150,7 +152,6 @@ AM_CONDITIONAL([HAVE_GIO_UNIX], test x"$HAVE_GIO_UNIX" = x"yes")
 dnl }}}
 
 dnl {{{ Extra CFLAGS
-MPDCRON_CFLAGS=
 WANTED_CFLAGS="-Wall -W -Wextra -Wvla -Wformat=2 -Wformat-security -Wformat-nonliteral -Winit-self -Wfloat-equal -Wno-deprecated-declarations -Wmissing-declarations -Wmissing-noreturn -Wmissing-prototypes -Wredundant-decls  -Wshadow -Wpointer-arith -Wstrict-prototypes -Wcast-qual -Wwrite-strings -pedantic"
 for flag in $WANTED_CFLAGS ; do
 	AX_CHECK_COMPILER_FLAGS([$flag], [MPDCRON_CFLAGS="$MPDCRON_CFLAGS $flag"],)

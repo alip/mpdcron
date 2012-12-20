@@ -1952,6 +1952,29 @@ db_count_song_expr(const char *expr, int count, int *changes, GError **error)
 	return true;
 }
 
+/** Set karma of a song absolutely */
+bool
+db_karma_song_expr(const char *expr, int karma, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(karma >= 0 && karma <= 100);
+
+	stmt = g_strdup_printf("karma = (%d)", karma);
+	if (!sql_update_song(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
 /**
  * Love/Hate song/artist/album/genre
  */

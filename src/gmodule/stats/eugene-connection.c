@@ -236,6 +236,7 @@ mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 	int ret;
 	gsize length;
 	gchar *line;
+	const char *key, *value;
 	struct mpdcron_entity *album = NULL;
 
 	for (;;) {
@@ -268,39 +269,41 @@ mpdcron_parse_albums(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
+			key = conn->parser->u.pair.name;
+			value = conn->parser->u.pair.value;
+			if (strcmp(key, "id") == 0) {
 				if (album != NULL)
 					*values = g_slist_prepend(*values, album);
 				album = g_new0(struct mpdcron_entity, 1);
-				album->id = atoi(conn->parser->u.pair.value);
+				album->id = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Album") == 0) {
+			else if (strcmp(key, "Album") == 0) {
 				g_assert(album != NULL);
-				album->name = g_strdup(conn->parser->u.pair.value);
+				album->name = g_strdup(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
+			else if (strcmp(key, "Artist") == 0) {
 				g_assert(album != NULL);
-				album->artist = g_strdup(conn->parser->u.pair.value);
+				album->artist = g_strdup(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+			else if (strcmp(key, "Love") == 0) {
 				g_assert(album != NULL);
-				album->love = atoi(conn->parser->u.pair.value);
+				album->love = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+			else if (strcmp(key, "Kill") == 0) {
 				g_assert(album != NULL);
-				album->kill = atoi(conn->parser->u.pair.value);
+				album->kill = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+			else if (strcmp(key, "Rating") == 0) {
 				g_assert(album != NULL);
-				album->rating = atoi(conn->parser->u.pair.value);
+				album->rating = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+			else if (strcmp(key, "Play Count") == 0) {
 				g_assert(album != NULL);
-				album->play_count = atoi(conn->parser->u.pair.value);
+				album->play_count = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
+			else if (strcmp(key, "Tag") == 0) {
 				g_assert(album != NULL);
-				album->tags = g_slist_prepend(album->tags, g_strdup(conn->parser->u.pair.value));
+				album->tags = g_slist_prepend(album->tags, g_strdup(value));
 			}
 			else {
 				g_set_error(&conn->error, connection_quark(),
@@ -323,6 +326,7 @@ mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 	int ret;
 	gsize length;
 	gchar *line;
+	const char *key, *value;
 	struct mpdcron_entity *artist = NULL;
 
 	for (;;) {
@@ -355,35 +359,37 @@ mpdcron_parse_artists(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
+			key = conn->parser->u.pair.name;
+			value = conn->parser->u.pair.value;
+			if (strcmp(key, "id") == 0) {
 				if (artist != NULL)
 					*values = g_slist_prepend(*values, artist);
 				artist = g_new0(struct mpdcron_entity, 1);
-				artist->id = atoi(conn->parser->u.pair.value);
+				artist->id = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Artist") == 0) {
+			else if (strcmp(key, "Artist") == 0) {
 				g_assert(artist != NULL);
-				artist->name = g_strdup(conn->parser->u.pair.value);
+				artist->name = g_strdup(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+			else if (strcmp(key, "Love") == 0) {
 				g_assert(artist != NULL);
-				artist->love = atoi(conn->parser->u.pair.value);
+				artist->love = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+			else if (strcmp(key, "Kill") == 0) {
 				g_assert(artist != NULL);
-				artist->kill = atoi(conn->parser->u.pair.value);
+				artist->kill = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+			else if (strcmp(key, "Rating") == 0) {
 				g_assert(artist != NULL);
-				artist->rating = atoi(conn->parser->u.pair.value);
+				artist->rating = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+			else if (strcmp(key, "Play Count") == 0) {
 				g_assert(artist != NULL);
-				artist->play_count = atoi(conn->parser->u.pair.value);
+				artist->play_count = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
+			else if (strcmp(key, "Tag") == 0) {
 				g_assert(artist != NULL);
-				artist->tags = g_slist_prepend(artist->tags, g_strdup(conn->parser->u.pair.value));
+				artist->tags = g_slist_prepend(artist->tags, g_strdup(value));
 			}
 			else {
 				g_set_error(&conn->error, connection_quark(),
@@ -406,6 +412,7 @@ mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 	int ret;
 	gsize length;
 	gchar *line;
+	const char *key, *value;
 	struct mpdcron_entity *genre = NULL;
 
 	for (;;) {
@@ -438,36 +445,38 @@ mpdcron_parse_genres(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
+			key = conn->parser->u.pair.name;
+			value = conn->parser->u.pair.value;
+			if (strcmp(key, "id") == 0) {
 				if (genre != NULL)
 					*values = g_slist_prepend(*values, genre);
 				genre = g_new0(struct mpdcron_entity, 1);
-				genre->id = atoi(conn->parser->u.pair.value);
+				genre->id = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Genre") == 0) {
+			else if (strcmp(key, "Genre") == 0) {
 				g_assert(genre != NULL);
-				genre->name = g_strdup(conn->parser->u.pair.value);
+				genre->name = g_strdup(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+			else if (strcmp(key, "Love") == 0) {
 				g_assert(genre != NULL);
-				genre->love = atoi(conn->parser->u.pair.value);
+				genre->love = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+			else if (strcmp(key, "Kill") == 0) {
 				g_assert(genre != NULL);
-				genre->kill = atoi(conn->parser->u.pair.value);
+				genre->kill = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+			else if (strcmp(key, "Rating") == 0) {
 				g_assert(genre != NULL);
-				genre->rating = atoi(conn->parser->u.pair.value);
+				genre->rating = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+			else if (strcmp(key, "Play Count") == 0) {
 				g_assert(genre != NULL);
-				genre->play_count = atoi(conn->parser->u.pair.value);
+				genre->play_count = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
+			else if (strcmp(key, "Tag") == 0) {
 				g_assert(genre != NULL);
 				genre->tags = g_slist_prepend(genre->tags,
-						g_strdup(conn->parser->u.pair.value));
+						g_strdup(value));
 			}
 			else {
 				g_set_error(&conn->error, connection_quark(),
@@ -490,6 +499,7 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 	int ret;
 	gsize length;
 	gchar *line;
+	const char *key, *value;
 	struct mpdcron_song *song = NULL;
 
 	for (;;) {
@@ -522,35 +532,37 @@ mpdcron_parse_songs(struct mpdcron_connection *conn, GSList **values)
 			return false;
 		default:
 			/* We have a pair! */
-			if (strcmp(conn->parser->u.pair.name, "id") == 0) {
+			key = conn->parser->u.pair.name;
+			value = conn->parser->u.pair.value;
+			if (strcmp(key, "id") == 0) {
 				if (song != NULL)
 					*values = g_slist_prepend(*values, song);
 				song = g_new0(struct mpdcron_song, 1);
-				song->id = atoi(conn->parser->u.pair.value);
+				song->id = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "file") == 0) {
+			else if (strcmp(key, "file") == 0) {
 				g_assert(song != NULL);
-				song->uri = g_strdup(conn->parser->u.pair.value);
+				song->uri = g_strdup(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Love") == 0) {
+			else if (strcmp(key, "Love") == 0) {
 				g_assert(song != NULL);
-				song->love = atoi(conn->parser->u.pair.value);
+				song->love = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Kill") == 0) {
+			else if (strcmp(key, "Kill") == 0) {
 				g_assert(song != NULL);
-				song->kill = atoi(conn->parser->u.pair.value);
+				song->kill = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Rating") == 0) {
+			else if (strcmp(key, "Rating") == 0) {
 				g_assert(song != NULL);
-				song->rating = atoi(conn->parser->u.pair.value);
+				song->rating = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Play Count") == 0) {
+			else if (strcmp(key, "Play Count") == 0) {
 				g_assert(song != NULL);
-				song->play_count = atoi(conn->parser->u.pair.value);
+				song->play_count = atoi(value);
 			}
-			else if (strcmp(conn->parser->u.pair.name, "Tag") == 0) {
+			else if (strcmp(key, "Tag") == 0) {
 				g_assert(song != NULL);
-				song->tags = g_slist_prepend(song->tags, g_strdup(conn->parser->u.pair.value));
+				song->tags = g_slist_prepend(song->tags, g_strdup(value));
 			}
 			else {
 				g_set_error(&conn->error, connection_quark(),

@@ -1600,6 +1600,14 @@ command_process(struct client *client, char *line)
 	if (cmd)
 		ret = cmd->handler(client, argc, argv);
 
+	/* Disable the authorizer again */
+	if (!db_set_authorizer(NULL, NULL, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		current_command = NULL;
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+
 	current_command = NULL;
 	return ret;
 }

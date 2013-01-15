@@ -206,6 +206,18 @@ bool
 db_rate_absolute_song_expr(const char *expr, int rating, int *changes, GError **error);
 
 bool
+db_count_absolute_artist_expr(const char *expr, int rating, int *changes, GError **error);
+
+bool
+db_count_absolute_album_expr(const char *expr, int rating, int *changes, GError **error);
+
+bool
+db_count_absolute_genre_expr(const char *expr, int rating, int *changes, GError **error);
+
+bool
+db_count_absolute_song_expr(const char *expr, int rating, int *changes, GError **error);
+
+bool
 db_add_artist_tag_expr(const char *expr, const char *tag, int *changes, GError **error);
 
 bool

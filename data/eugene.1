@@ -1,0 +1,135 @@
+.TH eugene 1 "February 25, 2011" "manual"
+.SH NAME
+.PP
+eugene - mpdcron statistics client
+.SH SYNOPSIS
+.PP
+eugene \f[I]command\f[] [\f[I]option\f[]]
+.SH DESCRIPTION
+.PP
+\f[B]eugene\f[] is an \f[B]mpdcron\f[] client which can be used to
+interact with the statistics database.
+.SH COMMANDS
+.PP
+By default these commands (except the first three) work on the
+current playing song.
+.PP
+For more information about the \f[I]expression\f[] syntax, see:
+<http://www.sqlite.org/lang_expr.html>.
+.TP
+.B help
+Display help and exit.
+.RS
+.RE
+.TP
+.B version
+Display version and exit.
+.RS
+.RE
+.TP
+.B list [\f[I]option\f[]\&...] \f[I]expression\f[]
+List song/artist/album/genre.
+.RS
+.RE
+.TP
+.B listinfo [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+List song/artist/album/genre.
+.RS
+.RE
+.TP
+.B count [\f[I]option\f[]\&...] \f[I]count\f[] [\f[I]expression\f[]]
+Change play count of song/artist/album/genre.
+.RS
+.RE
+.TP
+.B countabs [\f[I]option\f[]\&...] \f[I]count\f[] [\f[I]expression\f[]]
+Change (absolute fashion) play count of song/artist/album/genre.
+.RS
+.RE
+.TP
+.B hate [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+Hate song/artist/album/genre.
+.RS
+.RE
+.TP
+.B love [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+Love song/artist/album/genre.
+.RS
+.RE
+.TP
+.B kill [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+Kill song/artist/album/genre.
+.RS
+.RE
+.TP
+.B unkill [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+Unkill song/artist/album/genre.
+.RS
+.RE
+.TP
+.B rate [\f[I]option\f[]\&...] \f[I]rating\f[] [\f[I]expression\f[]]
+Rate song/artist/album/genre.
+.RS
+.RE
+.TP
+.B rateabs [\f[I]option\f[]\&...] \f[I]rating\f[] [\f[I]expression\f[]]
+Rate (absolute fashion) song/artist/album/genre.
+.RS
+.RE
+.TP
+.B addtag [\f[I]option\f[]\&...] \f[I]tag\f[] [\f[I]expression\f[]]
+Add tag to song/artist/album/genre.
+.RS
+.RE
+.TP
+.B rmtag [\f[I]option\f[]\&...] \f[I]tag\f[] [\f[I]expression\f[]]
+Remove tag from song/artist/album/genre.
+.RS
+.RE
+.TP
+.B listtags [\f[I]option\f[]\&...] [\f[I]expression\f[]]
+List tags of song/artist/album/genre.
+.RS
+.RE
+.SH OPTIONS
+.TP
+.B -h, --help
+Show help options.
+.RS
+.RE
+.TP
+.B -a, --artist
+Apply on artists instead of songs.
+.RS
+.RE
+.TP
+.B -A, --album
+Apply on albums instead of songs.
+.RS
+.RE
+.TP
+.B -g, --genre
+Apply on genres instead of songs.
+.RS
+.RE
+.SH SEE ALSO
+.IP \[bu] 2
+\f[B]mpdcron\f[](1)
+.IP \[bu] 2
+<http://alip.github.com/mpdcron/>
+.SH REPORTING BUGS
+.PP
+If you find a bug, please report it at
+<http://github.com/alip/mpdcron/issues>.
+.SH COPYRIGHT
+.PP
+Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+.PD 0
+.P
+.PD
+Free
+use of this software is granted under the terms of the GNU General
+Public License (GPL).
+.SH AUTHORS
+David Prévot <david@tilapin.org>.
+

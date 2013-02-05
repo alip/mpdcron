@@ -24,10 +24,20 @@
            alt="Fork me on GitHub" />
     </a>
   </div>
-<div id="content">
-  {{ content }}
+<div id="container">
+  <div id="content">
+    <div id="main-column">
+      {{ content }}
+    </div>
+
+    <div id="menu">
+      {% include menu.html %}
+    </div>
+  </div>
+
+  <div style='clear:both;'></div>
 </div>
-{% include menu.html %}
+
 {% include footer.html %}
 {% include google-analytics.html %}
 </body>

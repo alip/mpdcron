@@ -1,0 +1,175 @@
+---
+layout: nil
+---
+/* vim: set fdm=marker fmr=@group,@end : */
+
+/*
+ * screen.css for alip.github.com/mpdcron
+ * Copyright 2009, 2010, 2011, 2013 Ali Polatel <polatel@gmail.com>
+ */
+
+/* @group reset */
+body {
+  background-color: #fff;
+}
+
+html {
+  font-family: Verdana, sans-serif;
+  font-size: 0.7em;
+  line-height: 1.5em;
+  text-align: justify;
+}
+/* @end */
+/* @group basic */
+h1,
+h2,
+h3 {
+  font-family: Arial, sans-serif;
+  clear: left;
+}
+
+h1 {
+  font-size: 1.7em;
+}
+
+h2 {
+  font-size: 1.3em;
+}
+
+h3 {
+  font-size: 1.1em;
+}
+
+a,
+a:visited,
+a:link,
+a:active {
+  color: #3d3d3d;
+  border-bottom: 1px dotted #000000;
+  text-decoration: none;
+}
+
+a:hover {
+  color: green;
+  border-bottom: none;
+}
+
+ul.horizontal {
+  list-style-type: none;
+}
+
+ul.horizontal li {
+  display: inline;
+}
+
+th {
+  text-align:left;
+}
+
+tt {
+  color: #022355;
+  white-space: nowrap;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+code,
+pre {
+  font-family: Consolas, monospace;
+  font-size: 1em;
+  letter-spacing: 0;
+  margin: 1em 0 1.5em 0;
+}
+
+blockquote {
+  background-image: url({{ site.url }}images/quotes/open.png);
+  background-position: top left;
+  background-repeat: no-repeat;
+  text-indent: 2.5em;
+}
+
+blockquote span {
+  display: block;
+}
+/* @end */
+/* @group containers */
+div#container {
+  padding-bottom: 20px;
+}
+
+div#footer {
+  clear: both;
+  text-align: center;
+  height: 30px;
+  line-height: 0.1em;
+  padding-top: 20px;
+}
+
+div#header {
+  height: 25px;
+  margin-bottom: 5px;
+  border-bottom: 1px dashed #000;
+}
+
+div#header ul {
+  padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 10px;
+}
+
+div#header a,
+div#footer a {
+  border-bottom: none;
+  font-weight: bold;
+  font-family: "Arial", "Tahoma", "Verdana";
+}
+
+div#header li#lang a,
+div#header li#lang_other a, {
+  font-size: 95%;
+}
+
+div#header li#lang {
+  margin-right: 0.8em;
+}
+
+div#header li#lang a {
+  color: green;
+}
+
+div#menu {
+  float: right;
+  padding-left: 1.5em;
+  padding-right: 3em;
+  width: 30%;
+}
+
+div#menu h1 {
+  font-size: 1.2em;
+}
+
+div#main-column {
+  width: 60%;
+  padding-left: 2em;
+  padding-right: 1.5em;
+  float: left;
+  clear: both;
+}
+
+div#left-column {
+  width: 40%;
+  float: left;
+  clear: both;
+  margin-left: 1em;
+}
+
+div#right-column {
+  width: 32%;
+  margin-right: 0.2em;
+  padding-right: 0.4em;
+  float: right;
+}
+/* @end */

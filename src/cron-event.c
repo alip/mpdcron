@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2013 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -225,7 +225,7 @@ event_update(struct mpd_connection *conn)
 	/* A database update has started or finished.
 	 * Send status command and add the variables to the environment.
 	 */
-	name = mpd_idle_name(MPD_IDLE_OPTIONS);
+	name = mpd_idle_name(MPD_IDLE_UPDATE);
 
 	g_debug("Sending status command to Mpd server");
 	if ((status = mpd_run_status(conn)) == NULL)

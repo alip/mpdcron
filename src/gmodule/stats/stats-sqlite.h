@@ -46,10 +46,12 @@ struct db_song_data {
 	int love;		/** Love count of the song */
 	int kill;		/** Kill count of the song */
 	int rating;		/** Rating of the song */
+	int karma;		/** Karma (auto-rating) of the song */
 
 	char *uri;		/** Uri of the song */
 	int duration;		/** Duration of the song */
-	int last_modified;	/** Last modified date of the song */
+	time_t last_modified;	/** Last modified date of the song */
+	time_t last_played;	/** Last played date of the song */
 	char *artist;		/** Artist of the song */
 	char *album;		/** Album of the song */
 	char *title;		/** Title of the song */
@@ -107,10 +109,16 @@ db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *, const ch
 		void *userdata, GError **error);
 
 bool
+db_run_stmt(unsigned int stmt, GError **error);
+
+bool
 db_start_transaction(GError **error);
 
 bool
 db_end_transaction(GError **error);
+
+bool
+db_rollback_transaction(GError **error);
 
 bool
 db_set_sync(bool on, GError **error);
@@ -119,7 +127,8 @@ bool
 db_vacuum(GError **error);
 
 bool
-db_process(const struct mpd_song *song, bool increment, GError **error);
+db_process(const struct mpd_song *song, bool increment, int percent_played,
+		GError **error);
 
 bool
 db_list_artist_expr(const char *expr, GSList **values, GError **error);
@@ -156,6 +165,9 @@ db_count_genre_expr(const char *expr, int count, int *changes, GError **error);
 
 bool
 db_count_song_expr(const char *expr, int count, int *changes, GError **error);
+
+bool
+db_karma_song_expr(const char *expr, int karma, int *changes, GError **error);
 
 bool
 db_love_artist_expr(const char *expr, bool love, int *changes, GError **error);

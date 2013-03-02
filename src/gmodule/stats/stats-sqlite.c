@@ -17,11 +17,13 @@
  * Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "stats-defs.h"
 #include "stats-sqlite.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <glib.h>
 #include <mpd/client.h>
@@ -34,6 +36,17 @@ enum {
 	SQL_GET_VERSION,
 	SQL_SET_ENCODING,
 
+	SQL_BEGIN_TRANSACTION,
+	SQL_END_TRANSACTION,
+	SQL_ROLLBACK_TRANSACTION,
+
+	SQL_PRAGMA_SYNC_ON,
+	SQL_PRAGMA_SYNC_OFF,
+
+	SQL_VACUUM,
+};
+
+enum {
 	SQL_DB_CREATE_SONG,
 	SQL_DB_CREATE_ARTIST,
 	SQL_DB_CREATE_ALBUM,
@@ -41,14 +54,10 @@ enum {
 };
 
 enum {
-	SQL_BEGIN_TRANSACTION,
-	SQL_END_TRANSACTION,
+	SQL_DB_MIGRATE_10_11,
+};
 
-	SQL_PRAGMA_SYNC_ON,
-	SQL_PRAGMA_SYNC_OFF,
-
-	SQL_VACUUM,
-
+enum {
 	SQL_HAS_SONG,
 	SQL_HAS_ARTIST,
 	SQL_HAS_ALBUM,
@@ -60,18 +69,38 @@ enum {
 	SQL_INSERT_GENRE,
 
 	SQL_UPDATE_SONG,
+	SQL_UPDATE_SONG_PLAYED,
 	SQL_UPDATE_ARTIST,
 	SQL_UPDATE_ALBUM,
 	SQL_UPDATE_GENRE,
 };
 
-#define DB_VERSION	10
+#define DB_VERSION	11
+#define DB_MINIMUM_VERSION	10
+#define DB_MIGRATE_STMT_COUNT	2
+#define DB_KARMA_DEFAULT 50
+#define DB_KARMA_DEFAULT_STR "50"
+
+/* Generic database schema independent statements */
 static const char * const db_sql_maint[] = {
-	[SQL_SET_VERSION] = "PRAGMA user_version = 10;",
+	[SQL_SET_VERSION] = "PRAGMA user_version = 11;",
 	[SQL_GET_VERSION] = "PRAGMA user_version;",
 
 	[SQL_SET_ENCODING] = "PRAGMA encoding = \"UTF-8\";",
 
+	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
+	[SQL_END_TRANSACTION] = "END TRANSACTION;",
+	[SQL_ROLLBACK_TRANSACTION] = "ROLLBACK TRANSACTION;",
+
+	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
+	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
+
+	[SQL_VACUUM] = "VACUUM;",
+};
+static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+
+/* Statements for creating a new database */
+static const char * const db_sql_create[] = {
 	[SQL_DB_CREATE_SONG] =
 		"create table song(\n"
 			"\tid              INTEGER PRIMARY KEY,\n"
@@ -95,7 +124,14 @@ static const char * const db_sql_maint[] = {
 			"\tdisc            TEXT,\n"
 			"\tmb_artistid     TEXT,\n"
 			"\tmb_albumid      TEXT,\n"
-			"\tmb_trackid      TEXT);\n",
+			"\tmb_trackid      TEXT,\n"
+			"\tlast_played     INTEGER,\n"
+			"\tkarma           INTEGER\n"
+			"\t\tNOT NULL\n"
+			"\t\tCONSTRAINT karma_percent "
+				"CHECK (karma >= 0 AND karma <= 100)\n"
+			"\t\tDEFAULT " DB_KARMA_DEFAULT_STR "\n"
+			");\n",
 	[SQL_DB_CREATE_ARTIST] =
 		"create table artist(\n"
 			"\tid              INTEGER PRIMARY KEY,\n"
@@ -125,17 +161,26 @@ static const char * const db_sql_maint[] = {
 			"\tkill            INTEGER,\n"
 			"\trating          INTEGER);",
 };
-static sqlite3_stmt *db_stmt_maint[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+static sqlite3_stmt *db_stmt_create[G_N_ELEMENTS(db_sql_maint)] = { NULL };
+
+static const char * const db_sql_migrate[][DB_MIGRATE_STMT_COUNT] = {
+	[SQL_DB_MIGRATE_10_11] = {
+		"alter table song add column\n"
+			"\tlast_played     INTEGER\n;",
+		"alter table song add column\n"
+			"\tkarma           INTEGER\n"
+			"\t\tNOT NULL\n"
+			"\t\tCONSTRAINT karma_percent "
+				"CHECK (karma >= 0 AND karma <= 100)\n"
+			"\t\tDEFAULT 50\n;",
+	},
+};
+static sqlite3_stmt
+*db_stmt_migrate[G_N_ELEMENTS(db_sql_migrate)][DB_MIGRATE_STMT_COUNT] = {
+	{ NULL },
+};
 
 static const char * const db_sql[] = {
-	[SQL_BEGIN_TRANSACTION] = "BEGIN TRANSACTION;",
-	[SQL_END_TRANSACTION] = "END TRANSACTION;",
-
-	[SQL_PRAGMA_SYNC_ON] = "PRAGMA synchronous=ON;",
-	[SQL_PRAGMA_SYNC_OFF] = "PRAGMA synchronous=OFF;",
-
-	[SQL_VACUUM] = "VACUUM;",
-
 	[SQL_HAS_SONG] = "select id from song where uri=?",
 	[SQL_HAS_ARTIST] = "select id from artist where name=?",
 	[SQL_HAS_ALBUM] = "select id from album where name=?",
@@ -144,17 +189,19 @@ static const char * const db_sql[] = {
 	[SQL_INSERT_SONG] =
 			"insert into song ("
 				"play_count,"
-				"love, kill, rating, tags,"
-				"uri, duration, last_modified,"
+				"love, kill, rating, karma, tags,"
+				"uri, duration, last_modified, last_played,"
 				"artist, album, title,"
 				"track, name, genre,"
 				"date, composer, performer, disc,"
 				"mb_artistid, mb_albumid, mb_trackid)"
-				" values (?, 0, 0, 0, ':',"
+				" values (?,"
+					"0, 0, 0, ?, ':',"
 					"?, ?, ?, ?,"
+					"?, ?, ?,"
+					"?, ?, ?,"
 					"?, ?, ?, ?,"
-					"?, ?, ?, ?,"
-					"?, ?, ?, ?);",
+					"?, ?, ?);",
 	[SQL_INSERT_ARTIST] =
 			"insert into artist ("
 				"play_count, name,"
@@ -177,6 +224,29 @@ static const char * const db_sql[] = {
 				"uri=?,"
 				"duration=?,"
 				"last_modified=?,"
+				"artist=?,"
+				"album=?,"
+				"title=?,"
+				"track=?,"
+				"name=?,"
+				"genre=?,"
+				"date=?,"
+				"composer=?,"
+				"performer=?,"
+				"disc=?,"
+				"mb_artistid=?,"
+				"mb_albumid=?,"
+				"mb_trackid=?"
+				" where id=?;",
+	[SQL_UPDATE_SONG_PLAYED] =
+			"update song "
+				"set play_count = play_count + ?,"
+				"uri=?,"
+				"duration=?,"
+				"last_modified=?,"
+				"last_played = strftime('%s'),"
+				/* Round up to be able to reach 100% */
+				"karma = (karma + ? + 1) / 2,"
 				"artist=?,"
 				"album=?,"
 				"title=?,"
@@ -545,7 +615,8 @@ db_insert_genre(const struct mpd_song *song, bool increment,
 	/* Reset the statement to its initial state */
 	if (sqlite3_reset(db_stmt[SQL_INSERT_GENRE]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
-				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
+				"sqlite3_reset (%s): %s",
+				db_sql[SQL_INSERT_GENRE], sqlite3_errmsg(gdb));
 		return false;
 	}
 
@@ -569,9 +640,12 @@ db_insert_genre(const struct mpd_song *song, bool increment,
 }
 
 static bool
-db_insert_song(const struct mpd_song *song, bool increment,
+db_insert_song(const struct mpd_song *song, bool increment, int percent_played,
 		GError **error)
 {
+	int karma;
+	bool played;
+
 	g_assert(gdb != NULL);
 	g_assert(song != NULL);
 
@@ -581,51 +655,67 @@ db_insert_song(const struct mpd_song *song, bool increment,
 		return false;
 	}
 
+	if (percent_played >= 0 && percent_played <= 100) {
+		/* Round up to be able to reach 100% */
+		karma = (DB_KARMA_DEFAULT + percent_played + 1) / 2;
+		played = true;
+	} else {
+		karma = DB_KARMA_DEFAULT;
+		played = false;
+	}
+
 	if (sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 1, increment ? 1 : 0) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 2,
+		|| sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 2, karma)
+			!= SQLITE_OK
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 3,
 			mpd_song_get_uri(song),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 3,
-			mpd_song_get_duration(song)) != SQLITE_OK
 		|| sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 4,
+			mpd_song_get_duration(song)) != SQLITE_OK
+		|| sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 5,
 			mpd_song_get_last_modified(song)) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 5,
+		|| (played ?
+			sqlite3_bind_int(db_stmt[SQL_INSERT_SONG], 6,
+				time(NULL)) :
+			sqlite3_bind_null(db_stmt[SQL_INSERT_SONG], 6)
+		   ) != SQLITE_OK
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 7,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 6,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 8,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 7,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 9,
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 8,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 10,
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 9,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 11,
 			mpd_song_get_tag(song, MPD_TAG_NAME, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 10,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 12,
 			mpd_song_get_tag(song, MPD_TAG_GENRE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 11,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 13,
 			mpd_song_get_tag(song, MPD_TAG_DATE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 12,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 14,
 			mpd_song_get_tag(song, MPD_TAG_COMPOSER, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 13,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 15,
 			mpd_song_get_tag(song, MPD_TAG_PERFORMER, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 14,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 16,
 			mpd_song_get_tag(song, MPD_TAG_DISC, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 15,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 17,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ARTISTID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 16,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 18,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 17,
+		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 19,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_BIND,
@@ -751,75 +841,93 @@ db_update_genre(const struct mpd_song *song, int id,
 }
 
 static bool
-db_update_song(const struct mpd_song *song, int id,
-		bool increment, GError **error)
+db_update_song(const struct mpd_song *song, int id, bool increment,
+		int percent_played, GError **error)
 {
+	int update;
+	bool played;
 	int ret;
+	int parameter = 1;
 
 	g_assert(gdb != NULL);
 	g_assert(song != NULL);
 
-	if (sqlite3_reset(db_stmt[SQL_UPDATE_SONG]) != SQLITE_OK) {
+	if (percent_played >= 0 && percent_played <= 100) {
+		played = true;
+		update = SQL_UPDATE_SONG_PLAYED;
+	} else {
+		played = false;
+		update = SQL_UPDATE_SONG;
+	}
+
+	if (sqlite3_reset(db_stmt[update]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (sqlite3_bind_int(db_stmt[SQL_UPDATE_SONG], 1, increment ? 1 : 0) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 2,
+	if (sqlite3_bind_int(db_stmt[update], parameter++, increment ? 1 : 0)
+			!= SQLITE_OK
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_uri(song),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_int(db_stmt[SQL_UPDATE_SONG], 3,
+		|| sqlite3_bind_int(db_stmt[update], parameter++,
 			mpd_song_get_duration(song)) != SQLITE_OK
-		|| sqlite3_bind_int(db_stmt[SQL_UPDATE_SONG], 4,
+		|| sqlite3_bind_int(db_stmt[update], parameter++,
 			mpd_song_get_last_modified(song)) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 5,
+		|| (played ?
+			sqlite3_bind_int(db_stmt[update], parameter++,
+				percent_played) != SQLITE_OK :
+			false)
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 6,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 7,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 8,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 9,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_NAME, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 10,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_GENRE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 11,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_DATE, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 12,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_COMPOSER, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 13,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_PERFORMER, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 14,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_DISC, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 15,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ARTISTID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 16,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_ALBUMID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(db_stmt[SQL_UPDATE_SONG], 17,
+		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_int(db_stmt[SQL_UPDATE_SONG], 18, id)) {
+		|| sqlite3_bind_int(db_stmt[update], parameter++, id)
+			!= SQLITE_OK)
+	{
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_BIND,
 				"sqlite3_bind: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
 	do {
-		ret = sqlite3_step(db_stmt[SQL_UPDATE_SONG]);
+		ret = sqlite3_step(db_stmt[update]);
 	} while (ret == SQLITE_BUSY);
 
 	if (ret != SQLITE_DONE) {
@@ -899,20 +1007,20 @@ static bool
 db_create(GError **error)
 {
 	g_assert(gdb != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_SONG] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_ARTIST] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_ALBUM] != NULL);
-	g_assert(db_stmt_maint[SQL_DB_CREATE_GENRE] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_SONG] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_ARTIST] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_ALBUM] != NULL);
+	g_assert(db_stmt_create[SQL_DB_CREATE_GENRE] != NULL);
 	g_assert(db_stmt_maint[SQL_SET_ENCODING] != NULL);
 	g_assert(db_stmt_maint[SQL_SET_VERSION] != NULL);
 
 	/**
 	 * Create tables
 	 */
-	if (db_step(db_stmt_maint[SQL_DB_CREATE_SONG]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_ARTIST]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_ALBUM]) != SQLITE_DONE
-		|| db_step(db_stmt_maint[SQL_DB_CREATE_GENRE]) != SQLITE_DONE) {
+	if (db_step(db_stmt_create[SQL_DB_CREATE_SONG]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_ARTIST]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_ALBUM]) != SQLITE_DONE
+		|| db_step(db_stmt_create[SQL_DB_CREATE_GENRE]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_CREATE,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -939,13 +1047,63 @@ db_create(GError **error)
 	return true;
 }
 
+/*
+ * Upgrade the database schema version by executing the migration statements to
+ * get from one version to the next.
+ */
+static bool
+db_migrate(int stmt_migrate, GError **error)
+{
+	g_assert(gdb != NULL);
+
+	/* Prepare all statements for the migration step */
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT; i++) {
+		if (db_sql_migrate[stmt_migrate][i] == NULL) {
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+		} else if (sqlite3_prepare_v2(gdb,
+			db_sql_migrate[stmt_migrate][i], -1,
+			&db_stmt_migrate[stmt_migrate][i], NULL) != SQLITE_OK)
+		{
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+			g_set_error(error, db_quark(),
+					ACK_ERROR_DATABASE_PREPARE,
+					"sqlite3_prepare_v2 (%s): %s",
+					db_sql_migrate[stmt_migrate][i],
+					sqlite3_errmsg(gdb));
+			return false;
+		}
+	}
+	/* Execute all statements for the migration step */
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT &&
+			db_stmt_migrate[stmt_migrate][i] != NULL; i++) {
+		if (db_step(db_stmt_migrate[stmt_migrate][i]) != SQLITE_DONE) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
+					"sqlite3_step (%s): %s",
+					db_sql_migrate[stmt_migrate][i],
+					sqlite3_errmsg(gdb));
+			return false;
+		}
+	}
+	for (unsigned int i = 0; i < DB_MIGRATE_STMT_COUNT &&
+			db_stmt_migrate[stmt_migrate][i] != NULL; i++) {
+		if (db_stmt_migrate[stmt_migrate][i] != NULL) {
+			sqlite3_finalize(db_stmt_migrate[stmt_migrate][i]);
+			db_stmt_migrate[stmt_migrate][i] = NULL;
+		}
+	}
+	return true;
+}
+
 static bool
 db_check_ver(GError **error)
 {
-	int ret, version;
+	int ret;
+	int version = -1;
+	bool success;
 
 	g_assert(gdb != NULL);
 	g_assert(db_stmt_maint[SQL_GET_VERSION] != NULL);
+	g_assert(db_stmt_maint[SQL_SET_VERSION] != NULL);
 
 	/**
 	 * Check version
@@ -962,11 +1120,41 @@ db_check_ver(GError **error)
 		return false;
 	}
 
-	else if (version != DB_VERSION) {
+	else if (version < DB_MINIMUM_VERSION || version > DB_VERSION) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_VERSION,
 				"Database version mismatch: %d != %d",
 				version, DB_VERSION);
 		return false;
+	}
+
+	else if (version != DB_VERSION) {
+		/* Upgrade lower version database to current version in one big
+		 * transaction. If any step fails the DB should remain
+		 * unmodified
+		 */
+		success = db_start_transaction(error);
+		switch (version) {
+		case 10:
+			g_debug("Upgrading database schema from version "
+				"%d to %d", 10, 11);
+			success &= db_migrate(SQL_DB_MIGRATE_10_11, error);
+			/* fall-through to the next version */
+		}
+		if (db_step(db_stmt_maint[SQL_SET_VERSION]) != SQLITE_DONE) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_CREATE,
+					"sqlite3_step (%s): %s",
+					db_sql_maint[SQL_SET_VERSION],
+					sqlite3_errmsg(gdb));
+			success = false;
+		}
+		if (success) {
+			success &= db_end_transaction(error);
+		} else {
+			g_warning("Upgrade failed! Trying to roll back.");
+			db_rollback_transaction(error);
+		}
+		return success;
+
 	}
 	return true;
 }
@@ -1005,12 +1193,23 @@ db_init(const char *path, bool create, bool readonly,
 		return false;
 	}
 
+	for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_maint); i++) {
+		if (sqlite3_prepare_v2(gdb, db_sql_maint[i], -1,
+				&db_stmt_maint[i], NULL) != SQLITE_OK) {
+			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
+					"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+			db_close();
+			return false;
+		}
+	}
+
 	if (new) {
-		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_maint); i++) {
-			if (sqlite3_prepare_v2(gdb, db_sql_maint[i], -1,
-					&db_stmt_maint[i], NULL) != SQLITE_OK) {
+		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_create); i++) {
+			if (sqlite3_prepare_v2(gdb, db_sql_create[i], -1,
+					&db_stmt_create[i], NULL) != SQLITE_OK) {
 				g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
-						"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
+						"sqlite3_prepare_v2 (%s): %s",
+						db_sql_maint[i], sqlite3_errmsg(gdb));
 				db_close();
 				return false;
 			}
@@ -1020,22 +1219,20 @@ db_init(const char *path, bool create, bool readonly,
 			db_close();
 			return false;
 		}
+
+		for (unsigned int i = 0; i < G_N_ELEMENTS(db_sql_create); i++) {
+			if (db_stmt_create[i] != NULL) {
+				sqlite3_finalize(db_stmt_create[i]);
+				db_stmt_create[i] = NULL;
+			}
+		}
+
 	}
 	else {
-		if (sqlite3_prepare_v2(gdb, db_sql_maint[SQL_GET_VERSION], -1,
-					&db_stmt_maint[SQL_GET_VERSION],
-					NULL) != SQLITE_OK) {
-			g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
-					"sqlite3_prepare_v2: %s", sqlite3_errmsg(gdb));
-			db_close();
-			return false;
-		}
 		if (!db_check_ver(error)) {
 			db_close();
 			return false;
 		}
-		sqlite3_finalize(db_stmt_maint[SQL_GET_VERSION]);
-		db_stmt_maint[SQL_GET_VERSION] = NULL;
 	}
 
 	/* Prepare common statements */
@@ -1089,20 +1286,21 @@ db_set_authorizer(int (*xAuth)(void *, int, const char *, const char *,
 }
 
 /**
- * Database Interaction
+ * Execute a single SQL statement without an expected result
  */
 bool
-db_start_transaction(GError **error)
+db_run_stmt(unsigned int stmt, GError **error)
 {
 	g_assert(gdb != NULL);
+	g_assert(stmt < G_N_ELEMENTS(db_stmt));
 
-	if (sqlite3_reset(db_stmt[SQL_BEGIN_TRANSACTION]) != SQLITE_OK) {
+	if (sqlite3_reset(db_stmt_maint[stmt]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (db_step(db_stmt[SQL_BEGIN_TRANSACTION]) != SQLITE_DONE) {
+	if (db_step(db_stmt_maint[stmt]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -1111,24 +1309,25 @@ db_start_transaction(GError **error)
 	return true;
 }
 
+/**
+ * Database Interaction
+ */
+bool
+db_start_transaction(GError **error)
+{
+	return db_run_stmt(SQL_BEGIN_TRANSACTION, error);
+}
+
 bool
 db_end_transaction(GError **error)
 {
-	g_assert(gdb != NULL);
+	return db_run_stmt(SQL_END_TRANSACTION, error);
+}
 
-	if (sqlite3_reset(db_stmt[SQL_END_TRANSACTION]) != SQLITE_OK) {
-		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
-				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
-		return false;
-	}
-
-	if (db_step(db_stmt[SQL_END_TRANSACTION]) != SQLITE_DONE) {
-		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
-				"sqlite3_step: %s", sqlite3_errmsg(gdb));
-		return false;
-	}
-
-	return true;
+bool
+db_rollback_transaction(GError **error)
+{
+	return db_run_stmt(SQL_ROLLBACK_TRANSACTION, error);
 }
 
 bool
@@ -1138,7 +1337,8 @@ db_set_sync(bool on, GError **error)
 
 	g_assert(gdb != NULL);
 
-	stmt = on ? db_stmt[SQL_PRAGMA_SYNC_ON] : db_stmt[SQL_PRAGMA_SYNC_OFF];
+	stmt = on ? db_stmt_maint[SQL_PRAGMA_SYNC_ON] :
+		db_stmt_maint[SQL_PRAGMA_SYNC_OFF];
 
 	if (sqlite3_reset(stmt) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
@@ -1160,13 +1360,13 @@ db_vacuum(GError **error)
 {
 	g_assert(gdb != NULL);
 
-	if (sqlite3_reset(db_stmt[SQL_VACUUM]) != SQLITE_OK) {
+	if (sqlite3_reset(db_stmt_maint[SQL_VACUUM]) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_RESET,
 				"sqlite3_reset: %s", sqlite3_errmsg(gdb));
 		return false;
 	}
 
-	if (db_step(db_stmt[SQL_VACUUM]) != SQLITE_DONE) {
+	if (db_step(db_stmt_maint[SQL_VACUUM]) != SQLITE_DONE) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_STEP,
 				"sqlite3_step: %s", sqlite3_errmsg(gdb));
 		return false;
@@ -1176,7 +1376,7 @@ db_vacuum(GError **error)
 }
 
 bool
-db_process(const struct mpd_song *song, bool increment,
+db_process(const struct mpd_song *song, bool increment, int percent_played,
 		GError **error)
 {
 	int id;
@@ -1195,11 +1395,11 @@ db_process(const struct mpd_song *song, bool increment,
 	if ((id = db_has_song(mpd_song_get_uri(song), error)) < -1)
 		return false;
 	else if (id == -1) {
-		if (!db_insert_song(song, increment, error))
+		if (!db_insert_song(song, increment, percent_played,  error))
 			return false;
 	}
 	else {
-		if (!db_update_song(song, id, increment, error))
+		if (!db_update_song(song, id, increment, percent_played, error))
 			return false;
 	}
 
@@ -1622,7 +1822,8 @@ db_listinfo_song_expr(const char *expr, GSList **values,
 	g_assert(values != NULL);
 
 	sql = g_strdup_printf("select "
-			"id, play_count, love, kill, rating, uri "
+			"id, play_count, love, kill, rating, karma, "
+			"last_played, uri "
 			"from song where %s ;", expr);
 	if (sqlite3_prepare_v2(gdb, sql, -1, &stmt, NULL) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_PREPARE,
@@ -1642,7 +1843,9 @@ db_listinfo_song_expr(const char *expr, GSList **values,
 			song->love = sqlite3_column_int(stmt, 2);
 			song->kill = sqlite3_column_int(stmt, 3);
 			song->rating = sqlite3_column_int(stmt, 4);
-			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 5));
+			song->karma = sqlite3_column_int(stmt, 5);
+			song->last_played = (time_t) sqlite3_column_int64(stmt, 6);
+			song->uri = g_strdup((const char *)sqlite3_column_text(stmt, 7));
 			*values = g_slist_prepend(*values, song);
 			break;
 		case SQLITE_DONE:
@@ -1737,6 +1940,29 @@ db_count_song_expr(const char *expr, int count, int *changes, GError **error)
 	g_assert(expr != NULL);
 
 	stmt = g_strdup_printf("play_count = play_count + (%d)", count);
+	if (!sql_update_song(stmt, expr, error)) {
+		g_free(stmt);
+		return false;
+	}
+	g_free(stmt);
+
+	if (changes != NULL)
+		*changes = sqlite3_changes(gdb);
+
+	return true;
+}
+
+/** Set karma of a song absolutely */
+bool
+db_karma_song_expr(const char *expr, int karma, int *changes, GError **error)
+{
+	char *stmt;
+
+	g_assert(gdb != NULL);
+	g_assert(expr != NULL);
+	g_assert(karma >= 0 && karma <= 100);
+
+	stmt = g_strdup_printf("karma = (%d)", karma);
 	if (!sql_update_song(stmt, expr, error)) {
 		g_free(stmt);
 		return false;

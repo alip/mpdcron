@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 #include <syslog.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -74,6 +75,8 @@ struct mpdcron_song {
 	int love;
 	int kill;
 	int rating;
+	int karma;
+	time_t last_played;
 	GSList *tags;
 };
 
@@ -299,6 +302,10 @@ bool
 mpdcron_count_expr(struct mpdcron_connection *conn, const char *expr,
 		const char *count, int *changes);
 
+bool
+mpdcron_karma_expr(struct mpdcron_connection *conn, const char *expr,
+		const char *karma, int *changes);
+
 char *
 quote(const char *src);
 
@@ -340,6 +347,9 @@ cmd_listtags(int argc, char **argv);
 
 int
 cmd_count(int argc, char **argv);
+
+int
+cmd_karma(int argc, char **argv);
 
 void
 eulog(int level, const char *fmt, ...);

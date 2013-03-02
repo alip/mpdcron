@@ -58,6 +58,7 @@ usage(FILE *outf, int exitval)
 "unkill        Unkill song/artist/album/genre\n"
 "rate          Rate song/artist/album/genre\n"
 "rateabs       Rate (absolute fashion) song/artist/album/genre\n"
+"karma         Set karma rating of song\n"
 "addtag        Add tag to song/artist/album/genre\n"
 "rmtag         Remove tag from song/artist/album/genre\n"
 "listtags      List tags of song/artist/album/genre\n"
@@ -99,6 +100,8 @@ run_cmd(int argc, char **argv)
 		return cmd_listtags(argc, argv);
 	else if (strncmp(argv[0], "count", 6) == 0)
 		return cmd_count(argc, argv);
+	else if (strncmp(argv[0], "karma", 6) == 0)
+		return cmd_karma(argc, argv);
 	fprintf(stderr, "Unknown command `%s'\n", argv[0]);
 	usage(stderr, 1);
 }

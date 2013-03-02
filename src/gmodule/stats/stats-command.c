@@ -26,6 +26,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include <glib.h>
 #include <gio/gio.h>
@@ -367,6 +368,8 @@ handle_listinfo(struct client *client, int argc, char **argv)
 {
 	GError *error;
 	GSList *values, *walk;
+	struct tm *utc;
+	char last_played[25];
 
 	g_assert(argc == 2);
 
@@ -386,6 +389,13 @@ handle_listinfo(struct client *client, int argc, char **argv)
 		command_puts(client, "Love: %d", song->love);
 		command_puts(client, "Kill: %d", song->kill);
 		command_puts(client, "Rating: %d", song->rating);
+		command_puts(client, "Karma: %d", song->karma);
+		if (song->last_played != 0) {
+			utc = gmtime(&(song->last_played));
+			strftime(last_played, sizeof(last_played),
+					"%Y-%m-%dT%H:%M:%S%z", utc);
+			command_puts(client, "Last Played: %s", last_played);
+		}
 		db_song_data_free(song);
 	}
 	g_slist_free(values);
@@ -1365,6 +1375,47 @@ handle_count_genre(struct client *client, int argc, char **argv)
 }
 
 static enum command_return
+handle_karma(struct client *client, int argc, char **argv)
+{
+	int changes;
+	long karma;
+	char *endptr;
+	GError *error;
+
+	g_assert(argc == 3);
+
+	/* Convert second argument to number */
+	errno = 0;
+	endptr = NULL;
+	karma = strtol(argv[2], &endptr, 10);
+	if (errno != 0) {
+		command_error(client, ACK_ERROR_ARG,
+				"Failed to convert to number: %s",
+				g_strerror(errno));
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (endptr == argv[2]) {
+		command_error(client, ACK_ERROR_ARG, "No digits found");
+		return COMMAND_RETURN_ERROR;
+	}
+	else if (karma >= 100 || karma <= 0) {
+		command_error(client, ACK_ERROR_ARG, "Karma '%ld' should be a "
+				"percentage between 0 and 100", karma);
+		return COMMAND_RETURN_ERROR;
+	}
+
+	error = NULL;
+	if (!db_karma_song_expr(argv[1], (int)karma, &changes, &error)) {
+		command_error(client, error->code, "%s", error->message);
+		g_error_free(error);
+		return COMMAND_RETURN_ERROR;
+	}
+	command_puts(client, "changes: %d", changes);
+	command_ok(client);
+	return COMMAND_RETURN_OK;
+}
+
+static enum command_return
 handle_password(struct client *client, G_GNUC_UNUSED int argc, char **argv)
 {
 	gpointer perm = g_hash_table_lookup(globalconf.passwords, argv[1]);
@@ -1393,6 +1444,8 @@ static const struct command commands[] = {
 	{ "hate_album", PERMISSION_UPDATE, 1, 1, handle_love_album },
 	{ "hate_artist", PERMISSION_UPDATE, 1, 1, handle_love_artist },
 	{ "hate_genre", PERMISSION_UPDATE, 1, 1, handle_love_genre },
+
+	{ "karma", PERMISSION_UPDATE, 2, 2, handle_karma },
 
 	{ "kill", PERMISSION_UPDATE, 1, 1, handle_kill },
 	{ "kill_album", PERMISSION_UPDATE, 1, 1, handle_kill_album },

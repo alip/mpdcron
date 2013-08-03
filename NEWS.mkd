@@ -3,6 +3,7 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* scrobbler: (curl) fix segmentation fault with large response body
 * Require libmpdclient-2.2
 * file: ignore trailing whitespace
 * scrobbler: check the HTTP response status

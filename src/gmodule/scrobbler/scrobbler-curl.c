@@ -239,7 +239,15 @@ http_client_find_request(CURL *curl)
 static void http_request_done(struct http_request *request, CURLcode result, long status)
 {
 	/* invoke the handler method */
-	if (result != CURLE_OK) {
+	if (result == CURLE_WRITE_ERROR &&
+	    /* handle the postponed error that was caught in
+	       http_request_writefunction() */
+	    request->body->len > MAX_RESPONSE_BODY) {
+		GError *error =
+			g_error_new_literal(curl_quark(), 0,
+					    "response body is too large");
+		request->handler->error(error, request->handler_ctx);
+	} else if (result != CURLE_OK) {
 		GError *error = g_error_new(curl_quark(), result,
 					    "curl failed: %s",
 					    request->error);
@@ -451,11 +459,8 @@ static size_t http_request_writefunction(void *ptr, size_t size, size_t nmemb, v
 
 	g_string_append_len(request->body, ptr, size * nmemb);
 
-	if (request->body->len > MAX_RESPONSE_BODY) {
-		GError *error = g_error_new_literal(curl_quark(), 0,
-						    "response body is too large");
-		http_request_abort(request, error);
-	}
+	if (request->body->len > MAX_RESPONSE_BODY)
+		return 0;
 
 	return size * nmemb;
 }

@@ -341,7 +341,7 @@ static void scrobbler_handshake_response(size_t length, const char *response, vo
 }
 
 static void
-scrobbler_handshake_error(void *data)
+scrobbler_handshake_error(GError *error, void *data)
 {
 	struct scrobbler *scrobbler = data;
 
@@ -350,7 +350,10 @@ scrobbler_handshake_error(void *data)
 
 	scrobbler->state = SCROBBLER_STATE_NOTHING;
 
-	g_warning("[%s] handshake timed out", scrobbler->config->name);
+	g_warning("[%s] handshake error: %s",
+		  scrobbler->config->name, error->message);
+	g_error_free(error);
+
 	scrobbler_increase_interval(scrobbler);
 	scrobbler_schedule_handshake(scrobbler);
 }
@@ -417,7 +420,7 @@ scrobbler_submit_response(size_t length, const char *response, void *data)
 }
 
 static void
-scrobbler_submit_error(void *data)
+scrobbler_submit_error(GError *error, void *data)
 {
 	struct scrobbler *scrobbler = data;
 
@@ -425,7 +428,10 @@ scrobbler_submit_error(void *data)
 
 	scrobbler->state = SCROBBLER_STATE_READY;
 
-	g_warning("[%s] submit timed out", scrobbler->config->name);
+	g_warning("[%s] submit error: %s",
+		  scrobbler->config->name, error->message);
+	g_error_free(error);
+
 	scrobbler_increase_interval(scrobbler);
 	scrobbler_schedule_submit(scrobbler);
 }

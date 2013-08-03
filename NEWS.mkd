@@ -3,6 +3,7 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* scrobbler: better HTTP error messages
 * scrobbler: fix memory leak in as_songchange()
 * log: use ISO8601 date format
 * scrobbler: submit track numbers

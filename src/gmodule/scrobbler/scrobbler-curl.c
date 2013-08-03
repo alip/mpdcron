@@ -82,6 +82,11 @@ static struct {
 #endif
 } http_client;
 
+static inline GQuark curl_quark(void)
+{
+	return g_quark_from_static_string("curl");
+}
+
 /**
  * Frees all resources of a #http_request object.  Also unregisters
  * the CURL easy handle from the CURL multi handle.  This function
@@ -189,11 +194,11 @@ http_client_update_fds(void)
  * Aborts and frees a running HTTP request and report an error to its
  * handler.
  */
-static void http_request_abort(struct http_request *request)
+static void http_request_abort(struct http_request *request, GError *error)
 {
 	http_client.requests = g_slist_remove(http_client.requests, request);
 
-	request->handler->error(request->handler_ctx);
+	request->handler->error(error, request->handler_ctx);
 	http_request_free(request);
 }
 
@@ -202,12 +207,14 @@ static void http_request_abort(struct http_request *request)
  * methods.
  */
 static void
-http_client_abort_all_requests(void)
+http_client_abort_all_requests(GError *error)
 {
 	while (http_client.requests != NULL) {
 		struct http_request *request = http_client.requests->data;
-		http_request_abort(request);
+		http_request_abort(request, g_error_copy(error));
 	}
+
+	g_error_free(error);
 }
 
 /**
@@ -237,8 +244,10 @@ static void http_request_done(struct http_request *request, CURLcode result)
 					   request->body->str,
 					   request->handler_ctx);
 	else {
-		g_warning("curl failed: %s", request->error);
-		request->handler->error(request->handler_ctx);
+		GError *error = g_error_new(curl_quark(), result,
+					    "curl failed: %s",
+					    request->error);
+		request->handler->error(error, request->handler_ctx);
 	}
 
 	/* remove it from the list and free resources */
@@ -285,9 +294,10 @@ static bool http_multi_perform(void)
 	} while (mcode == CURLM_CALL_MULTI_PERFORM);
 
 	if (mcode != CURLM_OK && mcode != CURLM_CALL_MULTI_PERFORM) {
-		g_warning("curl_multi_perform() failed: %s\n",
-				curl_multi_strerror(mcode));
-		http_client_abort_all_requests();
+		GError *error = g_error_new(curl_quark(), mcode,
+					    "curl_multi_perform() failed: %s",
+					    curl_multi_strerror(mcode));
+		http_client_abort_all_requests(error);
 		return false;
 	}
 
@@ -432,9 +442,11 @@ static size_t http_request_writefunction(void *ptr, size_t size, size_t nmemb, v
 
 	g_string_append_len(request->body, ptr, size * nmemb);
 
-	if (request->body->len > MAX_RESPONSE_BODY)
-		/* response body too large */
-		http_request_abort(request);
+	if (request->body->len > MAX_RESPONSE_BODY) {
+		GError *error = g_error_new_literal(curl_quark(), 0,
+						    "response body is too large");
+		http_request_abort(request, error);
+	}
 
 	return size * nmemb;
 }
@@ -455,7 +467,9 @@ void http_client_request(const char *url, const char *post_data,
 	request->curl = curl_easy_init();
 	if (request->curl == NULL) {
 		g_free(request);
-		handler->error(ctx);
+		GError *error = g_error_new_literal(curl_quark(), 0,
+						    "curl_easy_init() failed");
+		handler->error(error, ctx);
 		return;
 	}
 
@@ -463,7 +477,9 @@ void http_client_request(const char *url, const char *post_data,
 	if (mcode != CURLM_OK) {
 		curl_easy_cleanup(request->curl);
 		g_free(request);
-		handler->error(ctx);
+		GError *error = g_error_new_literal(curl_quark(), 0,
+						    "curl_multi_add_handle() failed");
+		handler->error(error, ctx);
 		return;
 	}
 
@@ -489,7 +505,9 @@ void http_client_request(const char *url, const char *post_data,
 		curl_multi_remove_handle(http_client.multi, request->curl);
 		curl_easy_cleanup(request->curl);
 		g_free(request);
-		handler->error(ctx);
+		GError *error = g_error_new_literal(curl_quark(), code,
+						    "curl_easy_setopt() failed");
+		handler->error(error, ctx);
 		return;
 	}
 
@@ -503,7 +521,9 @@ void http_client_request(const char *url, const char *post_data,
 	if (!success) {
 		http_client.requests = g_slist_remove(http_client.requests, request);
 		http_request_free(request);
-		handler->error(ctx);
+		GError *error = g_error_new_literal(curl_quark(), code,
+						    "http_multi_perform() failed");
+		handler->error(error, ctx);
 		return;
 	}
 

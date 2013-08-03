@@ -48,7 +48,7 @@ struct record {
 
 struct http_client_handler {
 	void (*response)(size_t length, const char *data, void *ctx);
-	void (*error)(void *ctx);
+	void (*error)(GError *error, void *ctx);
 };
 
 struct config {

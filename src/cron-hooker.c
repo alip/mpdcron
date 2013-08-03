@@ -19,6 +19,7 @@
 
 #include "cron-defs.h"
 
+#include <limits.h>
 #include <string.h>
 
 #include <glib.h>
@@ -52,6 +53,10 @@ hooker_increment(const char *name)
 			g_setenv(calls[i].env, envstr, 1);
 			g_debug("Setting environment variable %s=%s", calls[i].env, envstr);
 			g_free(envstr);
+			if (calls[i].ncalls == UINT_MAX) {
+				g_debug("Resetting counter for %s", calls[i].env);
+				calls[i].ncalls = 0;
+			}
 			break;
 		}
 	}

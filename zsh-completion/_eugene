@@ -2,7 +2,7 @@
 
 # vim: set et sw=4 sts=4 ts=4 ft=zsh :
 # ZSH completion for _eugene
-# Copyright (c) 2010 Ali Polatel <alip@exherbo.org>
+# Copyright (c) 2010, 2013 Ali Polatel <alip@exherbo.org>
 # Distributed under the terms of the GNU General Public License v2
 
 _eugene_command() {
@@ -19,6 +19,8 @@ _eugene_command() {
         kill:"Kill song/artist/album/genre"
         unkill:"Unkill song/artist/album/genre"
         rate:"Rate song/artist/album/genre"
+        rateabs:"Rate (absolute fashion) song/artist/album/genre"
+        karma:"Set karma rating of song"
         addtag:"Add tag to song/artist/album/genre"
         rmtag:"Remove tag from song/artist/album/genre"
         listtags:"List tags of song/artist/album/genre"
@@ -101,6 +103,17 @@ _eugene_unkill() {
 
 _eugene_rate() {
     _eugene_helper_number_expr
+}
+
+_eugene_rateabs() {
+    _eugene_helper_number_expr
+}
+
+_eugene_karma() {
+    _arguments \
+        '(-h --help)'{-h,--help}'[Show help options]' \
+        ':number:' \
+        ':expression:'
 }
 
 _eugene_addtag() {

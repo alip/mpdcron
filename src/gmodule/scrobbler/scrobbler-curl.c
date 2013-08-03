@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2013 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *
@@ -65,6 +65,15 @@ static struct {
 
 	/** a linked list of all active HTTP requests */
 	GSList *requests;
+
+#if LIBCURL_VERSION_NUM >= 0x070f04
+	/**
+	 * Did CURL give us a timeout?  If yes, then we need to call
+	 * curl_multi_perform(), even if there was no event on any
+	 * file descriptor.
+	 */
+	bool timeout;
+#endif
 } http_client;
 
 /**
@@ -279,6 +288,27 @@ static gboolean
 curl_source_prepare(G_GNUC_UNUSED GSource *source, G_GNUC_UNUSED gint *timeout_)
 {
 	http_client_update_fds();
+
+#if LIBCURL_VERSION_NUM >= 0x070f04
+	http_client.timeout = false;
+
+	long timeout2;
+	CURLMcode mcode = curl_multi_timeout(http_client.multi, &timeout2);
+	if (mcode == CURLM_OK) {
+		if (timeout2 >= 0 && timeout2 < 10)
+			/* CURL 7.21.1 likes to report "timeout=0",
+			   which means we're running in a busy loop.
+			   Quite a bad idea to waste so much CPU.
+			   Let's use a lower limit of 10ms. */
+			timeout2 = 10;
+
+		*timeout_ = timeout2;
+
+		http_client.timeout = timeout2 >= 0;
+	} else
+		g_warning("curl_multi_timeout() failed: %s\n",
+			  curl_multi_strerror(mcode));
+#endif
 
 	return FALSE;
 }

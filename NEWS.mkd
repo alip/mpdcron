@@ -3,6 +3,7 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* scrobbler: submit track numbers
 * scrobbler: (journal) don't save "(null)" values
 * scrobbler: (curl) prevent recursive read calls
 * scrobbler: (curl) Implement libCURL timeouts

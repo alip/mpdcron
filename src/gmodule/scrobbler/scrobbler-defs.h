@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2013 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -39,6 +39,7 @@ struct record {
 	char *artist;
 	char *track;
 	char *album;
+	char *number;
 	char *mbid;
 	char *time;
 	int length;
@@ -146,12 +147,14 @@ void
 as_cleanup(void);
 
 void
-as_now_playing(const char *artist, const char *track, const char *album,
-		const char *mbid, const int length);
+as_now_playing(const char *artist, const char *track,
+	       const char *album, const char *number,
+	       const char *mbid, const int length);
 void
 as_songchange(const char *file, const char *artist, const char *track,
-		const char *album, const char *mbid, const int length,
-		const char *time);
+	      const char *album, const char *number,
+	      const char *mbid, const int length,
+	      const char *time);
 
 void
 as_save_cache(void);

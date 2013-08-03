@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2013 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -29,6 +29,7 @@ void record_copy(struct record *dest, const struct record *src)
 	dest->artist = g_strdup(src->artist);
 	dest->track = g_strdup(src->track);
 	dest->album = g_strdup(src->album);
+	dest->number = g_strdup(src->number);
 	dest->mbid = g_strdup(src->mbid);
 	dest->time = g_strdup(src->time);
 	dest->length = src->length;
@@ -47,6 +48,7 @@ void record_deinit(struct record *record)
 	g_free(record->artist);
 	g_free(record->track);
 	g_free(record->album);
+	g_free(record->number);
 	g_free(record->mbid);
 	g_free(record->time);
 }
@@ -62,6 +64,7 @@ void record_clear(struct record *record)
 	record->artist = NULL;
 	record->track = NULL;
 	record->album = NULL;
+	record->number = NULL;
 	record->mbid = NULL;
 	record->time = NULL;
 	record->length = 0;

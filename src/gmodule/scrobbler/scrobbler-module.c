@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2013 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -81,6 +81,7 @@ song_changed(const struct mpd_song *song)
 	as_now_playing(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
+			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
 			mpd_song_get_duration(song));
 }
@@ -125,6 +126,7 @@ song_ended(const struct mpd_song *song)
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
 			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
+			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
 			mpd_song_get_duration(song) > 0
 			? mpd_song_get_duration(song)

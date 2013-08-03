@@ -3,6 +3,7 @@
 This file lists the major changes between versions. For a more detailed list of
 every change, see git log.
 
+* scrobbler: prevent recursive read calls
 * scrobbler: Implement libCURL timeouts
 * stats: Add an automatic "karma" rating of songs, based on how often they are
   skipped or fully listened to (fixes: #13).

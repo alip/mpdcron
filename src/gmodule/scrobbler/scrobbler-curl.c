@@ -66,6 +66,12 @@ static struct {
 	/** a linked list of all active HTTP requests */
 	GSList *requests;
 
+	/**
+	 * Set when inside http_multi_info_read(), to prevent
+	 * recursive invocation.
+	 */
+	bool locked;
+
 #if LIBCURL_VERSION_NUM >= 0x070f04
 	/**
 	 * Did CURL give us a timeout?  If yes, then we need to call
@@ -247,6 +253,9 @@ http_multi_info_read(void)
 	CURLMsg *msg;
 	int msgs_in_queue;
 
+	assert(!http_client.locked);
+	http_client.locked = true;
+
 	while ((msg = curl_multi_info_read(http_client.multi, &msgs_in_queue)) != NULL) {
 		if (msg->msg == CURLMSG_DONE) {
 			struct http_request *request =
@@ -256,6 +265,8 @@ http_multi_info_read(void)
 			http_request_done(request, msg->data.result);
 		}
 	}
+
+	http_client.locked = false;
 }
 
 /**
@@ -494,5 +505,6 @@ void http_client_request(const char *url, const char *post_data,
 		return;
 	}
 
-	http_multi_info_read();
+	if (!http_client.locked)
+		http_multi_info_read();
 }

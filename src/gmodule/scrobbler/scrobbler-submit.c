@@ -667,6 +667,8 @@ as_songchange(const char *file, const char *artist, const char *track,
 			record.track, record.length);
 
 	g_slist_foreach(scrobblers, scrobbler_push_callback, &record);
+
+	record_deinit(&record);
 }
 
 static void scrobbler_new_callback(gpointer data, G_GNUC_UNUSED gpointer user_data)

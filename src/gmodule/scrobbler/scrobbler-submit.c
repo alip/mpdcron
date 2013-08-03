@@ -285,7 +285,7 @@ static char *next_line(const char **input_r, const char *end)
 	return line;
 }
 
-static void scrobbler_handshake_callback(size_t length, const char *response, void *data)
+static void scrobbler_handshake_response(size_t length, const char *response, void *data)
 {
 	struct scrobbler *scrobbler = data;
 	const char *end = response + length;
@@ -296,13 +296,6 @@ static void scrobbler_handshake_callback(size_t length, const char *response, vo
 	assert(scrobbler->state == SCROBBLER_STATE_HANDSHAKE);
 
 	scrobbler->state = SCROBBLER_STATE_NOTHING;
-
-	if (!length) {
-		g_warning("[%s] handshake timed out", scrobbler->config->name);
-		scrobbler_increase_interval(scrobbler);
-		scrobbler_schedule_handshake(scrobbler);
-		return;
-	}
 
 	line = next_line(&response, end);
 	ret = scrobbler_parse_handshake_response(scrobbler, line);
@@ -348,6 +341,26 @@ static void scrobbler_handshake_callback(size_t length, const char *response, vo
 }
 
 static void
+scrobbler_handshake_error(void *data)
+{
+	struct scrobbler *scrobbler = data;
+
+	assert(scrobbler != NULL);
+	assert(scrobbler->state == SCROBBLER_STATE_HANDSHAKE);
+
+	scrobbler->state = SCROBBLER_STATE_NOTHING;
+
+	g_warning("[%s] handshake timed out", scrobbler->config->name);
+	scrobbler_increase_interval(scrobbler);
+	scrobbler_schedule_handshake(scrobbler);
+}
+
+static const struct http_client_handler scrobbler_handshake_handler = {
+	.response = scrobbler_handshake_response,
+	.error = scrobbler_handshake_error,
+};
+
+static void
 scrobbler_queue_remove_oldest(GQueue *queue, unsigned count)
 {
 	assert(count > 0);
@@ -359,21 +372,13 @@ scrobbler_queue_remove_oldest(GQueue *queue, unsigned count)
 }
 
 static void
-scrobbler_submit_callback(size_t length, const char *response, void *data)
+scrobbler_submit_response(size_t length, const char *response, void *data)
 {
 	struct scrobbler *scrobbler = data;
 	char *newline;
 
 	assert(scrobbler->state == SCROBBLER_STATE_SUBMITTING);
 	scrobbler->state = SCROBBLER_STATE_READY;
-
-	if (!length) {
-		scrobbler->pending = 0;
-		g_warning("[%s] submit timed out", scrobbler->config->name);
-		scrobbler_increase_interval(scrobbler);
-		scrobbler_schedule_submit(scrobbler);
-		return;
-	}
 
 	newline = memchr(response, '\n', length);
 	if (newline != NULL)
@@ -410,6 +415,25 @@ scrobbler_submit_callback(size_t length, const char *response, void *data)
 		break;
 	}
 }
+
+static void
+scrobbler_submit_error(void *data)
+{
+	struct scrobbler *scrobbler = data;
+
+	assert(scrobbler->state == SCROBBLER_STATE_SUBMITTING);
+
+	scrobbler->state = SCROBBLER_STATE_READY;
+
+	g_warning("[%s] submit timed out", scrobbler->config->name);
+	scrobbler_increase_interval(scrobbler);
+	scrobbler_schedule_submit(scrobbler);
+}
+
+static const struct http_client_handler scrobbler_submit_handler = {
+	.response = scrobbler_submit_response,
+	.error = scrobbler_submit_error,
+};
 
 char *as_timestamp(void)
 {
@@ -456,7 +480,8 @@ static void scrobbler_handshake(struct scrobbler *scrobbler)
 
 	//  notice ("handshake url:\n%s", url);
 
-	http_client_request(url->str, NULL, &scrobbler_handshake_callback, scrobbler);
+	http_client_request(url->str, NULL,
+			    &scrobbler_handshake_handler, scrobbler);
 
 	g_string_free(url, true);
 }
@@ -512,7 +537,8 @@ static void scrobbler_send_now_playing(struct scrobbler *scrobbler, const char *
 	g_debug("[%s] post data: %s", scrobbler->config->name, post_data->str);
 	g_debug("[%s] url: %s", scrobbler->config->name, scrobbler->nowplay_url);
 
-	http_client_request(scrobbler->nowplay_url, post_data->str, scrobbler_submit_callback, scrobbler);
+	http_client_request(scrobbler->nowplay_url, post_data->str,
+			    &scrobbler_submit_handler, scrobbler);
 
 	g_string_free(post_data, true);
 }
@@ -607,8 +633,8 @@ scrobbler_submit(struct scrobbler *scrobbler)
 		scrobbler->config->name, scrobbler->submit_url);
 
 	scrobbler->pending = count;
-	http_client_request(scrobbler->submit_url,
-			post_data->str, &scrobbler_submit_callback, scrobbler);
+	http_client_request(scrobbler->submit_url, post_data->str,
+			    &scrobbler_submit_handler, scrobbler);
 
 	g_string_free(post_data, true);
 }

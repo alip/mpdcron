@@ -33,8 +33,8 @@ enum {
 };
 
 struct http_request {
-	http_client_callback_t *callback;
-	void *callback_data;
+	const struct http_client_handler *handler;
+	void *handler_ctx;
 
 	/** the CURL easy handle */
 	CURL *curl;
@@ -187,19 +187,19 @@ http_client_update_fds(void)
 
 /**
  * Aborts and frees a running HTTP request and report an error to its
- * callback.
+ * handler.
  */
 static void http_request_abort(struct http_request *request)
 {
 	http_client.requests = g_slist_remove(http_client.requests, request);
 
-	request->callback(0, NULL, request->callback_data);
+	request->handler->error(request->handler_ctx);
 	http_request_free(request);
 }
 
 /**
- * Abort and free all HTTP requests, but don't invoke their callback
- * functions.
+ * Abort and free all HTTP requests, but don't invoke their handler
+ * methods.
  */
 static void
 http_client_abort_all_requests(void)
@@ -231,12 +231,14 @@ http_client_find_request(CURL *curl)
  */
 static void http_request_done(struct http_request *request, CURLcode result)
 {
-	/* invoke the callback function */
+	/* invoke the handler method */
 	if (result == CURLE_OK)
-		request->callback(request->body->len, request->body->str, request->callback_data);
+		request->handler->response(request->body->len,
+					   request->body->str,
+					   request->handler_ctx);
 	else {
 		g_warning("curl failed: %s", request->error);
-		request->callback(0, NULL, request->callback_data);
+		request->handler->error(request->handler_ctx);
 	}
 
 	/* remove it from the list and free resources */
@@ -438,22 +440,22 @@ static size_t http_request_writefunction(void *ptr, size_t size, size_t nmemb, v
 }
 
 void http_client_request(const char *url, const char *post_data,
-		http_client_callback_t *callback, void *data)
+			 const struct http_client_handler *handler, void *ctx)
 {
 	struct http_request *request = g_new(struct http_request, 1);
 	CURLcode code;
 	CURLMcode mcode;
 	bool success;
 
-	request->callback = callback;
-	request->callback_data = data;
+	request->handler = handler;
+	request->handler_ctx = ctx;
 
 	/* create a CURL request */
 
 	request->curl = curl_easy_init();
 	if (request->curl == NULL) {
 		g_free(request);
-		callback(0, NULL, data);
+		handler->error(ctx);
 		return;
 	}
 
@@ -461,7 +463,7 @@ void http_client_request(const char *url, const char *post_data,
 	if (mcode != CURLM_OK) {
 		curl_easy_cleanup(request->curl);
 		g_free(request);
-		callback(0, NULL, data);
+		handler->error(ctx);
 		return;
 	}
 
@@ -487,7 +489,7 @@ void http_client_request(const char *url, const char *post_data,
 		curl_multi_remove_handle(http_client.multi, request->curl);
 		curl_easy_cleanup(request->curl);
 		g_free(request);
-		callback(0, NULL, data);
+		handler->error(ctx);
 		return;
 	}
 
@@ -501,7 +503,7 @@ void http_client_request(const char *url, const char *post_data,
 	if (!success) {
 		http_client.requests = g_slist_remove(http_client.requests, request);
 		http_request_free(request);
-		callback(0, NULL, data);
+		handler->error(ctx);
 		return;
 	}
 

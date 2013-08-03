@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2013 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -22,6 +22,7 @@
 
 #include "scrobbler-defs.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,15 +32,29 @@
 
 static int journal_file_empty;
 
-static void journal_write_record(gpointer data, gpointer user_data)
+static void
+journal_write_string(FILE *file, char field, const char *value)
+{
+	if (value != NULL)
+		fprintf(file, "%c = %s\n", field, value);
+}
+
+static void
+journal_write_record(gpointer data, gpointer user_data)
 {
 	struct record *record = data;
 	FILE *file = user_data;
 
+	assert(record->source != NULL);
+
+	journal_write_string(file, 'a', record->artist);
+	journal_write_string(file, 't', record->track);
+	journal_write_string(file, 'b', record->album);
+	journal_write_string(file, 'm', record->mbid);
+	journal_write_string(file, 'i', record->time);
+
 	fprintf(file,
-		"a = %s\nt = %s\nb = %s\nm = %s\n"
-		"i = %s\nl = %i\no = %s\n\n", record->artist,
-		record->track, record->album, record->mbid, record->time,
+		"l = %i\no = %s\n\n",
 		record->length, record->source);
 }
 

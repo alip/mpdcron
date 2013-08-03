@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2013 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -43,8 +43,8 @@
 #define DEFAULT_MPD_TIMEOUT	0
 #define DEFAULT_LOG_LEVEL	0
 
-#define DEFAULT_DATE_FORMAT		"%Y-%m-%d %H-%M-%S %Z"
-#define DEFAULT_DATE_FORMAT_SIZE	64
+#define DEFAULT_DATE_FORMAT		"%Y-%m-%dT%H:%M:%S%z"
+#define DEFAULT_DATE_FORMAT_SIZE	32
 
 #define MPDCRON_INTERNAL 1
 #include "gmodule/gmodule.h"

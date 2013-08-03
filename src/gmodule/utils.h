@@ -66,6 +66,9 @@ load_string(GKeyFile *fd, const char *grp, const char *name, bool mustload,
 		}
 	}
 
+	if (value != NULL)
+		g_strchomp(value);
+
 	*value_r = value;
 	return true;
 }

@@ -16,3 +16,8 @@ SUBDIRS= .
 if HAVE_GMODULE
 SUBDIRS+= gmodule
 endif
+
+CPPCHECK=cppcheck
+cppcheck:
+	$(CPPCHECK) $(mpdcron_SOURCES) $(DEFS) --std=c99 --std=posix --enable=all
+.PHONY: cppcheck

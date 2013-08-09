@@ -141,13 +141,16 @@ env_export_song(struct mpd_song *song)
 	const char *tag;
 	char *envstr;
 	time_t t;
+	struct tm tm;
 	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 
 	g_setenv("MPD_SONG_URI", mpd_song_get_uri(song), 1);
 
 	t = mpd_song_get_last_modified(song);
-	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
-	g_setenv("MPD_SONG_LAST_MODIFIED", date, 1);
+	if (localtime_r(&t, &tm)) {
+		strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, &tm);
+		g_setenv("MPD_SONG_LAST_MODIFIED", date, 1);
+	}
 
 	envstr = g_strdup_printf("%u", mpd_song_get_duration(song));
 	g_setenv("MPD_SONG_DURATION", envstr, 1);
@@ -203,11 +206,14 @@ env_stats(struct mpd_stats *stats)
 {
 	char *envstr;
 	time_t t;
+	struct tm tm;
 	char date[DEFAULT_DATE_FORMAT_SIZE] = { 0 };
 
 	t = mpd_stats_get_db_update_time(stats);
-	strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, localtime(&t));
-	g_setenv("MPD_DATABASE_UPDATE_TIME", date, 1);
+	if (localtime_r(&t, &tm)) {
+		strftime(date, DEFAULT_DATE_FORMAT_SIZE, DEFAULT_DATE_FORMAT, &tm);
+		g_setenv("MPD_DATABASE_UPDATE_TIME", date, 1);
+	}
 
 	envstr = g_strdup_printf("%d", mpd_stats_get_number_of_artists(stats));
 	g_setenv("MPD_DATABASE_ARTISTS", envstr, 1);

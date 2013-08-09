@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2010, 2013 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -39,6 +39,7 @@ log_output(const gchar *domain, GLogLevelFlags level,
 		break;
 	case G_LOG_LEVEL_MESSAGE:
 		dlevel = LOG_NOTICE;
+		break;
 	case G_LOG_LEVEL_INFO:
 		dlevel = LOG_INFO;
 		break;

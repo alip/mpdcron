@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2016 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -24,6 +24,7 @@
 #define MPDCRON_GUARD_UTILS_H 1
 
 #include <stdbool.h>
+#include <string.h>
 
 #include <glib.h>
 
@@ -107,6 +108,59 @@ load_integer(GKeyFile *fd, const char *grp, const char *name, int mustload,
 	}
 
 	*value_r = value;
+	return true;
+}
+
+G_GNUC_UNUSED
+static bool
+song_check_tags(const struct mpd_song *song, char **artist_r, char **title_r)
+{
+	char *artist, *title;
+
+	g_assert(song != NULL);
+	g_assert(artist_r != NULL);
+	g_assert(title_r != NULL);
+
+	artist = g_strdup(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
+	title = g_strdup(mpd_song_get_tag(song, MPD_TAG_TITLE, 0));
+
+	if (!artist && !title) {
+		return false;
+	} else if (!artist && title) {
+		/* Special case for radio stations. */
+		char *p;
+
+		if (title[0] == '-') {
+			g_free(title);
+			return false;
+		}
+
+		p = strchr(title, '-');
+
+		if (!p) {
+			g_free(title);
+			return false;
+		}
+
+		if (*(p - 1) == ' ') {
+			*(--p) = 0;
+			*artist_r = g_strdup(title);
+			*(p++) = ' ';
+		} else {
+			*p = 0;
+			*artist_r = g_strdup(title);
+			*p = '-';
+		}
+
+		if (*(p + 1) == ' ')
+			++p;
+		*title_r = g_strdup(p);
+		g_free(title);
+	} else {
+		*artist_r = artist;
+		*title_r = title;
+	}
+
 	return true;
 }
 

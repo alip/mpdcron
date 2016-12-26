@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010, 2013 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2013, 2016 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -32,9 +32,12 @@
 #include <glib.h>
 #include <mpd/client.h>
 
+#include "../utils.h"
+
 /* Globals */
 static unsigned last_id = -1;
 static bool was_paused = 0;
+static bool is_remote = 0;
 static struct mpd_song *prev = NULL;
 static GTimer *timer = NULL;
 static int save_source_id = -1;
@@ -63,27 +66,32 @@ static void
 song_changed(const struct mpd_song *song)
 {
 	g_assert(song != NULL);
+	char *artist, *title;
+	const char *uri = mpd_song_get_uri(song);
 
-	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
-		g_message("New song detected with tags missing (%s)",
-				mpd_song_get_uri(song));
+	is_remote = !!strstr(uri, "://");
+	if (is_remote)
+		g_message("New song detected with URL (%s)", uri);
+
+	if (!song_check_tags(song, &artist, &title)) {
+		g_message("New song detected with tags missing (%s)", uri);
 		g_timer_start(timer);
 		return;
 	}
 	g_timer_start(timer);
 
 	g_debug("New song detected (%s - %s), id: %u, pos: %u",
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			artist, title,
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
-	as_now_playing(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+	as_now_playing(artist, title,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
 			mpd_song_get_duration(song));
+
+	g_free(artist);
+	g_free(title);
 }
 
 static void
@@ -96,35 +104,34 @@ static void
 song_ended(const struct mpd_song *song)
 {
 	int elapsed;
+	char *artist, *title;
 
 	g_assert(song != NULL);
 
 	elapsed = g_timer_elapsed(timer, NULL);
 
-	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
+	if (!song_check_tags(song, &artist, &title)) {
 		g_message("Song (%s) has missing tags, skipping",
 				mpd_song_get_uri(song));
 		return;
 	}
 	else if (!played_long_enough(elapsed, mpd_song_get_duration(song))) {
 		g_message("Song (%s - %s), id: %u, pos: %u not played long enough, skipping",
-				mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-				mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+				artist, title,
 				mpd_song_get_id(song), mpd_song_get_pos(song));
+		g_free(artist);
+		g_free(title);
 		return;
 	}
 
 	g_debug("Submitting old song (%s - %s), id: %u, pos: %u",
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			artist, title,
 			mpd_song_get_id(song), mpd_song_get_pos(song));
 
 	/* FIXME: libmpdclient doesn't have any way to fetch the musicbrainz id.
 	 */
 	as_songchange(mpd_song_get_uri(song),
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			artist, title,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
 			mpd_song_get_tag(song, MPD_TAG_MUSICBRAINZ_TRACKID, 0),
@@ -132,6 +139,9 @@ song_ended(const struct mpd_song *song)
 			? mpd_song_get_duration(song)
 			: g_timer_elapsed(timer, NULL),
 			NULL);
+
+	g_free(artist);
+	g_free(title);
 }
 
 static void
@@ -220,11 +230,16 @@ event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 
 	/* Submit the previous song */
-	if (prev != NULL && (song == NULL || mpd_song_get_id(prev) != mpd_song_get_id(song)))
+	if (prev != NULL &&
+	    (song == NULL || mpd_song_get_id(prev) != mpd_song_get_id(song) ||
+	     (is_remote &&
+	      mpd_song_get_tag(song, MPD_TAG_TITLE, 0) != mpd_song_get_tag(prev, MPD_TAG_TITLE, 0))))
 		song_ended(prev);
 
 	if (song != NULL) {
-		if (mpd_song_get_id(song) != last_id) {
+		if (mpd_song_get_id(song) != last_id ||
+		    (is_remote && prev &&
+		     mpd_song_get_tag(song, MPD_TAG_TITLE, 0) != mpd_song_get_tag(prev, MPD_TAG_TITLE, 0))) {
 			/* New song. */
 			song_started(song);
 			last_id = mpd_song_get_id(song);

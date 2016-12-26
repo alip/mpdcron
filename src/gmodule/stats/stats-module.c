@@ -69,7 +69,10 @@ song_ended(const struct mpd_song *song)
 	elapsed = g_timer_elapsed(timer, NULL);
 	song_duration = mpd_song_get_duration(song);
 	long_enough = played_long_enough(elapsed, song_duration);
-	percent_played = elapsed * 100 / song_duration;
+	if (song_duration > 0)
+		percent_played = elapsed * 100 / song_duration;
+	else
+		percent_played = 100;
 
 	g_debug("Saving old song (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),

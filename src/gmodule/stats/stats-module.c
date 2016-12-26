@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2016 Ali Polatel <alip@exherbo.org>
  * Based in part upon mpdscribble which is:
  *   Copyright (C) 2008-2009 The Music Player Daemon Project
  *   Copyright (C) 2005-2008 Kuno Woudt <kuno@frob.nl>
@@ -127,7 +127,7 @@ init(const struct mpdcron_config *conf, GKeyFile *fd)
 	g_debug("Initializing");
 
 	/* Load configuration */
-	if (file_load(conf, fd) < 0)
+	if (!file_load(conf, fd))
 		return MPDCRON_INIT_FAILURE;
 
 	/* Initialize database */

@@ -29,6 +29,7 @@
 
 static unsigned last_id = -1;
 static bool was_paused = 0;
+static bool is_remote = 0;
 static struct mpd_song *prev = NULL;
 static GTimer *timer = NULL;
 
@@ -41,9 +42,16 @@ played_long_enough(int elapsed, int length)
 static void
 song_changed(const struct mpd_song *song)
 {
+	const char *uri;
+
 	g_assert(song != NULL);
 
 	g_timer_start(timer);
+
+	uri = mpd_song_get_uri(song);
+	is_remote = !!strstr(uri, "://");
+	if (is_remote)
+		g_message("New song detected with URL (%s)", uri);
 
 	g_debug("New song detected (%s - %s), id: %u, pos: %u",
 			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
@@ -195,11 +203,16 @@ event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 	}
 
 	/* Submit the previous song */
-	if (prev != NULL && (song == NULL || mpd_song_get_id(prev) != mpd_song_get_id(song)))
+	if (prev != NULL &&
+	    (song == NULL || mpd_song_get_id(prev) != mpd_song_get_id(song) ||
+	     (is_remote &&
+	      mpd_song_get_tag(song, MPD_TAG_TITLE, 0) != mpd_song_get_tag(prev, MPD_TAG_TITLE, 0))))
 		song_ended(prev);
 
 	if (song != NULL) {
-		if (mpd_song_get_id(song) != last_id) {
+		if (mpd_song_get_id(song) != last_id ||
+		    (is_remote && prev != NULL &&
+		     mpd_song_get_tag(song, MPD_TAG_TITLE, 0) != mpd_song_get_tag(prev, MPD_TAG_TITLE, 0))) {
 			/* New song. */
 			song_started(song);
 			last_id = mpd_song_get_id(song);

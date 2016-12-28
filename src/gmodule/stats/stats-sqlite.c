@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2016 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -28,6 +28,8 @@
 #include <glib.h>
 #include <mpd/client.h>
 #include <sqlite3.h>
+
+#include "../utils.h"
 
 static sqlite3 *gdb = NULL;
 
@@ -537,11 +539,10 @@ db_has_song(const char *uri, GError **error)
  * Database Inserts/Updates
  */
 static bool
-db_insert_artist(const struct mpd_song *song, bool increment,
-		GError **error)
+db_insert_artist(const char *artist, bool increment, GError **error)
 {
 	g_assert(gdb != NULL);
-	g_assert(song != NULL);
+	g_assert(artist != NULL);
 
 	/* Reset the statement to its initial state */
 	if (sqlite3_reset(db_stmt[SQL_INSERT_ARTIST]) != SQLITE_OK) {
@@ -553,7 +554,7 @@ db_insert_artist(const struct mpd_song *song, bool increment,
 	if (sqlite3_bind_int(db_stmt[SQL_INSERT_ARTIST],
 				1, increment ? 1 : 0) != SQLITE_OK
 			|| sqlite3_bind_text(db_stmt[SQL_INSERT_ARTIST],
-				2, mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+				2, artist,
 				-1, SQLITE_STATIC) != SQLITE_OK) {
 		g_set_error(error, db_quark(), ACK_ERROR_DATABASE_BIND,
 				"sqlite3_bind: %s", sqlite3_errmsg(gdb));
@@ -640,8 +641,8 @@ db_insert_genre(const struct mpd_song *song, bool increment,
 }
 
 static bool
-db_insert_song(const struct mpd_song *song, bool increment, int percent_played,
-		GError **error)
+db_insert_song(const struct mpd_song *song, const char *artist, const char *title,
+	       bool increment, int percent_played, GError **error)
 {
 	int karma;
 	bool played;
@@ -680,13 +681,13 @@ db_insert_song(const struct mpd_song *song, bool increment, int percent_played,
 			sqlite3_bind_null(db_stmt[SQL_INSERT_SONG], 6)
 		   ) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 7,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+			artist,
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 8,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 9,
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			title,
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[SQL_INSERT_SONG], 10,
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
@@ -733,11 +734,10 @@ db_insert_song(const struct mpd_song *song, bool increment, int percent_played,
 }
 
 static bool
-db_update_artist(const struct mpd_song *song, int id,
-		bool increment, GError **error)
+db_update_artist(const char *artist, int id, bool increment, GError **error)
 {
 	g_assert(gdb != NULL);
-	g_assert(song != NULL);
+	g_assert(artist != NULL);
 
 	/* Reset the statement to its initial state */
 	if (sqlite3_reset(db_stmt[SQL_UPDATE_ARTIST]) != SQLITE_OK) {
@@ -749,7 +749,7 @@ db_update_artist(const struct mpd_song *song, int id,
 	if (sqlite3_bind_int(db_stmt[SQL_UPDATE_ARTIST],
 				1, increment ? 1 : 0) != SQLITE_OK
 			|| sqlite3_bind_text(db_stmt[SQL_UPDATE_ARTIST],
-				2, mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+				2, artist,
 				-1, SQLITE_STATIC) != SQLITE_OK
 			|| sqlite3_bind_int(db_stmt[SQL_UPDATE_ARTIST],
 				3, id) != SQLITE_OK) {
@@ -841,8 +841,8 @@ db_update_genre(const struct mpd_song *song, int id,
 }
 
 static bool
-db_update_song(const struct mpd_song *song, int id, bool increment,
-		int percent_played, GError **error)
+db_update_song(const struct mpd_song *song, const char *artist, const char *title,
+	       int id, bool increment, int percent_played, GError **error)
 {
 	int update;
 	bool played;
@@ -880,13 +880,13 @@ db_update_song(const struct mpd_song *song, int id, bool increment,
 				percent_played) != SQLITE_OK :
 			false)
 		|| sqlite3_bind_text(db_stmt[update], parameter++,
-			mpd_song_get_tag(song, MPD_TAG_ARTIST, 0),
+			artist,
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[update], parameter++,
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0),
+			title,
 			-1, SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(db_stmt[update], parameter++,
 			mpd_song_get_tag(song, MPD_TAG_TRACK, 0),
@@ -1380,39 +1380,54 @@ db_process(const struct mpd_song *song, bool increment, int percent_played,
 		GError **error)
 {
 	int id;
+	char *artist, *title;
 
 	g_assert(gdb != NULL);
 	g_assert(song != NULL);
 
-	if (mpd_song_get_tag(song, MPD_TAG_ARTIST, 0) == NULL ||
-			mpd_song_get_tag(song, MPD_TAG_TITLE, 0) == NULL) {
+	if (!song_check_tags(song, &artist, &title)) {
 		g_set_error(error, db_quark(), ACK_ERROR_NO_TAGS,
 				"Song (%s) doesn't have required tags",
 				mpd_song_get_uri(song));
 		return true;
 	}
 
-	if ((id = db_has_song(mpd_song_get_uri(song), error)) < -1)
+	if ((id = db_has_song(mpd_song_get_uri(song), error)) < -1) {
+		g_free(artist);
+		g_free(title);
 		return false;
-	else if (id == -1) {
-		if (!db_insert_song(song, increment, percent_played,  error))
+	} else if (id == -1) {
+		if (!db_insert_song(song, artist, title, increment, percent_played, error)) {
+			g_free(artist);
+			g_free(title);
 			return false;
+		}
 	}
 	else {
-		if (!db_update_song(song, id, increment, percent_played, error))
+		if (!db_update_song(song, artist, title, id, increment, percent_played, error)) {
+			g_free(artist);
+			g_free(title);
 			return false;
+		}
 	}
+	g_free(title);
 
-	if ((id = db_has_artist(mpd_song_get_tag(song, MPD_TAG_ARTIST, 0), error)) < -1)
+	if ((id = db_has_artist(artist, error)) < -1) {
+		g_free(artist);
 		return false;
-	else if (id == -1) {
-		if (!db_insert_artist(song, increment, error))
+	} else if (id == -1) {
+		if (!db_insert_artist(artist, increment, error)) {
+			g_free(artist);
 			return false;
+		}
 	}
 	else {
-		if (!db_update_artist(song, id, increment, error))
+		if (!db_update_artist(artist, id, increment, error)) {
+			g_free(artist);
 			return false;
+		}
 	}
+	g_free(artist);
 
 	if (mpd_song_get_tag(song, MPD_TAG_ALBUM, 0) != NULL) {
 		if ((id = db_has_album(mpd_song_get_tag(song, MPD_TAG_ALBUM, 0),

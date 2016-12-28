@@ -238,7 +238,7 @@ event_player(G_GNUC_UNUSED const struct mpd_connection *conn,
 
 	if (song != NULL) {
 		if (mpd_song_get_id(song) != last_id ||
-		    (is_remote && prev &&
+		    (is_remote && prev != NULL &&
 		     mpd_song_get_tag(song, MPD_TAG_TITLE, 0) != mpd_song_get_tag(prev, MPD_TAG_TITLE, 0))) {
 			/* New song. */
 			song_started(song);

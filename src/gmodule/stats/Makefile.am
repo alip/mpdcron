@@ -33,11 +33,12 @@ eugene_SOURCES= eugene-connection.c eugene-addtag.c \
 		eugene-count.c eugene-karma.c eugene-kill.c eugene-list.c \
 		eugene-listinfo.c eugene-listtags.c eugene-love.c \
 		eugene-rate.c eugene-rate-absolute.c eugene-rmtag.c \
-		eugene-utils.c eugene-main.c
+		eugene-utils.c eugene-main.c \
+		stats-sqlite.c walrus-utils.c
 # Hack to workaround the error:
 #     object x created both with libtool and without.
 # See: http://bit.ly/libtool_both
 eugene_CFLAGS= $(AM_CFLAGS)
-eugene_LDADD= $(gio_unix_LIBS) $(gio_LIBS) $(glib_LIBS) $(libmpdclient_LIBS)
+eugene_LDADD= $(gio_unix_LIBS) $(gio_LIBS) $(glib_LIBS) $(libmpdclient_LIBS) $(sqlite_LIBS)
 
 bin_SCRIPTS= homescrape

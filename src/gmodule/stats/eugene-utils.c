@@ -1,7 +1,7 @@
 /* vim: set cino= fo=croql sw=8 ts=8 sts=0 noet cin fdm=syntax : */
 
 /*
- * Copyright (c) 2009, 2010 Ali Polatel <alip@exherbo.org>
+ * Copyright (c) 2009, 2010, 2016 Ali Polatel <alip@exherbo.org>
  *
  * This file is part of the mpdcron mpd client. mpdcron is free software;
  * you can redistribute it and/or modify it under the terms of the GNU General
@@ -18,6 +18,7 @@
  */
 
 #include "eugene-defs.h"
+#include "walrus-defs.h" /* To add current song to the database. */
 
 #include <stdlib.h>
 #include <syslog.h>
@@ -54,6 +55,9 @@ load_current_song(void)
 	const char *hostname, *password;
 	struct mpd_connection *conn;
 	struct mpd_song *song;
+
+	char *dbpath;
+	GError *error;
 
 	hostname = g_getenv(ENV_MPD_HOST)
 		? g_getenv(ENV_MPD_HOST)
@@ -94,6 +98,31 @@ load_current_song(void)
 		eulog(LOG_WARNING, "No song playing at the moment");
 		mpd_connection_free(conn);
 		return NULL;
+	}
+
+	if (!getenv("EUGENE_NODB")) {
+		/* ^^ Eugene may be remote to the mpdcron stats database, so let
+		 * the user skip this if need be.
+		 * TODO: Make this a server command. */
+		if (!db_initialized()) {
+			dbpath = xload_dbpath();
+
+			error = NULL;
+			if (!db_init(dbpath, true, false, &error)) {
+				g_printerr("Failed to load database `%s': %s\n", dbpath, error->message);
+				g_error_free(error);
+				g_free(dbpath);
+			}
+			g_free(dbpath);
+		}
+
+		error = NULL;
+		if (db_initialized() && !db_process(song, false, -1, &error)) {
+			g_printerr("Failed to process song %s: %s\n",
+					mpd_song_get_uri(song),
+					error->message);
+			g_error_free(error);
+		}
 	}
 
 	mpd_connection_free(conn);

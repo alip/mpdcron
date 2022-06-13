@@ -10,7 +10,7 @@ m4_define([mpdcron_version],        [mpdcron_version_full])
 
 AC_INIT([mpdcron], [mpdcron_version],
 		[https://github.com/alip/mpdcron/issues],
-		[mpdcron], [http://alip.github.com/mpdcron/])
+		[mpdcron], [http://alip.github.io/mpdcron/])
 
 AC_CONFIG_SRCDIR([src/cron-main.c])
 AC_CONFIG_MACRO_DIR([m4])

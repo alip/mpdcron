@@ -40,7 +40,7 @@ on port 6600.
 
 # SEE ALSO
 - `mpd`(1)
-- <http://alip.github.com/mpdcron/>
+- <http://alip.github.io/mpdcron/>
 
 # REPORTING BUGS
 If you find a bug, please report it at <http://github.com/alip/mpdcron/issues>

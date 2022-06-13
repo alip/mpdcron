@@ -1,16 +1,16 @@
 ## What is mpdcron?
-[mpdcron](http://alip.github/mpdcron) is a cron like daemon for [mpd](http://mpd.wikia.com/).  
+[mpdcron](http://alip.github.io/mpdcron) is a cron like daemon for [mpd](http://mpd.wikia.com/).  
 
 ## Features
-See [http://alip.github.com/mpdcron/#features](http://alip.github.com/mpdcron/#features)
+See [http://alip.github.io/mpdcron/#features](http://alip.github.io/mpdcron/#features)
 
 ## Configuration
-See [http://alip.github.com/mpdcron/configuration/](http://alip.github.com/mpdcron/configuration/)
+See [http://alip.github.io/mpdcron/configuration/](http://alip.github.io/mpdcron/configuration/)
 
 ## Requirements
-See [http://alip.github.com/mpdcron/#requirements](http://alip.github.com/mpdcron/#requirements)
+See [http://alip.github.io/mpdcron/#requirements](http://alip.github.io/mpdcron/#requirements)
 
 ## Contribute
-See [http://alip.github.com/mpdcron/#contribute](http://alip.github.com/mpdcron/#contribute)
+See [http://alip.github.io/mpdcron/#contribute](http://alip.github.io/mpdcron/#contribute)
 
 <!-- vim: set ft=mkd spell spelllang=en sw=4 sts=4 et : -->
